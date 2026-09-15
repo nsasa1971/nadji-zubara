@@ -25,11 +25,11 @@ function serviceIcon(slug){
 }
 
 const CITIES = [
-  { name:'Beograd', count:0, img:'https://picsum.photos/seed/beograd-city/600/500' },
-  { name:'Novi Sad', count:0, img:'https://picsum.photos/seed/novisad-city/600/500' },
-  { name:'Niš', count:0, img:'https://picsum.photos/seed/nis-city/600/500' },
-  { name:'Kragujevac', count:0, img:'https://picsum.photos/seed/kragujevac-city/600/500' },
-  { name:'Subotica', count:0, img:'https://picsum.photos/seed/subotica-city/600/500' }
+  { name:'Beograd', count:0, img:'img/city-beograd.webp' },
+  { name:'Novi Sad', count:0, img:'img/city-novi-sad.webp' },
+  { name:'Niš', count:0, img:'img/city-nis.webp' },
+  { name:'Kragujevac', count:0, img:'img/city-kragujevac.webp' },
+  { name:'Subotica', count:0, img:'img/city-subotica.webp' }
 ];
 
 const AVATAR_COLORS = ['#0EA5A3','#0B857F','#2563EB','#7C3AED','#DB2777','#D97706','#059669','#0891B2'];
