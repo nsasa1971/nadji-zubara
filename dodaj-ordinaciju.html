@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dodaj ordinaciju — Nađi Zubara</title>
+<meta name="description" content="Registrujte svoju zubarsku ordinaciju na Nađi Zubara i dođite do novih pacijenata.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230EA5A3'/%3E%3Cpath d='M12 5c-1.8 0-2.6.9-3.6.9-1.1 0-2.2-.9-3.1.1-1 1-.4 3 .1 4.9.4 1.7.7 4 1.5 6.1.3 1 .8 1.6 1.6 1.6 1.1 0 1-2.2 1.6-4.3.3-1 .6-1.7 1.4-1.7s1.1.7 1.4 1.7c.6 2.1.5 4.3 1.6 4.3.8 0 1.3-.6 1.6-1.6.7-2.1 1-4.4 1.5-6.1.5-1.9 1.1-3.9.1-4.9-.9-1-2 0-3.1-.1-1-.9-1.8-.9-2-.9Z' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-mark" data-icon="tooth"></span>
+      Nađi Zubara
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Početna</a>
+      <a href="pretraga.html">Pronađi ordinaciju</a>
+      <a href="index.html#usluge">Usluge</a>
+      <a href="kontakt.html">Kontakt</a>
+    </nav>
+    <div class="header-actions">
+      <div id="authArea"></div>
+      <a href="dodaj-ordinaciju.html" class="btn btn-ghost btn-sm">Dodaj ordinaciju</a>
+      <button class="icon-btn burger" id="burgerBtn" aria-label="Meni"><span data-icon="menu"></span></button>
+    </div>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">Početna</a>
+    <a href="pretraga.html">Pronađi ordinaciju</a>
+    <a href="index.html#usluge">Usluge</a>
+    <a href="kontakt.html">Kontakt</a>
+    <div id="mobileAuthArea"></div>
+    <a href="dodaj-ordinaciju.html" class="btn btn-primary">Dodaj ordinaciju</a>
+  </div>
+</header>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="breadcrumbs"><a href="index.html">Početna</a> / Dodaj ordinaciju</div>
+    <h1 id="pageHeading">Registrujte svoju ordinaciju</h1>
+  </div>
+</div>
+
+<div class="section">
+  <div class="container" style="max-width:860px;">
+
+    <!-- KORAK 1: IZBOR PAKETA -->
+    <div id="step-plan">
+      <div class="form-note" style="margin-bottom:24px;">
+        <span data-icon="info"></span>
+        <span>Prvo izaberite paket za vašu ordinaciju. Demo tok — nema pravog naplaćivanja.</span>
+      </div>
+
+      <div class="section-head" style="flex-direction:column;align-items:flex-start;">
+        <span class="eyebrow">Korak 1 od 2</span>
+        <h2 style="font-size:24px;">Izaberite paket</h2>
+      </div>
+
+      <div class="pricing-grid" style="max-width:860px;margin:0 auto;">
+        <div class="pricing-card" data-plan="besplatno">
+          <h3>Besplatno</h3>
+          <div class="price">0 <span>RSD / mesečno</span></div>
+          <p class="plan-desc">Osnovni unos u imenik ordinacija. Do 3 fotografije.</p>
+          <button type="button" class="btn btn-outline-navy btn-block" data-choose-add-plan="besplatno">Izaberi Besplatno</button>
+        </div>
+        <div class="pricing-card" data-plan="standard">
+          <h3>Standard</h3>
+          <div class="price">1.990 <span>RSD / mesečno</span></div>
+          <p class="plan-desc">Isticanje u pretrazi. Do 10 fotografija.</p>
+          <button type="button" class="btn btn-outline-navy btn-block" data-choose-add-plan="standard">Izaberi Standard</button>
+        </div>
+        <div class="pricing-card featured" data-plan="premium">
+          <span class="plan-badge">Najpopularniji</span>
+          <h3>Premium</h3>
+          <div class="price">3.990 <span>RSD / mesečno</span></div>
+          <p class="plan-desc">Sopstveni logo na mapi, vrh pretrage, online zakazivanje termina, neograničen broj fotografija.</p>
+          <button type="button" class="btn btn-primary btn-block" data-choose-add-plan="premium">Izaberi Premium</button>
+        </div>
+      </div>
+      <p class="skip-note"><a href="cenovnik.html">Pogledajte detaljno poređenje svih funkcionalnosti paketa →</a></p>
+    </div>
+
+    <!-- KORAK 2: FORMA -->
+    <div id="step-form" style="display:none;">
+      <div class="location-banner" style="margin-bottom:24px;">
+        <span data-icon="sparkle"></span>
+        <span class="grow">Izabrani paket: <b id="chosenPlanLabel"></b></span>
+        <button type="button" class="btn btn-ghost btn-sm" id="changePlanBtn">Promeni paket</button>
+      </div>
+
+      <div class="form-note" style="margin-bottom:24px;">
+        <span data-icon="info"></span>
+        <span>Ovo je demo forma — podaci se ne šalju na server, već samo prikazuju poruku o uspešnom slanju. U produkciji bi forma bila povezana sa bazom podataka i timom za odobravanje oglasa.</span>
+      </div>
+
+    <form class="form-card" id="listingForm">
+      <h3 style="margin-bottom:22px;">Osnovni podaci</h3>
+      <div class="form-grid">
+        <div class="form-field full">
+          <label>Naziv ordinacije *</label>
+          <input type="text" name="name" required placeholder="npr. Dental Studio Nikolić">
+        </div>
+        <div class="form-field">
+          <label>Grad *</label>
+          <select name="city" required id="citySelectForm">
+            <option value="">Izaberite grad</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Cenovni rang *</label>
+          <select name="price" required>
+            <option value="1">$ — Pristupačno</option>
+            <option value="2">$$ — Srednje</option>
+            <option value="3">$$$ — Premium</option>
+          </select>
+        </div>
+        <div class="form-field full">
+          <label>Adresa *</label>
+          <input type="text" name="address" required placeholder="Ulica i broj, grad">
+        </div>
+        <div class="form-field">
+          <label>Telefon *</label>
+          <input type="tel" name="phone" required placeholder="+381 11 234 5678">
+        </div>
+        <div class="form-field">
+          <label>Sajt ordinacije</label>
+          <input type="url" name="website" placeholder="https://...">
+        </div>
+      </div>
+
+      <h3 style="margin:32px 0 18px;">Logo ordinacije</h3>
+      <div class="form-field full" style="margin-bottom:16px;">
+        <label class="hint" style="font-weight:400;">Otpremite logo koji će se prikazivati na vašoj kartici<span id="logoPremiumHint"></span></label>
+      </div>
+      <div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+        <div class="avatar" id="logoPreview" style="position:static;width:72px;height:72px;border-radius:16px;font-size:24px;background:#0EA5A3;">?</div>
+        <div>
+          <input type="file" id="logoInput" accept="image/*">
+          <p class="skip-note" style="text-align:left;margin:8px 0 0;">PNG ili JPG, biće automatski umanjen.</p>
+        </div>
+      </div>
+
+      <h3 style="margin:32px 0 18px;">Usluge</h3>
+      <div class="form-field full">
+        <label class="hint" style="font-weight:400;">Izaberite sve usluge koje vaša ordinacija pruža</label>
+      </div>
+      <div class="checkbox-grid" id="serviceCheckboxesForm"></div>
+
+      <h3 style="margin:32px 0 18px;">Radno vreme</h3>
+      <div class="hours-grid" id="hoursGridForm"></div>
+
+      <h3 style="margin:32px 0 18px;">Opis ordinacije</h3>
+      <div class="form-field full">
+        <label>Kratak opis *</label>
+        <textarea name="description" required placeholder="Opišite vašu ordinaciju, tim i ono po čemu se izdvajate..."></textarea>
+      </div>
+
+      <h3 style="margin:32px 0 18px;">Fotografije</h3>
+      <div class="upload-box">
+        <span data-icon="image"></span>
+        <p style="margin:0;" id="uploadLimitText">Prevucite fotografije ovde ili kliknite da izaberete fajlove</p>
+        <input type="file" multiple accept="image/*" style="margin-top:14px;">
+      </div>
+
+      <div class="form-field full" style="margin-top:26px;">
+        <label class="terms-checkbox">
+          <input type="checkbox" required>
+          <span>Slažem se sa <a href="#">uslovima korišćenja</a> i potvrđujem tačnost unetih podataka.</span>
+        </label>
+      </div>
+
+      <div style="margin-top:26px;display:flex;gap:12px;">
+        <button type="submit" class="btn btn-primary" id="submitListingBtn">Pošalji zahtev za registraciju</button>
+      </div>
+    </form>
+    </div>
+
+    <div class="success-box" id="successBox">
+      <div class="icon-circle"><span data-icon="check"></span></div>
+      <h2 id="successHeading">Hvala vam!</h2>
+      <p id="successText">Vaš zahtev za registraciju ordinacije je uspešno poslat. Naš tim će pregledati podatke i kontaktirati vas u roku od 2 radna dana.</p>
+      <div id="successExtra" style="margin-bottom:18px;"></div>
+      <a href="index.html" class="btn btn-outline-navy">Nazad na početnu</a>
+    </div>
+
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="index.html" class="logo" style="color:#fff;">
+          <span class="logo-mark" data-icon="tooth"></span> Nađi Zubara
+        </a>
+        <p>Direktorijum proverenih zubarskih ordinacija u Srbiji. Pronađite pravu ordinaciju za vas i vašu porodicu.</p>
+        <div class="social-row">
+          <a href="#" aria-label="Facebook"><span data-icon="facebook"></span></a>
+          <a href="#" aria-label="Instagram"><span data-icon="instagram"></span></a>
+          <a href="#" aria-label="Twitter"><span data-icon="twitter"></span></a>
+        </div>
+      </div>
+      <div>
+        <h5>Linkovi</h5>
+        <ul>
+          <li><a href="index.html">Početna</a></li>
+          <li><a href="pretraga.html">Pronađi ordinaciju</a></li>
+          <li><a href="dodaj-ordinaciju.html">Dodaj ordinaciju</a></li>
+          <li><a href="cenovnik.html">Cenovnik</a></li>
+          <li><a href="kontakt.html">Kontakt</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Gradovi</h5>
+        <ul>
+          <li><a href="pretraga.html?city=Beograd">Beograd</a></li>
+          <li><a href="pretraga.html?city=Novi%20Sad">Novi Sad</a></li>
+          <li><a href="pretraga.html?city=Ni%C5%A1">Niš</a></li>
+          <li><a href="pretraga.html?city=Kragujevac">Kragujevac</a></li>
+          <li><a href="pretraga.html?city=Subotica">Subotica</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Kontakt</h5>
+        <ul>
+          <li>Bulevar oslobođenja 1, Beograd</li>
+          <li>info@nadjizubara.rs</li>
+          <li>+381 11 000 0000</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span data-year></span> Nađi Zubara. Sva prava zadržana.</span>
+      <span>Demo sajt — podaci o ordinacijama su ilustrativni.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/icons.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/header-auth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/imported-clinics.js"></script>
+<script src="js/cards.js"></script>
+<script src="js/main.js"></script>
+<script src="js/add-listing.js"></script>
+</body>
+</html>

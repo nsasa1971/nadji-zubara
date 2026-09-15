@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cenovnik i paketi — Nađi Zubara</title>
+<meta name="description" content="Izaberite paket za oglašavanje vaše zubarske ordinacije na Nađi Zubara — Besplatno, Standard ili Premium.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230EA5A3'/%3E%3Cpath d='M12 5c-1.8 0-2.6.9-3.6.9-1.1 0-2.2-.9-3.1.1-1 1-.4 3 .1 4.9.4 1.7.7 4 1.5 6.1.3 1 .8 1.6 1.6 1.6 1.1 0 1-2.2 1.6-4.3.3-1 .6-1.7 1.4-1.7s1.1.7 1.4 1.7c.6 2.1.5 4.3 1.6 4.3.8 0 1.3-.6 1.6-1.6.7-2.1 1-4.4 1.5-6.1.5-1.9 1.1-3.9.1-4.9-.9-1-2 0-3.1-.1-1-.9-1.8-.9-2-.9Z' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-mark" data-icon="tooth"></span>
+      Nađi Zubara
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Početna</a>
+      <a href="pretraga.html">Pronađi ordinaciju</a>
+      <a href="index.html#usluge">Usluge</a>
+      <a href="kontakt.html">Kontakt</a>
+    </nav>
+    <div class="header-actions">
+      <div id="authArea"></div>
+      <a href="dodaj-ordinaciju.html" class="btn btn-ghost btn-sm">Dodaj ordinaciju</a>
+      <button class="icon-btn burger" id="burgerBtn" aria-label="Meni"><span data-icon="menu"></span></button>
+    </div>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">Početna</a>
+    <a href="pretraga.html">Pronađi ordinaciju</a>
+    <a href="index.html#usluge">Usluge</a>
+    <a href="kontakt.html">Kontakt</a>
+    <div id="mobileAuthArea"></div>
+    <a href="dodaj-ordinaciju.html" class="btn btn-primary">Dodaj ordinaciju</a>
+  </div>
+</header>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="breadcrumbs"><a href="index.html">Početna</a> / Cenovnik</div>
+    <h1>Paketi za vašu ordinaciju</h1>
+  </div>
+</div>
+
+<div class="section">
+  <div class="container">
+    <div class="section-head" style="justify-content:center;text-align:center;flex-direction:column;align-items:center;">
+      <span class="eyebrow">Cenovnik</span>
+      <h2>Izaberite paket koji vam odgovara</h2>
+      <p>Dođite do više pacijenata isticanjem vaše ordinacije u pretrazi i na mapi. Cene su mesečne, otkažite kad god želite.</p>
+    </div>
+
+    <div class="form-note" style="margin-bottom:28px;max-width:640px;margin-left:auto;margin-right:auto;">
+      <span data-icon="info"></span>
+      <span>Demo cenovnik — klik na "Izaberi paket" ne naplaćuje ništa stvarno, samo simulira tok pretplate na vašem demo nalogu.</span>
+    </div>
+
+    <div id="planActionPanel"></div>
+
+    <div class="pricing-grid" id="pricingGrid"></div>
+
+    <div class="section-head" style="margin-top:64px;justify-content:center;text-align:center;flex-direction:column;align-items:center;">
+      <span class="eyebrow">Pitanja</span>
+      <h2 style="font-size:26px;">Često postavljana pitanja</h2>
+    </div>
+    <div style="max-width:720px;margin:0 auto;">
+      <div class="info-card">
+        <h3><span data-icon="info"></span> Mogu li da promenim paket kasnije?</h3>
+        <p style="color:var(--muted);margin:0;">Da, paket možete promeniti u bilo kom trenutku iz vašeg naloga, pod "Moji oglasi".</p>
+      </div>
+      <div class="info-card">
+        <h3><span data-icon="info"></span> Kako se ordinacija ističe na mapi?</h3>
+        <p style="color:var(--muted);margin:0;">Premium ordinacije prikazuju sopstveni logo na mapi umesto opšte oznake sajta, i pojavljuju se na vrhu rezultata pretrage.</p>
+      </div>
+      <div class="info-card">
+        <h3><span data-icon="info"></span> Da li mogu da otkažem pretplatu?</h3>
+        <p style="color:var(--muted);margin:0;">Da, u svakom trenutku možete se vratiti na besplatan paket bez ikakvih obaveza.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none;padding-top:0;">
+      <span>© <span data-year></span> Nađi Zubara. Sva prava zadržana.</span>
+      <span>Demo sajt — podaci o ordinacijama su ilustrativni.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/icons.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/header-auth.js"></script>
+<script src="js/main.js"></script>
+<script src="js/pricing.js"></script>
+</body>
+</html>

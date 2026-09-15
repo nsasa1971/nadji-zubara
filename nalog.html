@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Moj nalog — Nađi Zubara</title>
+<meta name="description" content="Vaš nalog na Nađi Zubara — oglasi, promocije, sačuvane ordinacije i podešavanja naloga.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230EA5A3'/%3E%3Cpath d='M12 5c-1.8 0-2.6.9-3.6.9-1.1 0-2.2-.9-3.1.1-1 1-.4 3 .1 4.9.4 1.7.7 4 1.5 6.1.3 1 .8 1.6 1.6 1.6 1.1 0 1-2.2 1.6-4.3.3-1 .6-1.7 1.4-1.7s1.1.7 1.4 1.7c.6 2.1.5 4.3 1.6 4.3.8 0 1.3-.6 1.6-1.6.7-2.1 1-4.4 1.5-6.1.5-1.9 1.1-3.9.1-4.9-.9-1-2 0-3.1-.1-1-.9-1.8-.9-2-.9Z' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-mark" data-icon="tooth"></span>
+      Nađi Zubara
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Početna</a>
+      <a href="pretraga.html">Pronađi ordinaciju</a>
+      <a href="index.html#usluge">Usluge</a>
+      <a href="kontakt.html">Kontakt</a>
+    </nav>
+    <div class="header-actions">
+      <div id="authArea"></div>
+      <a href="dodaj-ordinaciju.html" class="btn btn-ghost btn-sm">Dodaj ordinaciju</a>
+      <button class="icon-btn burger" id="burgerBtn" aria-label="Meni"><span data-icon="menu"></span></button>
+    </div>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">Početna</a>
+    <a href="pretraga.html">Pronađi ordinaciju</a>
+    <a href="index.html#usluge">Usluge</a>
+    <a href="kontakt.html">Kontakt</a>
+    <div id="mobileAuthArea"></div>
+    <a href="dodaj-ordinaciju.html" class="btn btn-primary">Dodaj ordinaciju</a>
+  </div>
+</header>
+
+<div class="page-hero">
+  <div class="container">
+    <div class="breadcrumbs"><a href="index.html">Početna</a> / Moj nalog</div>
+    <h1>Moj nalog</h1>
+  </div>
+</div>
+
+<div class="section">
+  <div class="container">
+    <div class="dash-layout">
+      <aside class="dash-sidebar">
+        <div class="dash-user">
+          <span class="user-avatar-sm" id="dashAvatar" style="width:42px;height:42px;font-size:15px;"></span>
+          <div>
+            <b id="dashName"></b>
+            <span id="dashRole"></span>
+          </div>
+        </div>
+        <button class="dash-nav-item active" data-dash-tab="pregled"><span data-icon="list"></span> Pregled</button>
+        <button class="dash-nav-item" data-dash-tab="termini" data-role="customer"><span data-icon="calendar"></span> Moji termini</button>
+        <button class="dash-nav-item" data-dash-tab="moji-oglasi" data-role="business"><span data-icon="building"></span> Moji oglasi</button>
+        <button class="dash-nav-item" data-dash-tab="termini-vlasnik" data-role="business"><span data-icon="calendar"></span> Termini kod mene</button>
+        <button class="dash-nav-item" data-dash-tab="recenzije-vlasnik" data-role="business"><span data-icon="chat"></span> Recenzije</button>
+        <button class="dash-nav-item" data-dash-tab="sacuvano" data-role="customer"><span data-icon="heart"></span> Sačuvano</button>
+        <button class="dash-nav-item" data-dash-tab="podesavanja"><span data-icon="user"></span> Podešavanja naloga</button>
+        <button class="dash-nav-item logout" id="dashLogoutBtn"><span data-icon="close"></span> Odjava</button>
+      </aside>
+
+      <div>
+        <!-- PREGLED -->
+        <div class="dash-panel active" id="dash-pregled">
+          <div class="dash-stats" id="dashStatsGrid"></div>
+          <div class="info-card" id="welcomeCard"></div>
+        </div>
+
+        <!-- MOJI TERMINI (pacijent) -->
+        <div class="dash-panel" id="dash-termini">
+          <div class="section-head" style="margin-bottom:20px;">
+            <div><h2 style="font-size:22px;">Moji termini</h2></div>
+            <a href="pretraga.html" class="btn btn-primary btn-sm">Pronađi ordinaciju</a>
+          </div>
+          <div id="appointmentsWrap"></div>
+        </div>
+
+        <!-- MOJI OGLASI (vlasnik) -->
+        <div class="dash-panel" id="dash-moji-oglasi">
+          <div class="section-head" style="margin-bottom:20px;">
+            <div><h2 style="font-size:22px;">Moji oglasi</h2></div>
+            <a href="dodaj-ordinaciju.html" class="btn btn-primary btn-sm">Dodaj ordinaciju</a>
+          </div>
+          <div id="myListingsWrap"></div>
+        </div>
+
+        <!-- TERMINI KOD MENE (vlasnik) -->
+        <div class="dash-panel" id="dash-termini-vlasnik">
+          <div class="section-head" style="margin-bottom:20px;">
+            <div><h2 style="font-size:22px;">Termini kod mene</h2></div>
+          </div>
+          <div class="form-note" style="margin-bottom:22px;">
+            <span data-icon="info"></span>
+            <span>Ovde vidite termine koje su pacijenti zakazali online (Premium ordinacije), i možete ručno blokirati termin (npr. za pauzu ili već dogovoren poziv telefonom) da se ne pojavi kao slobodan.</span>
+          </div>
+          <div class="info-card" id="blockSlotCard" style="display:none;">
+            <h3><span data-icon="calendar"></span> Blokiraj termin</h3>
+            <form id="blockSlotForm">
+              <div class="form-grid">
+                <div class="form-field">
+                  <label>Ordinacija</label>
+                  <select name="listingId" id="blockListingSelect"></select>
+                </div>
+                <div class="form-field">
+                  <label>Datum</label>
+                  <input type="date" name="date" required>
+                </div>
+                <div class="form-field">
+                  <label>Vreme</label>
+                  <input type="time" name="time" required>
+                </div>
+                <div class="form-field">
+                  <label>Razlog (opciono)</label>
+                  <input type="text" name="reason" placeholder="npr. Pauza, dogovoreno telefonom...">
+                </div>
+              </div>
+              <button type="submit" class="btn btn-outline-navy btn-sm" style="margin-top:6px;">Blokiraj termin</button>
+            </form>
+          </div>
+          <div id="ownerAppointmentsWrap"></div>
+        </div>
+
+        <!-- RECENZIJE (vlasnik) -->
+        <div class="dash-panel" id="dash-recenzije-vlasnik">
+          <div class="section-head" style="margin-bottom:20px;">
+            <div><h2 style="font-size:22px;">Recenzije</h2></div>
+          </div>
+          <div id="ownerReviewsWrap"></div>
+        </div>
+
+        <!-- SAČUVANO (pacijent) -->
+        <div class="dash-panel" id="dash-sacuvano">
+          <div class="section-head" style="margin-bottom:20px;">
+            <div><h2 style="font-size:22px;">Sačuvane ordinacije</h2></div>
+          </div>
+          <div class="cards-grid cols-2" id="savedGrid"></div>
+          <div class="empty-dash" id="savedEmpty" style="display:none;">
+            <span data-icon="heart"></span>
+            <h4>Još uvek nemate sačuvanih ordinacija</h4>
+            <p>Kliknite na ikonicu srca na bilo kojoj ordinaciji da je sačuvate ovde.</p>
+            <a href="pretraga.html" class="btn btn-primary" style="margin-top:14px;">Pretraži ordinacije</a>
+          </div>
+        </div>
+
+        <!-- PODEŠAVANJA -->
+        <div class="dash-panel" id="dash-podesavanja">
+          <div class="form-card" style="padding:30px;">
+            <h3 style="margin-bottom:22px;">Podešavanja naloga</h3>
+            <form id="settingsForm">
+              <div class="form-grid">
+                <div class="form-field">
+                  <label>Ime i prezime</label>
+                  <input type="text" name="name" id="settingsName">
+                </div>
+                <div class="form-field">
+                  <label>Korisničko ime</label>
+                  <input type="text" name="username" id="settingsUsername">
+                </div>
+                <div class="form-field full">
+                  <label>Email</label>
+                  <input type="email" name="email" id="settingsEmail">
+                </div>
+              </div>
+              <div style="margin-top:20px;">
+                <button type="submit" class="btn btn-primary">Sačuvaj izmene</button>
+              </div>
+            </form>
+
+            <div style="margin-top:32px;padding-top:24px;border-top:1px solid var(--border);">
+              <h4 style="margin-bottom:10px;">Tip naloga</h4>
+              <p style="color:var(--muted);margin-bottom:14px;">Trenutni tip naloga: <b id="currentRoleLabel" style="color:var(--navy);"></b></p>
+              <button type="button" class="btn btn-outline-navy" id="switchRoleBtn"></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none;padding-top:0;">
+      <span>© <span data-year></span> Nađi Zubara. Sva prava zadržana.</span>
+      <span>Demo sajt — podaci o ordinacijama su ilustrativni.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/icons.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/header-auth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/imported-clinics.js"></script>
+<script src="js/cards.js"></script>
+<script src="js/main.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

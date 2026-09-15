@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="pageTitle">Ordinacija — Nađi Zubara</title>
+<meta name="description" content="Detalji o zubarskoj ordinaciji — usluge, radno vreme, recenzije i kontakt informacije.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230EA5A3'/%3E%3Cpath d='M12 5c-1.8 0-2.6.9-3.6.9-1.1 0-2.2-.9-3.1.1-1 1-.4 3 .1 4.9.4 1.7.7 4 1.5 6.1.3 1 .8 1.6 1.6 1.6 1.1 0 1-2.2 1.6-4.3.3-1 .6-1.7 1.4-1.7s1.1.7 1.4 1.7c.6 2.1.5 4.3 1.6 4.3.8 0 1.3-.6 1.6-1.6.7-2.1 1-4.4 1.5-6.1.5-1.9 1.1-3.9.1-4.9-.9-1-2 0-3.1-.1-1-.9-1.8-.9-2-.9Z' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a href="index.html" class="logo">
+      <span class="logo-mark" data-icon="tooth"></span>
+      Nađi Zubara
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Početna</a>
+      <a href="pretraga.html">Pronađi ordinaciju</a>
+      <a href="index.html#usluge">Usluge</a>
+      <a href="kontakt.html">Kontakt</a>
+    </nav>
+    <div class="header-actions">
+      <div id="authArea"></div>
+      <a href="dodaj-ordinaciju.html" class="btn btn-ghost btn-sm">Dodaj ordinaciju</a>
+      <button class="icon-btn burger" id="burgerBtn" aria-label="Meni"><span data-icon="menu"></span></button>
+    </div>
+  </div>
+  <div class="mobile-nav" id="mobileNav">
+    <a href="index.html">Početna</a>
+    <a href="pretraga.html">Pronađi ordinaciju</a>
+    <a href="index.html#usluge">Usluge</a>
+    <a href="kontakt.html">Kontakt</a>
+    <div id="mobileAuthArea"></div>
+    <a href="dodaj-ordinaciju.html" class="btn btn-primary">Dodaj ordinaciju</a>
+  </div>
+</header>
+
+<div id="notFound" style="display:none;">
+  <div class="section" style="text-align:center;">
+    <div class="container">
+      <h2>Ordinacija nije pronađena</h2>
+      <p>Ordinacija koju tražite ne postoji ili je uklonjena.</p>
+      <a href="pretraga.html" class="btn btn-primary">Nazad na pretragu</a>
+    </div>
+  </div>
+</div>
+
+<div id="detailContent" style="display:none;">
+  <div class="detail-cover">
+    <img id="coverImg" src="" alt="">
+  </div>
+
+  <div class="detail-header">
+    <div class="container">
+      <div class="detail-header-inner">
+        <div class="detail-avatar" id="avatarBox"></div>
+        <div class="detail-title-block">
+          <div class="name-row">
+            <h1 id="clinicName"></h1>
+            <span class="verified-badge" id="verifiedBadge" title="Verifikovana ordinacija" style="display:none;" data-icon="checkCircle"></span>
+          </div>
+          <p class="muted-line" id="clinicShort"></p>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:6px;flex-wrap:wrap;">
+            <span id="clinicStars"></span>
+            <span class="muted-line" style="margin:0;" id="reviewCountLine"></span>
+            <span id="statusPillTop"></span>
+          </div>
+        </div>
+        <div class="detail-side-actions">
+          <div class="price-range-box">
+            <span>Cenovni rang</span>
+            <b id="priceRangeBox"></b>
+          </div>
+          <a class="btn btn-primary" id="callNowBtn" href="#"><span data-icon="phone"></span> Pozovi sada</a>
+        </div>
+      </div>
+
+      <div class="action-bar">
+        <a class="action-chip" id="directionsChip" href="#" target="_blank" rel="noopener"><span data-icon="directions"></span> Uputstvo za dolazak</a>
+        <a class="action-chip" id="websiteChip" href="#" target="_blank" rel="noopener"><span data-icon="globe"></span> Sajt ordinacije</a>
+        <button class="action-chip" id="bookmarkChip"><span data-icon="heart"></span> Sačuvaj</button>
+        <button class="action-chip" id="shareChip"><span data-icon="share"></span> Podeli</button>
+        <a class="action-chip" href="#recenzije" id="reviewChip"><span data-icon="chat"></span> Ostavi recenziju</a>
+        <button class="action-chip"><span data-icon="flag"></span> Prijavi</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="section-tight">
+      <div class="tabs-nav">
+        <button class="tab-btn active" data-tab="profil">Profil</button>
+        <button class="tab-btn" data-tab="recenzije">Recenzije (<span id="tabReviewCount">0</span>)</button>
+        <button class="tab-btn" data-tab="usluge">Usluge</button>
+      </div>
+
+      <div class="detail-layout">
+        <div>
+          <div class="tab-panel active" id="tab-profil">
+            <div class="info-card">
+              <h3><span data-icon="info"></span> Opis</h3>
+              <p id="clinicDescription"></p>
+            </div>
+            <div class="info-card">
+              <h3><span data-icon="image"></span> Galerija</h3>
+              <div class="gallery-grid" id="galleryGrid"></div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="tab-recenzije">
+            <div class="info-card">
+              <div class="review-summary">
+                <div class="review-score">
+                  <b id="reviewScoreBig"></b>
+                  <div id="reviewScoreStars"></div>
+                  <span id="reviewScoreCount"></span>
+                </div>
+                <div style="flex:1;min-width:200px;">
+                  <p style="margin:0;color:var(--muted);font-size:14px;">Recenzije prikazane ovde su ilustrativne (demo podaci) i služe kao primer izgleda stranice.</p>
+                </div>
+              </div>
+              <div id="reviewsList"></div>
+            </div>
+
+            <div class="info-card" id="recenzije">
+              <h3><span data-icon="chat"></span> Ostavite recenziju</h3>
+
+              <div class="login-prompt-box" id="reviewLoginPrompt" style="display:none;">
+                <span data-icon="user"></span>
+                <p>Prijavite se da biste ostavili recenziju. Ovo pomaže da recenzije budu autentične i omogućava vam da ih kasnije izmenite.</p>
+                <a href="#" id="reviewLoginBtn" class="btn btn-primary btn-sm">Prijavi se / Registruj se</a>
+              </div>
+
+              <div id="reviewFormWrap" style="display:none;">
+                <p class="skip-note" style="text-align:left;margin:0 0 14px;">Recenziju ostavljate kao <b id="reviewAsName" style="color:var(--navy);"></b></p>
+                <form id="reviewForm">
+                  <input type="hidden" name="editId" value="">
+                  <div class="form-grid">
+                    <div class="form-field">
+                      <label>Ocena</label>
+                      <select name="rating" required>
+                        <option value="5">5 — Odlično</option>
+                        <option value="4">4 — Vrlo dobro</option>
+                        <option value="3">3 — Dobro</option>
+                        <option value="2">2 — Osrednje</option>
+                        <option value="1">1 — Loše</option>
+                      </select>
+                    </div>
+                    <div class="form-field full">
+                      <label>Komentar</label>
+                      <textarea name="text" required placeholder="Podelite svoje iskustvo sa ovom ordinacijom..."></textarea>
+                    </div>
+                  </div>
+                  <div style="margin-top:16px;display:flex;gap:10px;">
+                    <button type="submit" class="btn btn-primary" id="reviewSubmitBtn">Objavi recenziju</button>
+                    <button type="button" class="btn btn-outline-navy" id="reviewCancelEditBtn" style="display:none;">Otkaži izmenu</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="tab-usluge">
+            <div class="info-card">
+              <h3><span data-icon="tooth"></span> Usluge ordinacije</h3>
+              <ul class="services-list" id="servicesList"></ul>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="info-card" id="bookingCard" style="display:none;">
+            <h3><span data-icon="calendar"></span> Online zakazivanje <span class="premium-badge-inline"><span data-icon="sparkle"></span> Premium</span></h3>
+
+            <div class="login-prompt-box" id="bookingLoginPrompt" style="display:none;">
+              <span data-icon="calendar"></span>
+              <p>Prijavite se da biste zakazali termin online.</p>
+              <a href="#" id="bookingLoginBtn" class="btn btn-primary btn-sm">Prijavi se / Registruj se</a>
+            </div>
+
+            <form id="bookingForm" style="display:none;">
+              <div class="form-field" style="margin-bottom:14px;">
+                <label>Usluga</label>
+                <select name="service" id="bookingServiceSelect" required></select>
+              </div>
+              <div class="form-field" style="margin-bottom:14px;">
+                <label>Datum</label>
+                <input type="date" name="date" id="bookingDateInput" required>
+              </div>
+              <div class="form-field" style="margin-bottom:6px;">
+                <label>Vreme</label>
+              </div>
+              <div class="time-slots" id="bookingTimeSlots"></div>
+              <div class="form-field" style="margin-bottom:16px;">
+                <label>Napomena (opciono)</label>
+                <textarea name="note" placeholder="Npr. razlog posete..." style="min-height:70px;"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block" id="bookingSubmitBtn" disabled>Potvrdi termin</button>
+            </form>
+
+            <div id="bookingSuccess" style="display:none;">
+              <div class="location-banner" style="margin:0;">
+                <span data-icon="checkCircle"></span>
+                <span class="grow">Termin je zakazan! Ordinacija će vas kontaktirati radi potvrde. (Demo — nema pravog zakazivanja.)</span>
+              </div>
+              <a href="nalog.html#termini" class="btn btn-outline-navy btn-block" style="margin-top:14px;">Pogledaj moje termine</a>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <h3><span data-icon="clock"></span> Radno vreme</h3>
+            <div id="statusPillSide" style="margin-bottom:10px;"></div>
+            <table class="hours-table" id="hoursTable"></table>
+          </div>
+          <div class="info-card">
+            <h3><span data-icon="location"></span> Lokacija</h3>
+            <p id="addressText" style="margin-bottom:14px;"></p>
+            <div class="map-embed">
+              <iframe id="mapFrame" src="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+          </div>
+          <div class="info-card">
+            <h3><span data-icon="phone"></span> Kontakt</h3>
+            <p style="margin-bottom:6px;"><a id="phoneLink" href="#"></a></p>
+            <p id="emailLine" style="margin-bottom:6px;display:none;"><a href="#"></a></p>
+            <p style="margin:0;"><a id="websiteLink" href="#" target="_blank" rel="noopener"></a></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-head" style="margin-top:20px;">
+        <div>
+          <span class="eyebrow">Slično</span>
+          <h2>Slične ordinacije u okolini</h2>
+        </div>
+      </div>
+      <div class="cards-grid" id="similarGrid"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="index.html" class="logo" style="color:#fff;">
+          <span class="logo-mark" data-icon="tooth"></span> Nađi Zubara
+        </a>
+        <p>Direktorijum proverenih zubarskih ordinacija u Srbiji. Pronađite pravu ordinaciju za vas i vašu porodicu.</p>
+        <div class="social-row">
+          <a href="#" aria-label="Facebook"><span data-icon="facebook"></span></a>
+          <a href="#" aria-label="Instagram"><span data-icon="instagram"></span></a>
+          <a href="#" aria-label="Twitter"><span data-icon="twitter"></span></a>
+        </div>
+      </div>
+      <div>
+        <h5>Linkovi</h5>
+        <ul>
+          <li><a href="index.html">Početna</a></li>
+          <li><a href="pretraga.html">Pronađi ordinaciju</a></li>
+          <li><a href="dodaj-ordinaciju.html">Dodaj ordinaciju</a></li>
+          <li><a href="cenovnik.html">Cenovnik</a></li>
+          <li><a href="kontakt.html">Kontakt</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Gradovi</h5>
+        <ul>
+          <li><a href="pretraga.html?city=Beograd">Beograd</a></li>
+          <li><a href="pretraga.html?city=Novi%20Sad">Novi Sad</a></li>
+          <li><a href="pretraga.html?city=Ni%C5%A1">Niš</a></li>
+          <li><a href="pretraga.html?city=Kragujevac">Kragujevac</a></li>
+          <li><a href="pretraga.html?city=Subotica">Subotica</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Kontakt</h5>
+        <ul>
+          <li>Bulevar oslobođenja 1, Beograd</li>
+          <li>info@nadjizubara.rs</li>
+          <li>+381 11 000 0000</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© <span data-year></span> Nađi Zubara. Sva prava zadržana.</span>
+      <span>Demo sajt — podaci o ordinacijama su ilustrativni.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/icons.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/header-auth.js"></script>
+<script src="js/data.js"></script>
+<script src="js/imported-clinics.js"></script>
+<script src="js/cards.js"></script>
+<script src="js/main.js"></script>
+<script src="js/detail.js"></script>
+</body>
+</html>

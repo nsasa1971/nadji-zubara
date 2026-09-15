@@ -1,0 +1,14 @@
+# Izvorni podaci sa privatnim poslovnim informacijama (ugovori, cene) — ne ide u javni repo
+20210227 Ordinacije.xlsx
+
+# Preuzeta demo stranica konkurentske teme — poslužila samo kao referenca za dizajn
+MyListing Theme Main Demo*.html
+
+# Originalne (neobrađene) slike — obrađene WebP verzije se koriste na sajtu i nalaze se u img/
+Hero slika.jpg
+Slika za ordinacije.jpg
+Marker za kartu.png
+
+# OS/editor smeće
+.DS_Store
+Thumbs.db
