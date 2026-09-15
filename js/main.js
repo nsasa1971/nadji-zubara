@@ -78,20 +78,6 @@ function renderHomepage(){
     document.getElementById('statOcena').textContent = avgRating;
   }
 
-  // Grid usluga
-  const servicesGrid = document.getElementById('servicesGrid');
-  if(servicesGrid){
-    servicesGrid.innerHTML = SERVICES.map(s=>{
-      const count = allListings.filter(c=>c.services.includes(s.slug)).length;
-      return `
-      <a class="service-card" href="pretraga.html?service=${s.slug}">
-        <div class="icon-wrap">${ICONS[s.icon]}</div>
-        <h4>${s.name}</h4>
-        <span class="count">${count} ordinacija${count===1?'a':''}</span>
-      </a>`;
-    }).join('');
-  }
-
   // Izdvojene ordinacije (najbolje ocenjene)
   const featuredGrid = document.getElementById('featuredGrid');
   if(featuredGrid){
@@ -100,10 +86,10 @@ function renderHomepage(){
     bindFavoriteButtons(featuredGrid);
   }
 
-  // Gradovi
-  const cityGrid = document.getElementById('cityGrid');
-  if(cityGrid){
-    cityGrid.innerHTML = CITIES.map(c=>{
+  // Gradovi (slajder)
+  const citySliderTrack = document.getElementById('citySliderTrack');
+  if(citySliderTrack){
+    const cardsHtml = CITIES.map(c=>{
       const count = allListings.filter(x => x.city === c.name).length;
       return `
       <a class="city-card" href="pretraga.html?city=${encodeURIComponent(c.name)}">
@@ -114,5 +100,7 @@ function renderHomepage(){
         </div>
       </a>`;
     }).join('');
+    // Sadržaj se duplira radi neprekidnog (beskonačnog) efekta klizanja.
+    citySliderTrack.innerHTML = cardsHtml + cardsHtml;
   }
 }

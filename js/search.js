@@ -185,6 +185,10 @@ function bindEvents(){
   document.getElementById('mobileViewFab').addEventListener('click', ()=>{
     setViewMode(viewMode === 'map' ? 'list' : 'map');
   });
+
+  document.getElementById('locateMeBtn').addEventListener('click', ()=>{
+    requestUserLocation(true);
+  });
 }
 
 function getSelectedServices(){
@@ -461,9 +465,9 @@ function renderMapMarkers(list, fit){
 
   if(fit){
     if(points.length === 1){
-      leafletMap.setView(points[0], 14);
+      leafletMap.setView(points[0], 15);
     } else if(points.length > 1){
-      leafletMap.fitBounds(points, {padding:[40,40], maxZoom:14});
+      leafletMap.fitBounds(points, {padding:[40,40], maxZoom:16});
     } else if(userLocation){
       leafletMap.setView([userLocation.lat, userLocation.lng], 13);
     }

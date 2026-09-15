@@ -29,7 +29,12 @@ const CITIES = [
   { name:'Novi Sad', count:0, img:'img/city-novi-sad.webp' },
   { name:'Niš', count:0, img:'img/city-nis.webp' },
   { name:'Kragujevac', count:0, img:'img/city-kragujevac.webp' },
-  { name:'Subotica', count:0, img:'img/city-subotica.webp' }
+  { name:'Subotica', count:0, img:'img/city-subotica.webp' },
+  { name:'Zrenjanin', count:0, img:'img/city-zrenjanin.webp' },
+  { name:'Pančevo', count:0, img:'img/city-pancevo.webp' },
+  { name:'Čačak', count:0, img:'img/city-cacak.webp' },
+  { name:'Kraljevo', count:0, img:'img/city-kraljevo.webp' },
+  { name:'Leskovac', count:0, img:'img/city-leskovac.webp' }
 ];
 
 const AVATAR_COLORS = ['#0EA5A3','#0B857F','#2563EB','#7C3AED','#DB2777','#D97706','#059669','#0891B2'];
