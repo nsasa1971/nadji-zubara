@@ -57,16 +57,19 @@
         <span data-icon="search"></span>
         <input type="text" id="queryInput" placeholder="Pretraži po nazivu ordinacije...">
       </div>
-      <div class="control">
-        <span data-icon="location"></span>
-        <select id="cityInput"><option value="">Svi gradovi</option></select>
-      </div>
-      <div class="control">
-        <span data-icon="tooth"></span>
-        <select id="serviceInput"><option value="">Sve usluge</option></select>
+      <div class="toolbar-selects" id="toolbarSelects">
+        <div class="control">
+          <span data-icon="location"></span>
+          <select id="cityInput"><option value="">Svi gradovi</option></select>
+        </div>
+        <div class="control">
+          <span data-icon="tooth"></span>
+          <select id="serviceInput"><option value="">Sve usluge</option></select>
+        </div>
       </div>
       <button class="btn btn-primary" id="applyBtn">Pretraži</button>
       <button class="btn btn-outline-navy" id="nearMeBtn" type="button"><span data-icon="pin"></span> Blizu mene</button>
+      <button class="mobile-filter-btn" id="mobileFilterBtn" type="button"><span data-icon="filter"></span> Filteri</button>
     </div>
   </div>
 </div>
@@ -75,8 +78,19 @@
   <div id="locationBanner" style="display:none;margin-top:24px;"></div>
 
   <div class="results-layout" style="margin-top:24px;">
+    <div class="filters-backdrop" id="filtersBackdrop"></div>
     <aside class="filters-panel">
-      <h4>Filteri <a href="#" class="link-reset" id="resetFilters">Resetuj</a></h4>
+      <h4>
+        <span>Filteri</span>
+        <span style="display:flex;align-items:center;gap:16px;">
+          <a href="#" class="link-reset" id="resetFilters">Resetuj</a>
+          <button type="button" class="filters-close" id="filtersCloseBtn" aria-label="Zatvori"><span data-icon="close"></span></button>
+        </span>
+      </h4>
+
+      <button type="button" class="btn btn-outline-navy btn-sm mobile-near-me-btn" id="mobileNearMeBtn"><span data-icon="pin"></span> Ordinacije blizu mene</button>
+
+      <div id="mobileFilterExtraSlot"></div>
 
       <div class="filter-group">
         <h5>Cenovni rang</h5>
@@ -112,6 +126,8 @@
           Samo verifikovane ordinacije
         </label>
       </div>
+
+      <button type="button" class="btn btn-primary btn-block mobile-filters-apply" id="mobileFiltersApply">Prikaži rezultate</button>
     </aside>
 
     <div>
@@ -164,6 +180,10 @@
       </div>
     </div>
   </div>
+
+  <button type="button" class="mobile-view-fab" id="mobileViewFab">
+    <span id="mobileViewFabIcon" data-icon="compass"></span> <span id="mobileViewFabLabel">Mapa</span>
+  </button>
 </div>
 
 <footer class="site-footer">

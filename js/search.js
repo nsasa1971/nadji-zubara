@@ -22,15 +22,43 @@ let hoverHalo = null;
 let userMarker = null;
 let userCircle = null;
 
+const MOBILE_BREAKPOINT = 860;
+
 document.addEventListener('DOMContentLoaded', () => {
   populateSelects();
   populateServiceCheckboxes();
   readFiltersFromUrl();
   bindEvents();
   syncFiltersFromDom();
+  relocateFiltersForViewport();
   initMap();
-  setViewMode('map');
+  setViewMode(window.innerWidth <= MOBILE_BREAKPOINT ? 'list' : 'map');
 });
+
+window.addEventListener('resize', relocateFiltersForViewport);
+
+function relocateFiltersForViewport(){
+  const toolbarSelects = document.getElementById('toolbarSelects');
+  const mobileSlot = document.getElementById('mobileFilterExtraSlot');
+  const toolbarRow = document.querySelector('.toolbar-row');
+  if(!toolbarSelects || !mobileSlot || !toolbarRow) return;
+  const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
+  if(isMobile && toolbarSelects.parentElement !== mobileSlot){
+    mobileSlot.appendChild(toolbarSelects);
+  } else if(!isMobile && toolbarSelects.parentElement !== toolbarRow){
+    const applyBtn = document.getElementById('applyBtn');
+    toolbarRow.insertBefore(toolbarSelects, applyBtn);
+  }
+}
+
+function openFiltersDrawer(){
+  document.querySelector('.filters-panel').classList.add('open');
+  document.getElementById('filtersBackdrop').classList.add('open');
+}
+function closeFiltersDrawer(){
+  document.querySelector('.filters-panel').classList.remove('open');
+  document.getElementById('filtersBackdrop').classList.remove('open');
+}
 
 function populateSelects(){
   const citySel = document.getElementById('cityInput');
@@ -142,6 +170,21 @@ function bindEvents(){
   });
 
   document.getElementById('clearDistanceBtn').addEventListener('click', showAllIgnoringDistance);
+
+  document.getElementById('mobileFilterBtn').addEventListener('click', openFiltersDrawer);
+  document.getElementById('filtersCloseBtn').addEventListener('click', closeFiltersDrawer);
+  document.getElementById('filtersBackdrop').addEventListener('click', closeFiltersDrawer);
+  document.getElementById('mobileFiltersApply').addEventListener('click', closeFiltersDrawer);
+
+  document.getElementById('mobileNearMeBtn').addEventListener('click', ()=>{
+    closeFiltersDrawer();
+    setViewMode('map');
+    requestUserLocation(true);
+  });
+
+  document.getElementById('mobileViewFab').addEventListener('click', ()=>{
+    setViewMode(viewMode === 'map' ? 'list' : 'map');
+  });
 }
 
 function getSelectedServices(){
@@ -320,6 +363,10 @@ function setViewMode(mode){
   document.getElementById('viewMapBtn').classList.toggle('active', mode==='map');
   document.getElementById('resultsGrid').style.display = mode==='list' ? 'grid' : 'none';
   document.getElementById('mapSplit').style.display = mode==='map' ? 'grid' : 'none';
+  const fabLabel = document.getElementById('mobileViewFabLabel');
+  const fabIcon = document.getElementById('mobileViewFabIcon');
+  if(fabLabel) fabLabel.textContent = mode === 'map' ? 'Lista' : 'Mapa';
+  if(fabIcon) fabIcon.innerHTML = mode === 'map' ? ICONS.list : ICONS.compass;
   if(mode==='map' && leafletMap){
     setTimeout(()=>{ leafletMap.invalidateSize(); }, 60);
   }

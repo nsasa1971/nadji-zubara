@@ -210,7 +210,7 @@ svg{display:block;}
   background:linear-gradient(180deg,rgba(6,25,45,.42),rgba(6,25,45,.56)),
     url('../img/hero.webp') center/cover no-repeat;
 }
-.hero-inner{position:relative;z-index:2;width:100%;padding:80px 0 64px;}
+.hero-inner{position:relative;z-index:2;width:100%;padding-top:80px;padding-bottom:64px;}
 .hero-badge{
   display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);
   border:1px solid rgba(255,255,255,.25);padding:8px 16px;border-radius:999px;
@@ -395,12 +395,19 @@ svg{display:block;}
   background:#fff;border-bottom:1px solid var(--border);padding:18px 0;position:sticky;top:76px;z-index:100;
 }
 .toolbar-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}
-.toolbar-row .control{
+.toolbar-row .control,#mobileFilterExtraSlot .control{
   display:flex;align-items:center;gap:8px;border:1.5px solid var(--border);border-radius:10px;padding:10px 14px;background:#fbfdfd;flex:1;min-width:180px;
 }
-.toolbar-row .control svg{width:17px;height:17px;color:var(--primary);flex-shrink:0;}
-.toolbar-row select,.toolbar-row input{border:none;background:transparent;outline:none;width:100%;font-size:14px;}
+.toolbar-row .control svg,#mobileFilterExtraSlot .control svg{width:17px;height:17px;color:var(--primary);flex-shrink:0;}
+.toolbar-row select,.toolbar-row input,#mobileFilterExtraSlot select,#mobileFilterExtraSlot input{border:none;background:transparent;outline:none;width:100%;font-size:14px;}
 .toolbar-row .btn{flex-shrink:0;}
+.toolbar-selects{display:contents;}
+.mobile-filter-btn{
+  display:none;flex-shrink:0;align-items:center;gap:7px;height:44px;padding:0 16px;
+  border:1.5px solid var(--border);border-radius:10px;background:#fff;font-weight:600;font-size:13.5px;color:var(--text);
+}
+.mobile-filter-btn svg{width:17px;height:17px;color:var(--primary);}
+.mobile-near-me-btn{display:none;}
 
 .results-layout{display:grid;grid-template-columns:270px 1fr;gap:32px;align-items:start;padding:36px 0 80px;}
 @media(max-width:900px){
@@ -413,6 +420,10 @@ svg{display:block;}
   position:sticky;top:150px;max-height:calc(100vh - 170px);overflow-y:auto;
 }
 .filters-panel h4{font-size:15px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.filters-close{display:none;background:var(--bg);border:none;width:32px;height:32px;border-radius:50%;align-items:center;justify-content:center;color:var(--text);flex-shrink:0;}
+.filters-close svg{width:15px;height:15px;}
+.mobile-filters-apply{display:none;}
+.filters-backdrop{display:none;}
 .filter-group{margin-bottom:24px;}
 .filter-group:last-child{margin-bottom:0;}
 .filter-group h5{font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:12px;}
@@ -631,6 +642,44 @@ svg{display:block;}
   .map-list-col{max-height:none;overflow:visible;}
   .map-col{position:relative;top:0;}
   #mapContainer{height:420px;}
+}
+
+/* ---------- Mobilni prikaz pretrage (filter fioka + plutajuće dugme mapa/lista) ---------- */
+.mobile-view-fab{display:none;}
+@media(max-width:860px){
+  .toolbar-row .control:not(:first-child){display:none;}
+  .toolbar-row #applyBtn,.toolbar-row #nearMeBtn{display:none;}
+  .mobile-filter-btn{display:flex;}
+  .mobile-near-me-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-bottom:18px;}
+
+  .view-toggle{display:none;}
+
+  #mobileFilterExtraSlot .control{margin-bottom:12px;}
+  #mobileFilterExtraSlot .control:last-child{margin-bottom:24px;}
+
+  .filters-panel{
+    display:none;position:fixed;left:0;right:0;bottom:0;top:auto;
+    max-height:82vh;overflow-y:auto;border-radius:18px 18px 0 0;z-index:250;
+    box-shadow:0 -10px 30px rgba(15,35,55,.25);
+  }
+  .filters-panel.open{display:block;}
+  .filters-close{display:flex;}
+  .mobile-filters-apply{display:block;margin-top:6px;}
+  .filters-backdrop{display:none;position:fixed;inset:0;background:rgba(6,20,35,.45);z-index:240;}
+  .filters-backdrop.open{display:block;}
+
+  .map-list-col{display:none;}
+  #mapContainer{height:calc(100vh - 160px);}
+
+  .container-fluid{padding-bottom:90px;}
+
+  .mobile-view-fab{
+    display:flex;align-items:center;gap:8px;
+    position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:150;
+    background:var(--navy);color:#fff;border:none;padding:13px 24px;border-radius:999px;
+    font-weight:600;font-size:14px;box-shadow:0 8px 24px rgba(6,20,35,.4);
+  }
+  .mobile-view-fab svg{width:17px;height:17px;}
 }
 
 /* ---------- Cenovnik / paketi ---------- */
