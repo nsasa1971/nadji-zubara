@@ -624,7 +624,7 @@ svg{display:block;}
 .distance-chip{color:var(--primary-dark);font-weight:700;}
 
 .map-col{position:sticky;top:150px;}
-#mapContainer{height:calc(100vh - 170px);min-height:520px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);background:var(--bg);}
+#mapContainer{height:calc(100vh - 170px);min-height:520px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);background:var(--bg);position:relative;z-index:0;}
 .map-move-control{
   position:absolute;z-index:400;top:14px;right:14px;background:#fff;border-radius:10px;box-shadow:var(--shadow);
   padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--text);

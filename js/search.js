@@ -183,7 +183,14 @@ function bindEvents(){
   });
 
   document.getElementById('mobileViewFab').addEventListener('click', ()=>{
-    setViewMode(viewMode === 'map' ? 'list' : 'map');
+    const goingToMap = viewMode !== 'map';
+    setViewMode(goingToMap ? 'map' : 'list');
+    // Podrazumevani prikaz mape na mobilnom je "U mojoj blizini" — pri
+    // prvom otvaranju mape automatski tražimo lokaciju korisnika umesto
+    // da ga dočeka ceo (prazan) prikaz cele Srbije.
+    if(goingToMap && locationState === 'idle' && !userLocation){
+      requestUserLocation();
+    }
   });
 
   document.getElementById('locateMeBtn').addEventListener('click', ()=>{
@@ -372,9 +379,17 @@ function setViewMode(mode){
   if(fabLabel) fabLabel.textContent = mode === 'map' ? 'Lista' : 'Mapa';
   if(fabIcon) fabIcon.innerHTML = mode === 'map' ? ICONS.list : ICONS.compass;
   if(mode==='map' && leafletMap){
-    setTimeout(()=>{ leafletMap.invalidateSize(); }, 60);
+    // Mapa mora prvo da dobije stvaran razmer (invalidateSize) pre nego
+    // što je centriramo/zumiramo — u suprotnom se fitBounds/setView
+    // računa nad kontejnerom veličine 0 (dok je bio display:none) i
+    // mapa završi centrirana na pogrešnom, praznom mestu.
+    setTimeout(()=>{
+      leafletMap.invalidateSize();
+      renderResults({fitMap:true});
+    }, 60);
+  } else {
+    renderResults({fitMap: mode==='map'});
   }
-  renderResults({fitMap: mode==='map'});
 }
 
 /* ---------- Mapa (Leaflet + OpenStreetMap) ---------- */
@@ -469,7 +484,7 @@ function renderMapMarkers(list, fit){
     } else if(points.length > 1){
       leafletMap.fitBounds(points, {padding:[40,40], maxZoom:16});
     } else if(userLocation){
-      leafletMap.setView([userLocation.lat, userLocation.lng], 13);
+      leafletMap.setView([userLocation.lat, userLocation.lng], 14);
     }
   }
 }
