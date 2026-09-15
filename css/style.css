@@ -28,7 +28,7 @@
 }
 
 *,*::before,*::after{box-sizing:border-box;}
-html{scroll-behavior:smooth;}
+html{scroll-behavior:smooth;overflow-x:hidden;}
 body{
   margin:0;
   font-family:'Poppins',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
@@ -153,15 +153,21 @@ svg{display:block;}
 
 @media(max-width:960px){
   .main-nav{display:none;}
-  .header-actions .btn-outline-navy-text{display:none;}
+  .header-actions .btn-ghost{display:none;}
   .burger{display:flex;}
   .mobile-nav.open{display:block;}
   .mobile-nav{
     position:fixed;inset:76px 0 0 0;background:var(--navy);z-index:190;
     padding:12px 24px 32px;overflow:auto;
   }
-  .mobile-nav a{display:block;padding:14px 4px;color:#e7eef7;font-weight:500;border-bottom:1px solid rgba(255,255,255,.08);}
+  .mobile-nav a{display:flex;align-items:center;gap:10px;padding:14px 4px;color:#e7eef7;font-weight:500;border-bottom:1px solid rgba(255,255,255,.08);}
+  .mobile-nav a svg{width:18px;height:18px;flex-shrink:0;}
   .mobile-nav .btn{margin-top:16px;width:100%;}
+  .mobile-nav #mobileAuthArea{margin-top:16px;}
+}
+@media(max-width:480px){
+  .user-menu-trigger .user-menu-name,.user-menu-trigger .chev{display:none;}
+  .user-menu-trigger{padding:6px;}
 }
 
 /* ---------- Auth / korisnički meni ---------- */
@@ -201,10 +207,10 @@ svg{display:block;}
 .hero{
   position:relative;color:#fff;
   min-height:600px;display:flex;align-items:center;
-  background:linear-gradient(180deg,rgba(6,25,45,.72),rgba(6,25,45,.82)),
+  background:linear-gradient(180deg,rgba(6,25,45,.42),rgba(6,25,45,.56)),
     url('../img/hero.webp') center/cover no-repeat;
 }
-.hero-inner{position:relative;z-index:2;width:100%;padding:80px 0 0;}
+.hero-inner{position:relative;z-index:2;width:100%;padding:80px 0 64px;}
 .hero-badge{
   display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.12);
   border:1px solid rgba(255,255,255,.25);padding:8px 16px;border-radius:999px;
@@ -243,8 +249,9 @@ svg{display:block;}
 .stats-strip{
   display:grid;grid-template-columns:repeat(4,1fr);gap:0;
   background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);
-  margin-top:56px;overflow:hidden;
+  overflow:hidden;
 }
+.hero .stats-strip{margin-top:56px;}
 .stats-strip .stat{padding:28px 16px;text-align:center;border-right:1px solid var(--border);}
 .stats-strip .stat:last-child{border-right:none;}
 .stats-strip .stat b{display:block;font-size:28px;color:var(--navy);font-family:'Poppins',sans-serif;}
