@@ -32,7 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
   syncFiltersFromDom();
   relocateFiltersForViewport();
   initMap();
-  setViewMode(window.innerWidth <= MOBILE_BREAKPOINT ? 'list' : 'map');
+  const initialMode = window.innerWidth <= MOBILE_BREAKPOINT ? 'list' : 'map';
+  setViewMode(initialMode);
+  // Na desktopu se mapa odmah otvara — ako nema aktivnog filtera grada
+  // (npr. iz URL-a), potraži lokaciju korisnika da bismo prikaz odmah
+  // centrirali "u mojoj blizini" umesto na celu Srbiju.
+  if(initialMode === 'map' && locationState === 'idle' && !currentFilters.city){
+    requestUserLocation();
+  }
 });
 
 window.addEventListener('resize', relocateFiltersForViewport);
@@ -58,6 +65,15 @@ function openFiltersDrawer(){
 function closeFiltersDrawer(){
   document.querySelector('.filters-panel').classList.remove('open');
   document.getElementById('filtersBackdrop').classList.remove('open');
+}
+
+function clearCityFilter(){
+  // "Blizu mene" traži ordinacije oko stvarne GPS lokacije — ako je
+  // istovremeno aktivan filter za konkretan grad, presek ta dva uslova
+  // često ispadne prazan, pa ga ovde uklanjamo.
+  currentFilters.city = '';
+  const cityInput = document.getElementById('cityInput');
+  if(cityInput) cityInput.value = '';
 }
 
 function populateSelects(){
@@ -152,6 +168,7 @@ function bindEvents(){
   document.getElementById('viewMapBtn').addEventListener('click', ()=>setViewMode('map'));
 
   document.getElementById('nearMeBtn').addEventListener('click', ()=>{
+    clearCityFilter();
     setViewMode('map');
     requestUserLocation(true);
   });
@@ -178,6 +195,7 @@ function bindEvents(){
 
   document.getElementById('mobileNearMeBtn').addEventListener('click', ()=>{
     closeFiltersDrawer();
+    clearCityFilter();
     setViewMode('map');
     requestUserLocation(true);
   });
@@ -187,8 +205,10 @@ function bindEvents(){
     setViewMode(goingToMap ? 'map' : 'list');
     // Podrazumevani prikaz mape na mobilnom je "U mojoj blizini" — pri
     // prvom otvaranju mape automatski tražimo lokaciju korisnika umesto
-    // da ga dočeka ceo (prazan) prikaz cele Srbije.
-    if(goingToMap && locationState === 'idle' && !userLocation){
+    // da ga dočeka ceo (prazan) prikaz cele Srbije. Ali ne ako je
+    // korisnik već izabrao konkretan grad — tada bi kombinacija
+    // "taj grad" + "u krugu od 5km od mene" često ispala prazna.
+    if(goingToMap && locationState === 'idle' && !userLocation && !currentFilters.city){
       requestUserLocation();
     }
     // Ako je korisnik skrolovao nadole kroz listu, mapa (koja je iznad liste)
@@ -316,7 +336,7 @@ function renderResults(opts){
   const mapSplit = document.getElementById('mapSplit');
 
   countEl.textContent = list.length;
-  renderMapMarkers(list, !!opts.fitMap);
+  const points = renderMapMarkers(list);
 
   if(list.length === 0){
     resultsGrid.innerHTML = '';
@@ -342,7 +362,16 @@ function renderResults(opts){
   resultsGrid.style.display = viewMode === 'list' ? 'grid' : 'none';
   mapSplit.style.display = viewMode === 'map' ? 'grid' : 'none';
   if(viewMode === 'map' && leafletMap){
-    setTimeout(()=>{ leafletMap.invalidateSize(); }, 30);
+    // Mapa mora prvo da dobije stvaran razmer (invalidateSize) pre nego
+    // što je centriramo/zumiramo — u suprotnom, ako je kontejner tog
+    // trenutka bio sakriven (display:none), fitBounds/setView se računa
+    // nad veličinom 0 i mapa završi centrirana na pogrešnom, praznom
+    // mestu. Ovo se dešava svaki put kad mapa postane vidljiva (promena
+    // moda, ili prelazak iz praznog stanja rezultata natrag na rezultate).
+    setTimeout(()=>{
+      leafletMap.invalidateSize();
+      if(opts.fitMap) fitMapToPoints(points);
+    }, 30);
   }
 
   const toShow = list.slice(0, visibleCount);
@@ -386,18 +415,7 @@ function setViewMode(mode){
   const fabIcon = document.getElementById('mobileViewFabIcon');
   if(fabLabel) fabLabel.textContent = mode === 'map' ? 'Lista' : 'Mapa';
   if(fabIcon) fabIcon.innerHTML = mode === 'map' ? ICONS.list : ICONS.compass;
-  if(mode==='map' && leafletMap){
-    // Mapa mora prvo da dobije stvaran razmer (invalidateSize) pre nego
-    // što je centriramo/zumiramo — u suprotnom se fitBounds/setView
-    // računa nad kontejnerom veličine 0 (dok je bio display:none) i
-    // mapa završi centrirana na pogrešnom, praznom mestu.
-    setTimeout(()=>{
-      leafletMap.invalidateSize();
-      renderResults({fitMap:true});
-    }, 60);
-  } else {
-    renderResults({fitMap: mode==='map'});
-  }
+  renderResults({fitMap: mode==='map'});
 }
 
 /* ---------- Mapa (Leaflet + OpenStreetMap) ---------- */
@@ -461,8 +479,8 @@ function buildMarkerIcon(c){
 
 const markerRefs = {};
 
-function renderMapMarkers(list, fit){
-  if(!leafletMap || !markersLayer) return;
+function renderMapMarkers(list){
+  if(!leafletMap || !markersLayer) return [];
   markersLayer.clearLayers();
   Object.keys(markerRefs).forEach(k => delete markerRefs[k]);
   const points = [];
@@ -486,14 +504,35 @@ function renderMapMarkers(list, fit){
     points.push([c.lat, c.lng]);
   });
 
-  if(fit){
-    if(points.length === 1){
-      leafletMap.setView(points[0], 15);
-    } else if(points.length > 1){
-      leafletMap.fitBounds(points, {padding:[40,40], maxZoom:16});
-    } else if(userLocation){
-      leafletMap.setView([userLocation.lat, userLocation.lng], 14);
-    }
+  return points;
+}
+
+function fitMapToPoints(points){
+  if(!leafletMap) return;
+  if(points.length === 1){
+    leafletMap.setView(points[0], 15);
+  } else if(points.length > 1){
+    leafletMap.fitBounds(points, {padding:[40,40], maxZoom:16});
+  } else if(userLocation){
+    leafletMap.setView([userLocation.lat, userLocation.lng], 14);
+  }
+}
+
+const PREMIUM_CENTER_RADIUS_KM = 15;
+
+function centerOnNearestPremium(){
+  if(!userLocation || !leafletMap) return;
+  let nearest = null;
+  let nearestDist = Infinity;
+  getAllPublicListings().forEach(c => {
+    if(!c.featured || typeof c.lat !== 'number') return;
+    const d = distanceKm(userLocation.lat, userLocation.lng, c.lat, c.lng);
+    if(d < nearestDist){ nearestDist = d; nearest = c; }
+  });
+  if(nearest && nearestDist <= PREMIUM_CENTER_RADIUS_KM){
+    // Bez animacije — ovo je korekcija odmah posle početnog fitBounds-a,
+    // a ulančane animacije se u nekim slučajevima nisu pouzdano završavale.
+    leafletMap.setView([nearest.lat, nearest.lng], 14, {animate:false});
   }
 }
 
@@ -560,6 +599,10 @@ function requestUserLocation(){
         if(sortSelect) sortSelect.value = 'distance';
       }
       renderResults({fitMap:true});
+      // Ako postoji Premium ordinacija u razumnoj blizini, centriraj mapu
+      // na nju umesto na "goli" GPS centar korisnika — daje kontekst
+      // (susedne ordinacije oko nje) i ističe premium oglase.
+      setTimeout(centerOnNearestPremium, 50);
     },
     () => {
       locationState = 'denied';
