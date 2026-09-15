@@ -128,8 +128,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  if(params.get('tab') === 'register'){
+  if(params.get('tab') === 'register' || redirectTo === 'dodaj-ordinaciju.html'){
     document.querySelector('[data-auth-tab="register"]').click();
+  }
+  if(redirectTo === 'dodaj-ordinaciju.html'){
+    const businessRole = document.querySelector('input[name="role"][value="business"]');
+    if(businessRole) businessRole.checked = true;
   }
 
   document.getElementById('loginForm').addEventListener('submit', (e) => {

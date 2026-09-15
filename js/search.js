@@ -191,6 +191,14 @@ function bindEvents(){
     if(goingToMap && locationState === 'idle' && !userLocation){
       requestUserLocation();
     }
+    // Ako je korisnik skrolovao nadole kroz listu, mapa (koja je iznad liste)
+    // bi inače ostala van ekrana — vrati ga na vrh rezultata da odmah vidi mapu.
+    if(goingToMap){
+      const target = document.getElementById('mapSplit');
+      const stickyOffset = 150;
+      const top = target.getBoundingClientRect().top + window.scrollY - stickyOffset;
+      window.scrollTo({top, behavior:'smooth'});
+    }
   });
 
   document.getElementById('locateMeBtn').addEventListener('click', ()=>{
@@ -544,6 +552,13 @@ function requestUserLocation(){
       cancelBoundsMode();
       placeUserMarker();
       renderLocationBanner();
+      // Kad znamo lokaciju korisnika, sortiranje po udaljenosti je
+      // podrazumevano najrelevantnije — uskladi i sam padajući meni.
+      if(currentFilters.sort === 'recommended'){
+        currentFilters.sort = 'distance';
+        const sortSelect = document.getElementById('sortSelect');
+        if(sortSelect) sortSelect.value = 'distance';
+      }
       renderResults({fitMap:true});
     },
     () => {
@@ -562,9 +577,6 @@ function placeUserMarker(){
   const icon = L.divIcon({className:'', html:'<div class="user-loc-dot"></div>', iconSize:[16,16]});
   userMarker = L.marker([userLocation.lat, userLocation.lng], {icon, zIndexOffset:1000})
     .addTo(leafletMap).bindPopup('Vaša lokacija');
-  userCircle = L.circle([userLocation.lat, userLocation.lng], {
-    radius: NEARBY_RADIUS_KM * 1000, color:'#0EA5A3', weight:1.5, fillColor:'#0EA5A3', fillOpacity:0.07
-  }).addTo(leafletMap);
 }
 
 function renderLocationBanner(){

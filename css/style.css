@@ -689,7 +689,10 @@ svg{display:block;}
   .filters-backdrop.open{display:block;}
 
   .map-list-col{display:none;}
-  .map-move-control{display:none;}
+  .map-move-control{
+    top:14px;left:14px;right:auto;bottom:auto;
+    font-size:12px;padding:8px 12px;max-width:calc(100% - 78px);
+  }
   .map-wrap{margin-left:-28px;margin-right:-28px;width:calc(100% + 56px);}
   #mapContainer{height:calc(100vh - 160px);border-radius:0;border:none;}
   .map-locate-btn{top:14px;right:14px;bottom:auto;}
