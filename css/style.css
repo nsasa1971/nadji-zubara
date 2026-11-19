@@ -850,3 +850,13 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .seo-page .opstine-list li{border:1px solid var(--border);border-radius:999px;background:#fff;padding:6px 14px;font-size:14px;color:var(--muted);}
 .seo-page .opstine-list li a{font-weight:600;}
 .seo-page .city-pager a{font-weight:600;}
+
+/* Kartice ordinacija na generisanim stranicama gradova i opština */
+.seo-cards{margin:18px 0;}
+.seo-card .body{padding:18px;}
+.seo-card .name-row h3{font-size:16px;line-height:1.35;}
+.seo-page .seo-card h3 a{color:var(--navy);text-decoration:none;}
+.seo-page .seo-card h3 a:hover,.seo-page .seo-card h3 a:focus-visible{color:var(--primary-dark);text-decoration:underline;}
+.seo-card .muted-line{margin:4px 0 6px;}
+.seo-card .card-phone{margin:0 0 14px;font-size:14px;color:var(--text);}
+.seo-card .actions{margin-top:auto;padding-top:6px;}
