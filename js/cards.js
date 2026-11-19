@@ -18,6 +18,12 @@ function toggleFavorite(id){
   return favs.includes(id);
 }
 
+// Udaljenost za prikaz: ako je lokacija samo približna (pin na ulici, ne na kući), piše "oko X km".
+function formatDistance(c, km){
+  const text = km.toFixed(1) + ' km';
+  return c && c.coordsPrecision === 'ulica' ? 'oko ' + text : text;
+}
+
 function scoreFromRating(rating){
   return (rating*2).toFixed(1);
 }
@@ -57,7 +63,7 @@ function renderClinicCard(c, opts){
       <p class="muted-line">${c.short}</p>
       <div class="meta-row">
         ${hasReviews ? starRow(c.rating) : `<span style="color:var(--muted);font-size:13px;">Nema recenzija još</span>`}
-        ${hasReviews ? `<span>${c.reviewCount} recenzija${distance!=null ? ` <span class="distance-chip">• ${distance.toFixed(1)} km</span>` : ''}</span>` : (distance!=null ? `<span class="distance-chip">${distance.toFixed(1)} km</span>` : '')}
+        ${hasReviews ? `<span>${c.reviewCount} recenzija${distance!=null ? ` <span class="distance-chip">• ${formatDistance(c, distance)}</span>` : ''}</span>` : (distance!=null ? `<span class="distance-chip">${formatDistance(c, distance)}</span>` : '')}
       </div>
       <div class="reveal-info">
         ${c.phone ? `<div class="reveal-row">${ICONS.phone} ${c.phone}</div>` : ''}
