@@ -51,7 +51,11 @@ SKIP_CITIES = {"", "Nepoznato"}
 OPSTINE_CITY = "Beograd"
 OPSTINA_RE = re.compile(r'Beograd\s*-\s*(.+?)\s*$')
 # True: "Čukarica - Železnik" -> "Čukarica" (deo pre " - "); False: doslovno kako piše u adresi.
-OPSTINE_MERGE_COMPOUND = False
+OPSTINE_MERGE_COMPOUND = True
+# Samostalna stranica opštine postoji samo ako ima bar ovoliko ordinacija. Ispod praga: nema
+# stranice ni linkova ka njoj; ordinacije ostaju na stranici grada, a polje "Opština" na
+# stranici ordinacije ostaje kao običan tekst.
+OPSTINE_MIN_CLINICS = 10
 
 SERBIAN_MAP = str.maketrans({'č': 'c', 'ć': 'c', 'ž': 'z', 'š': 's', 'đ': 'dj',
                              'Č': 'C', 'Ć': 'C', 'Ž': 'Z', 'Š': 'S', 'Đ': 'Dj'})
@@ -214,9 +218,14 @@ def clinic_page(c, city_slug, slug, same_name=False, opstina=None, op_slug=None)
         phone_html = f'<p><strong>Telefon:</strong> <a href="tel:{esc(tel)}">{esc(c["phone"])}</a></p>'
     else:
         phone_html = '<p><strong>Telefon:</strong> nije dostupan</p>'
-    op_crumb = f' / <a href="/{city_slug}/{op_slug}/">{esc(opstina)}</a>' if opstina else ''
-    op_line = (f'\n  <p><strong>Opština:</strong> <a href="/{city_slug}/{op_slug}/">{esc(opstina)}</a></p>'
-               if opstina else '')
+    # op_slug je None kad opština nema svoju stranicu (ispod praga): tada je samo običan tekst
+    op_crumb = f' / <a href="/{city_slug}/{op_slug}/">{esc(opstina)}</a>' if opstina and op_slug else ''
+    if opstina and op_slug:
+        op_line = f'\n  <p><strong>Opština:</strong> <a href="/{city_slug}/{op_slug}/">{esc(opstina)}</a></p>'
+    elif opstina:
+        op_line = f'\n  <p><strong>Opština:</strong> {esc(opstina)}</p>'
+    else:
+        op_line = ''
     body = f'''<div class="breadcrumbs"><a href="/index.html">Početna</a> / <a href="/{city_slug}/">{esc(c['city'])}</a>{op_crumb} / {esc(c['name'])}</div>
 <article class="info-card">
   <h1>{esc(c['name'])}</h1>
@@ -401,6 +410,10 @@ def main():
             op_of[c['id']] = label
         used = set()
         for label, d in opstine.items():
+            d['page'] = len(d['items']) >= OPSTINE_MIN_CLINICS
+            if not d['page']:
+                d['slug'] = None
+                continue
             os_ = slugify(label)
             if not os_ or os_ in used or os_ in clinic_slugs or os_ in page_numbers or os_ in RESERVED:
                 sys.exit(f'Sudar ili neispravan slug opštine "{label}" -> "{os_}"')
@@ -410,24 +423,32 @@ def main():
     if args.list_opstine:
         total = sum(len(d['items']) for d in opstine.values())
         n_city = len(plan.get(OPSTINE_CITY, []))
+        with_page = {k: d for k, d in opstine.items() if d['page']}
+        below = {k: d for k, d in opstine.items() if not d['page']}
         print(f'{OPSTINE_CITY}: {n_city} ordinacija, sa opštinom {total}, bez opštine {n_city - total}; '
-              f'opština/naselja: {len(opstine)}')
-        for label, d in sorted(opstine.items(), key=lambda x: (-len(x[1]['items']), x[0])):
+              f'opština: {len(opstine)} (sa stranicom: {len(with_page)}, ispod praga {OPSTINE_MIN_CLINICS}: {len(below)})')
+        print(f'--- sa stranicom (>= {OPSTINE_MIN_CLINICS}) ---')
+        for label, d in sorted(with_page.items(), key=lambda x: (-len(x[1]['items']), x[0])):
             n = len(d['items'])
             extra = f'  [{-(-n // PAGE_SIZE)} strane]' if n > PAGE_SIZE else ''
             print(f"{n:5d}  {label:28s} /{city_slugs[OPSTINE_CITY]}/{d['slug']}/{extra}")
+        print(f'--- bez stranice (ispod praga; ostaju na stranici {OPSTINE_CITY}a) ---')
+        for label, d in sorted(below.items(), key=lambda x: (-len(x[1]['items']), x[0])):
+            print(f"{len(d['items']):5d}  {label}")
+        print(f'ordinacija u opštinama sa stranicom: {sum(len(d["items"]) for d in with_page.values())}, '
+              f'ispod praga: {sum(len(d["items"]) for d in below.values())}')
         return
 
     if args.sample:
         out = Path(args.sample)
         out.mkdir(parents=True, exist_ok=True)
         city = 'Beograd' if 'Beograd' in plan else next(iter(plan))
-        ops_list = ([(o, d['slug'], len(d['items'])) for o, d in sorted(opstine.items(), key=lambda x: -len(x[1]['items']))]
+        ops_list = ([(o, d['slug'], len(d['items'])) for o, d in sorted(opstine.items(), key=lambda x: (-len(x[1]['items']), x[0])) if d['page']]
                     if city == OPSTINE_CITY else None)
         for pth, html_ in city_pages(city, city_slugs[city], plan[city], ops_list)[:2]:
             write(out, pth, html_)
-        if city == OPSTINE_CITY and opstine:
-            label = 'Vračar' if 'Vračar' in opstine else next(iter(opstine))
+        if city == OPSTINE_CITY and any(d['page'] for d in opstine.values()):
+            label = 'Vračar' if 'Vračar' in opstine else next(k for k, d in opstine.items() if d['page'])
             d = opstine[label]
             for pth, html_ in opstina_pages(city, city_slugs[city], label, d['slug'], d['items'])[:2]:
                 write(out, pth, html_)
@@ -444,14 +465,14 @@ def main():
     n_clinic = n_city_pages = n_op_pages = 0
     for city in sorted(plan, key=lambda x: city_slugs[x]):
         slug = city_slugs[city]
-        ops_list = ([(o, d['slug'], len(d['items'])) for o, d in sorted(opstine.items(), key=lambda x: (-len(x[1]['items']), x[0]))]
+        ops_list = ([(o, d['slug'], len(d['items'])) for o, d in sorted(opstine.items(), key=lambda x: (-len(x[1]['items']), x[0])) if d['page']]
                     if city == OPSTINE_CITY else None)
         for pth, html_ in city_pages(city, slug, plan[city], ops_list):
             write(ROOT, pth, html_)
             paths.append(pth)
             n_city_pages += 1
         if city == OPSTINE_CITY:
-            for label, d in sorted(opstine.items(), key=lambda x: x[1]['slug']):
+            for label, d in sorted((kv for kv in opstine.items() if kv[1]['page']), key=lambda x: x[1]['slug']):
                 for pth, html_ in opstina_pages(city, slug, label, d['slug'], d['items']):
                     write(ROOT, pth, html_)
                     paths.append(pth)
