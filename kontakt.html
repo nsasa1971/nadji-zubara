@@ -243,11 +243,19 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: new URLSearchParams(new FormData(form)).toString()
       });
-      if(!res.ok) throw new Error('HTTP ' + res.status);
+      if(!res.ok){
+        const bodyText = await res.text().catch(() => '');
+        console.error('Kontakt forma: slanje nije uspelo. Status:', res.status, res.statusText, '| Odgovor:', bodyText);
+        const err = new Error('HTTP ' + res.status);
+        err.httpStatus = res.status;
+        throw err;
+      }
       form.style.display = 'none';
       success.classList.add('show');
       success.scrollIntoView({behavior:'smooth', block:'start'});
     }catch(err){
+      if(!err.httpStatus) console.error('Kontakt forma: slanje nije uspelo (mrežna greška):', err);
+      errorEl.textContent = 'Poruka nije poslata' + (err.httpStatus ? ' (greška ' + err.httpStatus + ')' : '') + '. Pokušajte ponovo kasnije.';
       errorEl.style.display = 'block';
       btn.disabled = false;
     }
