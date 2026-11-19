@@ -186,6 +186,15 @@ function getAllPublicListings(){
   return CLINICS.concat(getImportedClinics()).concat(mine.map(normalizeMyListing));
 }
 
+// Broj ordinacija po usluzi (slug -> broj), iz svih javnih oglasa.
+function getServiceCounts(){
+  const counts = {};
+  getAllPublicListings().forEach(c => {
+    (c.services || []).forEach(s => { counts[s] = (counts[s] || 0) + 1; });
+  });
+  return counts;
+}
+
 function getClinicById(id){
   const found = CLINICS.find(c => c.id === id) || getImportedClinics().find(c => c.id === id);
   if(found) return found;

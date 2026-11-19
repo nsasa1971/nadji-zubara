@@ -81,15 +81,26 @@ function populateSelects(){
 
   const serviceSel = document.getElementById('serviceInput');
   serviceSel.innerHTML = '<option value="">Sve usluge</option>' +
-    SERVICES.map(s=>`<option value="${s.slug}">${s.name}</option>`).join('');
+    getFilterableServices().map(s=>`<option value="${s.slug}">${s.name} (${s.count.toLocaleString('sr-RS')})</option>`).join('');
+}
+
+// Usluge za filter: samo one koje imaju bar jednu ordinaciju u podacima (sa brojem).
+// Usluga zadata kroz URL (?service=...) ostaje na listi i kad nema ordinacija,
+// da bi izabrani filter ostao vidljiv i dosledan (sa brojem 0).
+function getFilterableServices(){
+  const counts = getServiceCounts();
+  const fromUrl = new URLSearchParams(window.location.search).get('service');
+  return SERVICES
+    .map(s => ({slug:s.slug, name:s.name, count:counts[s.slug] || 0}))
+    .filter(s => s.count > 0 || s.slug === fromUrl);
 }
 
 function populateServiceCheckboxes(){
   const wrap = document.getElementById('servicesFilter');
-  wrap.innerHTML = SERVICES.map(s=>`
+  wrap.innerHTML = getFilterableServices().map(s=>`
     <label class="checkbox-row">
       <input type="checkbox" value="${s.slug}" class="service-checkbox">
-      ${s.name}
+      ${s.name} (${s.count.toLocaleString('sr-RS')})
     </label>`).join('');
 }
 
@@ -286,6 +297,15 @@ function updateUrl(){
   window.history.replaceState({}, '', newUrl);
 }
 
+// Upit koji se tačno poklapa sa nazivom grada (bez dijakritika, "nis" = Niš) tretira
+// se kao izbor tog grada. Vraća normalizovan naziv grada ili '' ako upit nije grad.
+let cityNameSet = null;
+function queryAsCity(){
+  if(!currentFilters.q) return '';
+  if(!cityNameSet) cityNameSet = new Set(getAllCityNames().map(normalizeText));
+  return cityNameSet.has(currentFilters.q) ? currentFilters.q : '';
+}
+
 // 0 = grad se tačno poklapa sa upitom, 1 = ostalo (poklapanje u nazivu/delimično)
 function cityRank(c){
   return (currentFilters.q && normalizeText(c.city) === currentFilters.q) ? 0 : 1;
@@ -335,6 +355,11 @@ function getFilteredClinics(){
         list.sort((a,b)=>(cityRank(a)-cityRank(b)) || (b.verified-a.verified) || b.rating-a.rating);
       }
   }
+  // Kad je upit naziv grada: ordinacije iz tog grada uvek idu pre poklapanja po
+  // nazivu iz drugih gradova, bez obzira na izabrano sortiranje (stabilno).
+  if(queryAsCity()){
+    list.sort((a,b)=>cityRank(a)-cityRank(b));
+  }
   return list;
 }
 
@@ -350,6 +375,11 @@ function renderResults(opts){
 
   countEl.textContent = list.length;
   const points = renderMapMarkers(list);
+  // Upit == grad: mapa se prilagođava samo ordinacijama iz tog grada
+  // (poklapanja po nazivu iz drugih gradova ostaju na mapi, ali ne određuju okvir).
+  const fitPoints = queryAsCity()
+    ? list.filter(c => cityRank(c) === 0 && typeof c.lat === 'number').map(c => [c.lat, c.lng])
+    : points;
 
   if(list.length === 0){
     resultsGrid.innerHTML = '';
@@ -383,7 +413,7 @@ function renderResults(opts){
     // moda, ili prelazak iz praznog stanja rezultata natrag na rezultate).
     setTimeout(()=>{
       leafletMap.invalidateSize();
-      if(opts.fitMap) fitMapToPoints(points);
+      if(opts.fitMap) fitMapToPoints(fitPoints);
     }, 30);
   }
 
