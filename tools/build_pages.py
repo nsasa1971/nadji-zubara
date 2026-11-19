@@ -250,7 +250,7 @@ def listing_page_path(base, k):
     return f'{base}/' if k == 1 else f'{base}/{k}/'
 
 
-def listing_pages(base, city_slug, items, name, crumbs, intro, extra_first_page=''):
+def listing_pages(base, city_slug, items, name, crumbs, intro, extra_first_page='', desc_name=None):
     """Lista (path, html) za stranicu sa spiskom ordinacija: jedna, ili više po PAGE_SIZE.
     base: '/beograd' ili '/beograd/vracar'; name: 'Niš' ili 'Vračar, Beograd';
     crumbs: [(naziv, putanja)] pre poslednjeg elementa."""
@@ -264,7 +264,7 @@ def listing_pages(base, city_slug, items, name, crumbs, intro, extra_first_page=
         path = listing_page_path(base, k)
         suffix = f' – strana {k}' if k > 1 else ''  # prva strana je bez oznake
         title = f"Zubari i stomatološke ordinacije {name} ({n}){suffix} | {SITE_NAME}"
-        desc = clip(f"Zubari i stomatološke ordinacije, {name}. Spisak ordinacija ({n}) sa adresama i telefonima"
+        desc = clip(f"Zubari i stomatološke ordinacije, {desc_name or name}. Spisak ordinacija ({n}) sa adresama i telefonima"
                     + (f", strana {k} od {total}" if k > 1 else '') + f". Pronađite zubara preko {SITE_NAME}.")
         li = '\n'.join(
             f'  <li><a href="/{city_slug}/{cs}/">{esc(c["name"])}</a> '
@@ -305,22 +305,22 @@ def listing_pages(base, city_slug, items, name, crumbs, intro, extra_first_page=
 def city_pages(city, slug, items, opstine=None):
     """Stranice grada. opstine: [(opština, slug, broj)] - lista linkova na stranicama opština."""
     search = f'/pretraga.html?city={quote(city)}'
-    intro = (f'Grad: {esc(city)}. Pregled stomatoloških ordinacija ({{n}}). '
+    intro = (f'Grad: {esc(city)}. Pregled stomatoloških ordinacija ({{n}}).\n'
              f'<a href="{esc(search)}">Pretraži ordinacije u gradu {esc(city)}</a> po usluzi i uz filtere.')
     extra = ''
     if opstine:
         lis = '\n'.join(f'  <li><a href="/{slug}/{os_}/">{esc(o)}</a> ({cnt})</li>' for o, os_, cnt in opstine)
         extra = f'<h2>Opštine</h2>\n<ul class="opstine-list">\n{lis}\n</ul>\n'
-    return listing_pages(f'/{slug}', slug, items, city, [], intro, extra)
+    return listing_pages(f'/{slug}', slug, items, city, [], intro, extra, desc_name=f'grad: {city}')
 
 
 def opstina_pages(city, city_slug, opstina, op_slug, items):
     """Stranice opštine grada (npr. /beograd/vracar/)."""
     search = f'/pretraga.html?city={quote(city)}'
-    intro = (f'Opština: {esc(opstina)}, {esc(city)}. Pregled stomatoloških ordinacija ({{n}}). '
+    intro = (f'Opština: {esc(opstina)}, {esc(city)}. Pregled stomatoloških ordinacija ({{n}}).\n'
              f'<a href="{esc(search)}">Pretraži ordinacije u gradu {esc(city)}</a> po usluzi i uz filtere.')
     return listing_pages(f'/{city_slug}/{op_slug}', city_slug, items, f'{opstina}, {city}',
-                         [(city, f'/{city_slug}/')], intro)
+                         [(city, f'/{city_slug}/')], intro, desc_name=f'opština {opstina}, {city}')
 
 
 def sitemap(paths):
