@@ -82,6 +82,16 @@ function assignCoordsForCity(city, n){
   });
 })();
 
+// Koordinata je "proverena" samo ako je eksplicitno označena (coordsVerified === true).
+// Koordinate uvezenih ordinacija su generisane oko centra grada i NISU prave, pa se za njih
+// ne prikazuju markeri na mapi ni udaljenost, i ne učestvuju u "Blizu mene".
+function hasVerifiedCoords(c){
+  return !!c && c.coordsVerified === true && Number.isFinite(c.lat) && Number.isFinite(c.lng);
+}
+function anyVerifiedCoords(){
+  return getAllPublicListings().some(hasVerifiedCoords);
+}
+
 // Haversine formula — udaljenost u kilometrima između dve geografske tačke
 function distanceKm(lat1, lng1, lat2, lng2){
   const R = 6371;
@@ -156,6 +166,7 @@ function normalizeMyListing(l){
     logoColor: l.logoColor || '#0EA5A3',
     logoImage: l.logoImage || null,
     reviews: [],
+    coordsVerified: false, // koordinate ispod su procenjene oko centra grada
     ...assignCoordsForCity(l.city, (Math.abs(hashCode(l.id)) % 5) + 1)
   };
 }

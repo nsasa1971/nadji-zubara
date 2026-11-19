@@ -30,7 +30,7 @@ function renderClinicCard(c, opts){
   const favs = getFavorites();
   const isFav = favs.includes(c.id);
   const mainService = c.services[0];
-  const distance = (typeof c._distance === 'number') ? c._distance : (typeof opts.distanceKm === 'number' ? opts.distanceKm : null);
+  const distance = !hasVerifiedCoords(c) ? null : (typeof c._distance === 'number') ? c._distance : (typeof opts.distanceKm === 'number' ? opts.distanceKm : null);
   return `
   <article class="clinic-card" data-id="${c.id}">
     <div class="thumb">

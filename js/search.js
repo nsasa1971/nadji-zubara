@@ -28,6 +28,7 @@ const MOBILE_BREAKPOINT = 860;
 document.addEventListener('DOMContentLoaded', () => {
   populateSelects();
   populateServiceCheckboxes();
+  applyLocationAvailability();
   readFiltersFromUrl();
   bindEvents();
   syncFiltersFromDom();
@@ -72,6 +73,21 @@ function clearCityFilter(){
   currentFilters.city = '';
   const cityInput = document.getElementById('cityInput');
   if(cityInput) cityInput.value = '';
+}
+
+// "Blizu mene", "Moja lokacija", "Pretraži dok pomeram mapu" i sortiranje po udaljenosti
+// imaju smisla samo ako postoji bar jedna ordinacija sa proverenom koordinatom.
+function applyLocationAvailability(){
+  if(anyVerifiedCoords()) return;
+  ['nearMeBtn','mobileNearMeBtn','locateMeBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+  const move = document.querySelector('.map-move-control');
+  if(move) move.style.display = 'none';
+  const opt = document.querySelector('#sortSelect option[value="distance"]');
+  if(opt) opt.remove();
+  if(currentFilters.sort === 'distance') currentFilters.sort = 'recommended';
 }
 
 function populateSelects(){
@@ -328,13 +344,13 @@ function getFilteredClinics(){
   });
 
   list.forEach(c => {
-    c._distance = (userLocation && typeof c.lat === 'number')
+    c._distance = (userLocation && hasVerifiedCoords(c))
       ? distanceKm(userLocation.lat, userLocation.lng, c.lat, c.lng)
       : null;
   });
 
   if(mapBoundsFilterActive && currentMapBounds){
-    list = list.filter(c => typeof c.lat === 'number' && currentMapBounds.contains([c.lat, c.lng]));
+    list = list.filter(c => hasVerifiedCoords(c) && currentMapBounds.contains([c.lat, c.lng]));
   } else if(userLocation && !ignoreDistanceLimit){
     list = list.filter(c => c._distance !== null && c._distance <= NEARBY_RADIUS_KM);
   }
@@ -375,10 +391,13 @@ function renderResults(opts){
 
   countEl.textContent = list.length;
   const points = renderMapMarkers(list);
+  // Nijedan pin na mapi (npr. nema proverenih koordinata): poruka umesto prazne mape.
+  const mapSoon = document.getElementById('mapSoon');
+  if(mapSoon) mapSoon.style.display = (viewMode === 'map' && points.length === 0) ? 'flex' : 'none';
   // Upit == grad: mapa se prilagođava samo ordinacijama iz tog grada
   // (poklapanja po nazivu iz drugih gradova ostaju na mapi, ali ne određuju okvir).
   const fitPoints = queryAsCity()
-    ? list.filter(c => cityRank(c) === 0 && typeof c.lat === 'number').map(c => [c.lat, c.lng])
+    ? list.filter(c => cityRank(c) === 0 && hasVerifiedCoords(c)).map(c => [c.lat, c.lng])
     : points;
 
   if(list.length === 0){
@@ -529,7 +548,7 @@ function renderMapMarkers(list){
   const points = [];
 
   list.forEach(c => {
-    if(typeof c.lat !== 'number') return;
+    if(!hasVerifiedCoords(c)) return; // bez proverene koordinate nema markera
     const marker = L.marker([c.lat, c.lng], {icon: buildMarkerIcon(c)});
     marker.bindPopup(`
       <div class="map-pin-popup">
@@ -580,7 +599,7 @@ function centerOnNearestPremium(){
   let nearest = null;
   let nearestDist = Infinity;
   getAllPublicListings().forEach(c => {
-    if(!c.featured || typeof c.lat !== 'number') return;
+    if(!c.featured || !hasVerifiedCoords(c)) return;
     const d = distanceKm(userLocation.lat, userLocation.lng, c.lat, c.lng);
     if(d < nearestDist){ nearestDist = d; nearest = c; }
   });
@@ -600,7 +619,7 @@ function highlightCard(id){
 }
 
 function showMapHalo(c){
-  if(!leafletMap || !haloLayer || typeof c.lat !== 'number') return;
+  if(!leafletMap || !haloLayer || !hasVerifiedCoords(c)) return;
   hideMapHalo();
   hoverHalo = L.marker([c.lat, c.lng], {
     icon: L.divIcon({className:'', html:'<div class="map-marker-halo"></div>', iconSize:[66,66], iconAnchor:[33,33]}),

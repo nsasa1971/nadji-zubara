@@ -203,8 +203,8 @@ function startEditReview(c, reviewId){
 function renderSimilar(c){
   const grid = document.getElementById('similarGrid');
   let similar = getAllPublicListings().filter(x => x.id !== c.id && x.city === c.city);
-  if(typeof c.lat === 'number' && typeof c.lng === 'number'){
-    const d = x => (typeof x.lat === 'number' && typeof x.lng === 'number')
+  if(hasVerifiedCoords(c)){
+    const d = x => hasVerifiedCoords(x)
       ? distanceKm(c.lat, c.lng, x.lat, x.lng) : 1e9;
     similar.sort((a,b) => d(a) - d(b));
   }

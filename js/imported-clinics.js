@@ -4,6 +4,10 @@
    preuzeti iz postojeće evidencije; ocene, radno vreme, usluge i
    opisi NISU izmišljeni — prikazuju se kao nepoznati dok vlasnik
    ne preuzme i dopuni svoj oglas.
+   NAPOMENA O KOORDINATAMA: lat/lng u ovom fajlu su PROCENJENE, ne stvarne —
+   generisane su spiralom oko centra grada (tools/generate_imported.py) i ne
+   odgovaraju adresama. Zato se ne smeju prikazivati kao prave lokacije: sajt
+   ih ignoriše dok ordinacija nema coordsVerified === true.
    ========================================================= */
 const IMPORTED_CLINICS = [
 {id:"imp-stomatoloska-ordinacija-aleksandra-dent-ada",name:"Stomatološka Ordinacija Aleksandra Dent",city:"Ada",address:"Jožef Atile 2, Ada",phone:"+381 63 7240827",email:"aleksandrazapletan@gmail.com",website:"https://www.facebook.com/Dr-Aleksandra-dent-1764457113587386/?ref=page_internal",priceRange:null,rating:0,reviewCount:0,verified:false,featured:false,imported:true,hoursUnknown:true,hours:{mon:null,tue:null,wed:null,thu:null,fri:null,sat:null,sun:null},services:['opsta'],short:"Stomatološka ordinacija u mestu Ada.",description:"Detaljan opis ove ordinacije još nije dostupan. Ako ste vlasnik ove ordinacije, kontaktirajte nas da preuzmete i dopunite ovaj oglas.",images:['cover'],logoInitials:"AD",logoColor:"#0B857F",reviews:[],lat:45.79616971255141,lng:20.133667014645553},
