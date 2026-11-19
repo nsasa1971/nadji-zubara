@@ -20,6 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 function renderClinic(c){
+  const reportLink = document.getElementById('reportLink');
+  if(reportLink){
+    reportLink.href = 'kontakt.html?subject=' + encodeURIComponent('Prijava netačnog podatka') +
+      '&clinic=' + encodeURIComponent(c.name + ' (' + c.city + ', id: ' + c.id + ')');
+  }
   document.title = c.name + ' — Nađi Zubara';
   document.getElementById('pageTitle').textContent = c.name + ' — Nađi Zubara';
 

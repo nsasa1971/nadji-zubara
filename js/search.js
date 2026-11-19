@@ -231,7 +231,7 @@ function getSelectedServices(){
 }
 
 function syncFiltersFromDom(){
-  currentFilters.q = document.getElementById('queryInput').value.trim().toLowerCase();
+  currentFilters.q = normalizeText(document.getElementById('queryInput').value.trim());
   currentFilters.city = document.getElementById('cityInput').value;
   currentFilters.service = document.getElementById('serviceInput').value;
   currentFilters.rating = Number(document.querySelector('input[name="rating"]:checked').value);
@@ -282,7 +282,7 @@ function updateUrl(){
 
 function getFilteredClinics(){
   let list = getAllPublicListings().filter(c=>{
-    if(currentFilters.q && !c.name.toLowerCase().includes(currentFilters.q) && !c.city.toLowerCase().includes(currentFilters.q)) return false;
+    if(currentFilters.q && !normalizeText(c.name).includes(currentFilters.q) && !normalizeText(c.city).includes(currentFilters.q)) return false;
     if(currentFilters.city && c.city !== currentFilters.city) return false;
     if(currentFilters.service && !c.services.includes(currentFilters.service)) return false;
     if(currentFilters.selectedServices && currentFilters.selectedServices.length){

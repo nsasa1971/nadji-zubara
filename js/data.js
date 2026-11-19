@@ -493,6 +493,15 @@ function normalizeMyListing(l){
   };
 }
 
+// Normalizacija za pretragu: mala slova, bez dijakritika (š→s, č/ć→c, ž→z, đ→dj),
+// tako da "nis" nalazi "Niš", a "djordje" nalazi "Đorđe".
+function normalizeText(str){
+  return String(str == null ? '' : str)
+    .toLowerCase()
+    .replace(/đ/g, 'dj')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
 function hashCode(str){
   let h = 0;
   for(let i=0; i<str.length; i++){ h = ((h<<5)-h) + str.charCodeAt(i); h |= 0; }

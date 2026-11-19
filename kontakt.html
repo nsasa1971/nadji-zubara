@@ -182,6 +182,9 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('contactForm');
+  const qp = new URLSearchParams(window.location.search);
+  if(qp.get('subject')) form.querySelector('[name="subject"]').value = qp.get('subject');
+  if(qp.get('clinic')) form.querySelector('[name="message"]').value = 'Ordinacija: ' + qp.get('clinic') + '\n\nŠta treba ispraviti / ukloniti profil: ';
   const success = document.getElementById('contactSuccess');
   form.addEventListener('submit', (e)=>{
     e.preventDefault();
