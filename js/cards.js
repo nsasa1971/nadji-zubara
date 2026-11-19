@@ -1,9 +1,14 @@
 /* Deljena logika za renderovanje kartice ordinacije, koristi se na
    početnoj strani, stranici pretrage i na dnu strane ordinacije. */
 
+// Vraća samo omiljene koje i dalje postoje: stari id-jevi obrisanih (demo)
+// ordinacija iz localStorage-a se ignorišu, a pri sledećem upisu i brišu.
 function getFavorites(){
-  try{ return JSON.parse(localStorage.getItem('nz_favorites') || '[]'); }
+  let ids;
+  try{ ids = JSON.parse(localStorage.getItem('nz_favorites') || '[]'); }
   catch(e){ return []; }
+  if(!Array.isArray(ids)) return [];
+  return (typeof getClinicById === 'function') ? ids.filter(id => getClinicById(id)) : ids;
 }
 function toggleFavorite(id){
   let favs = getFavorites();

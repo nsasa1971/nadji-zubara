@@ -492,7 +492,7 @@ function renderMapMarkers(list){
       <div class="map-pin-popup">
         <img src="${clinicImageUrl(c.images[0], 240, 130)}" alt="${c.name}">
         <h5>${c.name}</h5>
-        ${starRow(c.rating)}
+        ${c.reviewCount > 0 ? starRow(c.rating) : ''}
         <div style="margin-top:8px;"><a href="ordinacija.html?id=${c.id}">Pogledaj detalje →</a></div>
       </div>
     `);

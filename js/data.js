@@ -43,7 +43,14 @@ const AVATAR_COLORS = ['#0EA5A3','#0B857F','#2563EB','#7C3AED','#DB2777','#D9770
 const CLINICS = [];
 
 // Izračunavanje broja ordinacija po gradu
-CITIES.forEach(c => { c.count = CLINICS.filter(cl => cl.city === c.name).length; });
+// Broj ordinacija po gradu računa se iz uvezenih ordinacija (lazy getter, jer se
+// js/imported-clinics.js učitava posle data.js).
+CITIES.forEach(c => {
+  Object.defineProperty(c, 'count', {
+    enumerable: true,
+    get(){ return getImportedClinics().filter(cl => cl.city === c.name).length; }
+  });
+});
 
 // Približne geografske koordinate centra svakog grada (za mapu i pretragu po blizini)
 const CITY_CENTERS = {
