@@ -494,6 +494,8 @@ function initMap(){
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
     maxZoom:16
   }).addTo(leafletMap);
+  // Koordinate ordinacija potiču iz OpenStreetMap-a (zahtev licence ODbL).
+  leafletMap.attributionControl.addAttribution('&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   markersLayer = (typeof L.markerClusterGroup === 'function')
     ? L.markerClusterGroup({
         maxClusterRadius:50,

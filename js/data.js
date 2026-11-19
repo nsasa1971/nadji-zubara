@@ -188,8 +188,29 @@ function hashCode(str){
 
 // Svi javno vidljivi oglasi: glavni imenik + oglasi dodati kroz "Dodaj ordinaciju"
 // (u okviru ovog pretraživača).
+// Uvezene ordinacije: koordinate iz js/imported-coords.js (geokodirane preko OpenStreetMap-a,
+// preciznost "kuca" ili "ulica") se spajaju jednom, pri prvom pozivu. Samo ordinacije sa takvom
+// koordinatom dobijaju coordsVerified = true (pin, udaljenost, "Blizu mene"); za ostale se
+// generisane (procenjene) koordinate iz imported-clinics.js nikad ne koriste.
+let importedCoordsMerged = false;
 function getImportedClinics(){
-  return (typeof IMPORTED_CLINICS !== 'undefined') ? IMPORTED_CLINICS : [];
+  const list = (typeof IMPORTED_CLINICS !== 'undefined') ? IMPORTED_CLINICS : [];
+  if(!importedCoordsMerged){
+    importedCoordsMerged = true;
+    const coords = (typeof IMPORTED_COORDS !== 'undefined') ? IMPORTED_COORDS : {};
+    list.forEach(c => {
+      const e = coords[c.id];
+      if(e && Number.isFinite(e[0]) && Number.isFinite(e[1]) && (e[2] === 'kuca' || e[2] === 'ulica')){
+        c.lat = e[0];
+        c.lng = e[1];
+        c.coordsPrecision = e[2];
+        c.coordsVerified = true;
+      } else {
+        c.coordsVerified = false;
+      }
+    });
+  }
+  return list;
 }
 
 function getAllPublicListings(){
