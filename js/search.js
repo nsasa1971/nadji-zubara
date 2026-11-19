@@ -280,6 +280,11 @@ function updateUrl(){
   window.history.replaceState({}, '', newUrl);
 }
 
+// 0 = grad se tačno poklapa sa upitom, 1 = ostalo (poklapanje u nazivu/delimično)
+function cityRank(c){
+  return (currentFilters.q && normalizeText(c.city) === currentFilters.q) ? 0 : 1;
+}
+
 function getFilteredClinics(){
   let list = getAllPublicListings().filter(c=>{
     if(currentFilters.q && !normalizeText(c.name).includes(currentFilters.q) && !normalizeText(c.city).includes(currentFilters.q)) return false;
@@ -316,10 +321,12 @@ function getFilteredClinics(){
     case 'price-desc': list.sort((a,b)=>b.priceRange-a.priceRange); break;
     case 'name': list.sort((a,b)=>a.name.localeCompare(b.name,'sr')); break;
     default:
+      // Tačno poklapanje grada sa upitom ima prednost nad poklapanjem u nazivu.
+      // (Array.sort je stabilan, pa ostali redosled ostaje kakav je bio.)
       if(userLocation && !mapBoundsFilterActive){
-        list.sort((a,b)=>(a._distance ?? 1e9)-(b._distance ?? 1e9));
+        list.sort((a,b)=>(cityRank(a)-cityRank(b)) || (a._distance ?? 1e9)-(b._distance ?? 1e9));
       } else {
-        list.sort((a,b)=> (b.verified-a.verified) || b.rating-a.rating);
+        list.sort((a,b)=>(cityRank(a)-cityRank(b)) || (b.verified-a.verified) || b.rating-a.rating);
       }
   }
   return list;
