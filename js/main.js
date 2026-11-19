@@ -55,8 +55,11 @@ function renderHomepage(){
   }
   const serviceSelect = document.querySelector('#heroSearchForm [name="service"]');
   if(serviceSelect){
+    const serviceCounts = getServiceCounts();
     serviceSelect.innerHTML = '<option value="">Sve usluge</option>' +
-      SERVICES.map(s=>`<option value="${s.slug}">${s.name}</option>`).join('');
+      // samo usluge koje imaju bar jednu ordinaciju (isto kao filter u pretrazi)
+      SERVICES.filter(s => serviceCounts[s.slug] > 0)
+        .map(s=>`<option value="${s.slug}">${s.name} (${serviceCounts[s.slug].toLocaleString('sr-RS')})</option>`).join('');
   }
 
   const allListings = getAllPublicListings();
@@ -72,18 +75,36 @@ function renderHomepage(){
   if(statOrdinacije){
     document.getElementById('statOrdinacije').textContent = allListings.length + '+';
     document.getElementById('statGradovi').textContent = allCityCount;
-    const totalReviews = allListings.reduce((a,c)=>a+c.reviewCount,0);
-    document.getElementById('statRecenzije').textContent = totalReviews.toLocaleString('sr-RS') + '+';
-    const avgRating = (CLINICS.reduce((a,c)=>a+c.rating,0)/CLINICS.length).toFixed(1);
-    document.getElementById('statOcena').textContent = avgRating;
+    // Recenzije i prosečna ocena se prikazuju samo ako postoje prave recenzije
+    // (uvezene ordinacije ih nemaju), inače se ti blokovi sakrivaju.
+    const reviewed = allListings.filter(c => c.reviewCount > 0);
+    const totalReviews = reviewed.reduce((a,c)=>a+c.reviewCount,0);
+    const statRecenzije = document.getElementById('statRecenzije');
+    const statOcena = document.getElementById('statOcena');
+    if(totalReviews > 0){
+      const avgRating = reviewed.reduce((a,c)=>a+c.rating*c.reviewCount,0) / totalReviews;
+      statRecenzije.textContent = totalReviews.toLocaleString('sr-RS');
+      statOcena.textContent = avgRating.toFixed(1);
+    } else {
+      statRecenzije.closest('.stat').style.display = 'none';
+      statOcena.closest('.stat').style.display = 'none';
+    }
   }
 
-  // Izdvojene ordinacije (najbolje ocenjene)
+  // Izdvojene ordinacije (najbolje ocenjene) — sekcija je skrivena dok ne
+  // postoje ordinacije sa pravim recenzijama.
   const featuredGrid = document.getElementById('featuredGrid');
   if(featuredGrid){
-    const featured = [...CLINICS].sort((a,b)=>b.rating-a.rating || b.reviewCount-a.reviewCount).slice(0,6);
-    featuredGrid.innerHTML = featured.map(c=>renderClinicCard(c)).join('');
-    bindFavoriteButtons(featuredGrid);
+    const featured = allListings.filter(c => c.reviewCount > 0)
+      .sort((a,b)=>b.rating-a.rating || b.reviewCount-a.reviewCount).slice(0,6);
+    const featuredSection = featuredGrid.closest('section');
+    if(featured.length){
+      featuredGrid.innerHTML = featured.map(c=>renderClinicCard(c)).join('');
+      bindFavoriteButtons(featuredGrid);
+      if(featuredSection) featuredSection.style.display = '';
+    } else if(featuredSection){
+      featuredSection.style.display = 'none';
+    }
   }
 
   // Gradovi (slajder)

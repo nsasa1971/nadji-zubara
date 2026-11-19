@@ -11,6 +11,7 @@ let viewMode = 'map'; // 'map' | 'list'
 let userLocation = null; // {lat, lng}
 let locationState = 'idle'; // idle | requesting | granted | denied | unavailable
 let ignoreDistanceLimit = false;
+let sortAutoSetByLocation = false;
 let searchAsMoveMap = false;
 let mapBoundsFilterActive = false;
 let currentMapBounds = null;
@@ -27,6 +28,7 @@ const MOBILE_BREAKPOINT = 860;
 document.addEventListener('DOMContentLoaded', () => {
   populateSelects();
   populateServiceCheckboxes();
+  applyLocationAvailability();
   readFiltersFromUrl();
   bindEvents();
   syncFiltersFromDom();
@@ -34,12 +36,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initMap();
   const initialMode = window.innerWidth <= MOBILE_BREAKPOINT ? 'list' : 'map';
   setViewMode(initialMode);
-  // Na desktopu se mapa odmah otvara — ako nema aktivnog filtera grada
-  // (npr. iz URL-a), potraži lokaciju korisnika da bismo prikaz odmah
-  // centrirali "u mojoj blizini" umesto na celu Srbiju.
-  if(initialMode === 'map' && locationState === 'idle' && !currentFilters.city){
-    requestUserLocation();
-  }
+  // Geolokacija se NE traži automatski: pokreće se isključivo klikom na
+  // "Blizu mene". Mapa se pri otvaranju prilagođava rezultatima pretrage
+  // (ili prikazuje celu Srbiju ako nema upita, grada ni usluge).
 });
 
 window.addEventListener('resize', relocateFiltersForViewport);
@@ -76,6 +75,21 @@ function clearCityFilter(){
   if(cityInput) cityInput.value = '';
 }
 
+// "Blizu mene", "Moja lokacija", "Pretraži dok pomeram mapu" i sortiranje po udaljenosti
+// imaju smisla samo ako postoji bar jedna ordinacija sa proverenom koordinatom.
+function applyLocationAvailability(){
+  if(anyVerifiedCoords()) return;
+  ['nearMeBtn','mobileNearMeBtn','locateMeBtn'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = 'none';
+  });
+  const move = document.querySelector('.map-move-control');
+  if(move) move.style.display = 'none';
+  const opt = document.querySelector('#sortSelect option[value="distance"]');
+  if(opt) opt.remove();
+  if(currentFilters.sort === 'distance') currentFilters.sort = 'recommended';
+}
+
 function populateSelects(){
   const citySel = document.getElementById('cityInput');
   citySel.innerHTML = '<option value="">Svi gradovi</option>' +
@@ -83,15 +97,26 @@ function populateSelects(){
 
   const serviceSel = document.getElementById('serviceInput');
   serviceSel.innerHTML = '<option value="">Sve usluge</option>' +
-    SERVICES.map(s=>`<option value="${s.slug}">${s.name}</option>`).join('');
+    getFilterableServices().map(s=>`<option value="${s.slug}">${s.name} (${s.count.toLocaleString('sr-RS')})</option>`).join('');
+}
+
+// Usluge za filter: samo one koje imaju bar jednu ordinaciju u podacima (sa brojem).
+// Usluga zadata kroz URL (?service=...) ostaje na listi i kad nema ordinacija,
+// da bi izabrani filter ostao vidljiv i dosledan (sa brojem 0).
+function getFilterableServices(){
+  const counts = getServiceCounts();
+  const fromUrl = new URLSearchParams(window.location.search).get('service');
+  return SERVICES
+    .map(s => ({slug:s.slug, name:s.name, count:counts[s.slug] || 0}))
+    .filter(s => s.count > 0 || s.slug === fromUrl);
 }
 
 function populateServiceCheckboxes(){
   const wrap = document.getElementById('servicesFilter');
-  wrap.innerHTML = SERVICES.map(s=>`
+  wrap.innerHTML = getFilterableServices().map(s=>`
     <label class="checkbox-row">
       <input type="checkbox" value="${s.slug}" class="service-checkbox">
-      ${s.name}
+      ${s.name} (${s.count.toLocaleString('sr-RS')})
     </label>`).join('');
 }
 
@@ -148,6 +173,7 @@ function bindEvents(){
 
   document.getElementById('resetFilters').addEventListener('click', (e)=>{
     e.preventDefault();
+    resetLocationMode();
     document.getElementById('queryInput').value = '';
     document.getElementById('cityInput').value = '';
     document.getElementById('serviceInput').value = '';
@@ -203,14 +229,6 @@ function bindEvents(){
   document.getElementById('mobileViewFab').addEventListener('click', ()=>{
     const goingToMap = viewMode !== 'map';
     setViewMode(goingToMap ? 'map' : 'list');
-    // Podrazumevani prikaz mape na mobilnom je "U mojoj blizini" — pri
-    // prvom otvaranju mape automatski tražimo lokaciju korisnika umesto
-    // da ga dočeka ceo (prazan) prikaz cele Srbije. Ali ne ako je
-    // korisnik već izabrao konkretan grad — tada bi kombinacija
-    // "taj grad" + "u krugu od 5km od mene" često ispala prazna.
-    if(goingToMap && locationState === 'idle' && !userLocation && !currentFilters.city){
-      requestUserLocation();
-    }
     // Ako je korisnik skrolovao nadole kroz listu, mapa (koja je iznad liste)
     // bi inače ostala van ekrana — vrati ga na vrh rezultata da odmah vidi mapu.
     if(goingToMap){
@@ -231,7 +249,7 @@ function getSelectedServices(){
 }
 
 function syncFiltersFromDom(){
-  currentFilters.q = document.getElementById('queryInput').value.trim().toLowerCase();
+  currentFilters.q = normalizeText(document.getElementById('queryInput').value.trim());
   currentFilters.city = document.getElementById('cityInput').value;
   currentFilters.service = document.getElementById('serviceInput').value;
   currentFilters.rating = Number(document.querySelector('input[name="rating"]:checked').value);
@@ -256,6 +274,15 @@ function resetLocationMode(){
     userLocation = null;
     locationState = 'idle';
     ignoreDistanceLimit = false;
+    // Ako smo sortiranje sami prebacili na "udaljenost" zbog lokacije, vrati ga.
+    if(sortAutoSetByLocation){
+      sortAutoSetByLocation = false;
+      if(currentFilters.sort === 'distance'){
+        currentFilters.sort = 'recommended';
+        const sortSelect = document.getElementById('sortSelect');
+        if(sortSelect) sortSelect.value = 'recommended';
+      }
+    }
     if(userMarker && leafletMap){ leafletMap.removeLayer(userMarker); userMarker = null; }
     if(userCircle && leafletMap){ leafletMap.removeLayer(userCircle); userCircle = null; }
     renderLocationBanner();
@@ -263,10 +290,16 @@ function resetLocationMode(){
 }
 
 function applyFilters(resetPage){
+  const prevQ = currentFilters.q;
+  const prevCity = currentFilters.city;
   syncFiltersFromDom();
   if(resetPage) visibleCount = PAGE_SIZE;
   cancelBoundsMode();
-  resetLocationMode();
+  // "Blizu mene" (filter od 5 km) se gasi samo kad korisnik promeni upit ili grad;
+  // ostali filteri i sortiranje ga ne diraju.
+  if(currentFilters.q !== prevQ || currentFilters.city !== prevCity){
+    resetLocationMode();
+  }
   updateUrl();
   renderResults({fitMap:true});
 }
@@ -280,9 +313,23 @@ function updateUrl(){
   window.history.replaceState({}, '', newUrl);
 }
 
+// Upit koji se tačno poklapa sa nazivom grada (bez dijakritika, "nis" = Niš) tretira
+// se kao izbor tog grada. Vraća normalizovan naziv grada ili '' ako upit nije grad.
+let cityNameSet = null;
+function queryAsCity(){
+  if(!currentFilters.q) return '';
+  if(!cityNameSet) cityNameSet = new Set(getAllCityNames().map(normalizeText));
+  return cityNameSet.has(currentFilters.q) ? currentFilters.q : '';
+}
+
+// 0 = grad se tačno poklapa sa upitom, 1 = ostalo (poklapanje u nazivu/delimično)
+function cityRank(c){
+  return (currentFilters.q && normalizeText(c.city) === currentFilters.q) ? 0 : 1;
+}
+
 function getFilteredClinics(){
   let list = getAllPublicListings().filter(c=>{
-    if(currentFilters.q && !c.name.toLowerCase().includes(currentFilters.q) && !c.city.toLowerCase().includes(currentFilters.q)) return false;
+    if(currentFilters.q && !normalizeText(c.name).includes(currentFilters.q) && !normalizeText(c.city).includes(currentFilters.q)) return false;
     if(currentFilters.city && c.city !== currentFilters.city) return false;
     if(currentFilters.service && !c.services.includes(currentFilters.service)) return false;
     if(currentFilters.selectedServices && currentFilters.selectedServices.length){
@@ -297,13 +344,13 @@ function getFilteredClinics(){
   });
 
   list.forEach(c => {
-    c._distance = (userLocation && typeof c.lat === 'number')
+    c._distance = (userLocation && hasVerifiedCoords(c))
       ? distanceKm(userLocation.lat, userLocation.lng, c.lat, c.lng)
       : null;
   });
 
   if(mapBoundsFilterActive && currentMapBounds){
-    list = list.filter(c => typeof c.lat === 'number' && currentMapBounds.contains([c.lat, c.lng]));
+    list = list.filter(c => hasVerifiedCoords(c) && currentMapBounds.contains([c.lat, c.lng]));
   } else if(userLocation && !ignoreDistanceLimit){
     list = list.filter(c => c._distance !== null && c._distance <= NEARBY_RADIUS_KM);
   }
@@ -316,11 +363,18 @@ function getFilteredClinics(){
     case 'price-desc': list.sort((a,b)=>b.priceRange-a.priceRange); break;
     case 'name': list.sort((a,b)=>a.name.localeCompare(b.name,'sr')); break;
     default:
+      // Tačno poklapanje grada sa upitom ima prednost nad poklapanjem u nazivu.
+      // (Array.sort je stabilan, pa ostali redosled ostaje kakav je bio.)
       if(userLocation && !mapBoundsFilterActive){
-        list.sort((a,b)=>(a._distance ?? 1e9)-(b._distance ?? 1e9));
+        list.sort((a,b)=>(cityRank(a)-cityRank(b)) || (a._distance ?? 1e9)-(b._distance ?? 1e9));
       } else {
-        list.sort((a,b)=> (b.verified-a.verified) || b.rating-a.rating);
+        list.sort((a,b)=>(cityRank(a)-cityRank(b)) || (b.verified-a.verified) || b.rating-a.rating);
       }
+  }
+  // Kad je upit naziv grada: ordinacije iz tog grada uvek idu pre poklapanja po
+  // nazivu iz drugih gradova, bez obzira na izabrano sortiranje (stabilno).
+  if(queryAsCity()){
+    list.sort((a,b)=>cityRank(a)-cityRank(b));
   }
   return list;
 }
@@ -337,6 +391,14 @@ function renderResults(opts){
 
   countEl.textContent = list.length;
   const points = renderMapMarkers(list);
+  // Nijedan pin na mapi (npr. nema proverenih koordinata): poruka umesto prazne mape.
+  const mapSoon = document.getElementById('mapSoon');
+  if(mapSoon) mapSoon.style.display = (viewMode === 'map' && points.length === 0) ? 'flex' : 'none';
+  // Upit == grad: mapa se prilagođava samo ordinacijama iz tog grada
+  // (poklapanja po nazivu iz drugih gradova ostaju na mapi, ali ne određuju okvir).
+  const fitPoints = queryAsCity()
+    ? list.filter(c => cityRank(c) === 0 && hasVerifiedCoords(c)).map(c => [c.lat, c.lng])
+    : points;
 
   if(list.length === 0){
     resultsGrid.innerHTML = '';
@@ -370,7 +432,7 @@ function renderResults(opts){
     // moda, ili prelazak iz praznog stanja rezultata natrag na rezultate).
     setTimeout(()=>{
       leafletMap.invalidateSize();
-      if(opts.fitMap) fitMapToPoints(points);
+      if(opts.fitMap) fitMapToPoints(fitPoints);
     }, 30);
   }
 
@@ -486,13 +548,13 @@ function renderMapMarkers(list){
   const points = [];
 
   list.forEach(c => {
-    if(typeof c.lat !== 'number') return;
+    if(!hasVerifiedCoords(c)) return; // bez proverene koordinate nema markera
     const marker = L.marker([c.lat, c.lng], {icon: buildMarkerIcon(c)});
     marker.bindPopup(`
       <div class="map-pin-popup">
         <img src="${clinicImageUrl(c.images[0], 240, 130)}" alt="${c.name}">
         <h5>${c.name}</h5>
-        ${starRow(c.rating)}
+        ${c.reviewCount > 0 ? starRow(c.rating) : ''}
         <div style="margin-top:8px;"><a href="ordinacija.html?id=${c.id}">Pogledaj detalje →</a></div>
       </div>
     `);
@@ -507,8 +569,20 @@ function renderMapMarkers(list){
   return points;
 }
 
+// Okvir cele Srbije (jugozapad, severoistok) za prikaz bez upita, grada i usluge.
+const SERBIA_BOUNDS = [[42.2, 18.8], [46.2, 23.0]];
+
+function hasSearchFilters(){
+  return !!(currentFilters.q || currentFilters.city || currentFilters.service ||
+    (currentFilters.selectedServices && currentFilters.selectedServices.length));
+}
+
 function fitMapToPoints(points){
   if(!leafletMap) return;
+  if(!userLocation && !hasSearchFilters()){
+    leafletMap.fitBounds(SERBIA_BOUNDS, {padding:[10,10]});
+    return;
+  }
   if(points.length === 1){
     leafletMap.setView(points[0], 15);
   } else if(points.length > 1){
@@ -525,7 +599,7 @@ function centerOnNearestPremium(){
   let nearest = null;
   let nearestDist = Infinity;
   getAllPublicListings().forEach(c => {
-    if(!c.featured || typeof c.lat !== 'number') return;
+    if(!c.featured || !hasVerifiedCoords(c)) return;
     const d = distanceKm(userLocation.lat, userLocation.lng, c.lat, c.lng);
     if(d < nearestDist){ nearestDist = d; nearest = c; }
   });
@@ -545,7 +619,7 @@ function highlightCard(id){
 }
 
 function showMapHalo(c){
-  if(!leafletMap || !haloLayer || typeof c.lat !== 'number') return;
+  if(!leafletMap || !haloLayer || !hasVerifiedCoords(c)) return;
   hideMapHalo();
   hoverHalo = L.marker([c.lat, c.lng], {
     icon: L.divIcon({className:'', html:'<div class="map-marker-halo"></div>', iconSize:[66,66], iconAnchor:[33,33]}),
@@ -594,6 +668,7 @@ function requestUserLocation(){
       // Kad znamo lokaciju korisnika, sortiranje po udaljenosti je
       // podrazumevano najrelevantnije — uskladi i sam padajući meni.
       if(currentFilters.sort === 'recommended'){
+        sortAutoSetByLocation = true;
         currentFilters.sort = 'distance';
         const sortSelect = document.getElementById('sortSelect');
         if(sortSelect) sortSelect.value = 'distance';

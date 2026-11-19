@@ -2,6 +2,10 @@
 <html lang="sr">
 <head>
 <meta charset="UTF-8">
+<meta name="robots" content="noindex, nofollow">
+<!-- Privremeno: prijava još ne postoji, pa se ova stranica preusmerava na početnu. Ukloniti uz pravu prijavu. -->
+<meta http-equiv="refresh" content="0;url=index.html">
+<script>window.location.replace('index.html');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Moj nalog — Nađi Zubara</title>
 <meta name="description" content="Vaš nalog na Nađi Zubara — oglasi, promocije, sačuvane ordinacije i podešavanja naloga.">
@@ -25,7 +29,7 @@
     </nav>
     <div class="header-actions">
       <div id="authArea"></div>
-      <a href="dodaj-ordinaciju.html" class="btn btn-ghost btn-sm">Dodaj ordinaciju</a>
+      <span class="btn btn-ghost btn-sm is-soon" aria-disabled="true">Dodaj ordinaciju · uskoro</span>
       <button class="icon-btn burger" id="burgerBtn" aria-label="Meni"><span data-icon="menu"></span></button>
     </div>
   </div>
@@ -33,7 +37,7 @@
     <a href="index.html">Početna</a>
     <a href="pretraga.html">Pronađi ordinaciju</a>
     <a href="kontakt.html">Kontakt</a>
-    <a href="dodaj-ordinaciju.html" class="btn btn-primary">Dodaj ordinaciju</a>
+    <span class="btn btn-primary is-soon" aria-disabled="true">Dodaj ordinaciju · uskoro</span>
     <div id="mobileAuthArea"></div>
   </div>
 </header>

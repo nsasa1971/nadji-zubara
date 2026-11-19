@@ -19,7 +19,20 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
+// Ocena prikazana na stranici: ako ordinacija nema ugrađenu ocenu (uvezene),
+// a postoje recenzije ostavljene u ovom pregledaču, računa se njihov prosek.
+function effectiveRating(c, extra){
+  if(c.reviewCount > 0 || !extra.length) return c.rating;
+  return extra.reduce((a,r)=>a+r.rating,0) / extra.length;
+}
+
 function renderClinic(c){
+  const contactBase = '&clinic=' + encodeURIComponent(c.name) + '&city=' + encodeURIComponent(c.city) +
+    '&id=' + encodeURIComponent(c.id);
+  const reportLink = document.getElementById('reportLink');
+  if(reportLink) reportLink.href = 'kontakt.html?subject=netacan-podatak' + contactBase;
+  const removeLink = document.getElementById('removeLink');
+  if(removeLink) removeLink.href = 'kontakt.html?subject=uklanjanje-profila' + contactBase;
   document.title = c.name + ' — Nađi Zubara';
   document.getElementById('pageTitle').textContent = c.name + ' — Nađi Zubara';
 
@@ -40,7 +53,7 @@ function renderClinic(c){
   const hasReviews = totalReviewCount > 0;
 
   document.getElementById('clinicStars').innerHTML = hasReviews
-    ? starRow(c.rating)
+    ? starRow(effectiveRating(c, extra))
     : `<span style="color:var(--muted);font-size:13.5px;">Nema recenzija još</span>`;
   document.getElementById('reviewCountLine').textContent = hasReviews ? (totalReviewCount + ' recenzija') : '';
 
@@ -109,7 +122,7 @@ function renderClinic(c){
   // Usluge
   document.getElementById('servicesList').innerHTML = c.services.map(slug => `
     <li>
-      <span class="s-name"><span class="icon-wrap" style="background:var(--primary-light);color:var(--primary-dark);">${serviceIcon(slug)}</span> ${serviceName(slug)}</span>
+      <span class="s-name"><span class="icon-wrap" style="background:var(--primary-light);color:var(--primary-dark);">${serviceIcon(slug)}</span> <a class="s-link" href="pretraga.html?service=${encodeURIComponent(slug)}" title="Sve ordinacije: ${serviceName(slug)}">${serviceName(slug)}</a></span>
       <span class="s-price">Kontaktirajte za cenu</span>
     </li>`).join('');
 
@@ -125,8 +138,8 @@ function renderReviews(c){
 
   document.getElementById('tabReviewCount').textContent = totalCount;
   document.getElementById('reviewCountLine').textContent = hasReviews ? (totalCount + ' recenzija') : '';
-  document.getElementById('reviewScoreBig').textContent = hasReviews ? c.rating.toFixed(1) : '—';
-  document.getElementById('reviewScoreStars').innerHTML = hasReviews ? starRow(c.rating) : '';
+  document.getElementById('reviewScoreBig').textContent = hasReviews ? effectiveRating(c, extra).toFixed(1) : '—';
+  document.getElementById('reviewScoreStars').innerHTML = hasReviews ? starRow(effectiveRating(c, extra)) : '';
   document.getElementById('reviewScoreCount').textContent = hasReviews ? (totalCount + ' recenzija') : 'Nema recenzija još';
 
   const session = getSession();
@@ -185,17 +198,26 @@ function startEditReview(c, reviewId){
   document.getElementById('reviewFormWrap').scrollIntoView({behavior:'smooth', block:'center'});
 }
 
+// Slične ordinacije: isti grad, bez ocena; najbliže po udaljenosti ako
+// postoje koordinate, inače redom kojim su u podacima.
 function renderSimilar(c){
-  let similar = CLINICS.filter(x => x.id !== c.id && x.city === c.city);
-  if(similar.length < 3){
-    const others = CLINICS.filter(x => x.id !== c.id && x.city !== c.city)
-      .sort((a,b)=>b.rating-a.rating);
-    similar = similar.concat(others).slice(0,3);
-  } else {
-    similar = similar.slice(0,3);
+  const grid = document.getElementById('similarGrid');
+  let similar = getAllPublicListings().filter(x => x.id !== c.id && x.city === c.city);
+  if(hasVerifiedCoords(c)){
+    const d = x => hasVerifiedCoords(x)
+      ? distanceKm(c.lat, c.lng, x.lat, x.lng) : 1e9;
+    similar.sort((a,b) => d(a) - d(b));
   }
-  document.getElementById('similarGrid').innerHTML = similar.map(renderClinicCard).join('');
-  bindFavoriteButtons(document.getElementById('similarGrid'));
+  similar = similar.slice(0,3);
+  // sekcija (naslov + kartice) se krije ako u gradu nema drugih ordinacija
+  const section = grid.previousElementSibling;
+  if(!similar.length){
+    grid.style.display = 'none';
+    if(section) section.style.display = 'none';
+    return;
+  }
+  grid.innerHTML = similar.map(x => renderClinicCard(x)).join('');
+  bindFavoriteButtons(grid);
 }
 
 function bindTabs(){
