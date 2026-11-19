@@ -11,6 +11,7 @@ let viewMode = 'map'; // 'map' | 'list'
 let userLocation = null; // {lat, lng}
 let locationState = 'idle'; // idle | requesting | granted | denied | unavailable
 let ignoreDistanceLimit = false;
+let sortAutoSetByLocation = false;
 let searchAsMoveMap = false;
 let mapBoundsFilterActive = false;
 let currentMapBounds = null;
@@ -34,12 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
   initMap();
   const initialMode = window.innerWidth <= MOBILE_BREAKPOINT ? 'list' : 'map';
   setViewMode(initialMode);
-  // Na desktopu se mapa odmah otvara — ako nema aktivnog filtera grada
-  // (npr. iz URL-a), potraži lokaciju korisnika da bismo prikaz odmah
-  // centrirali "u mojoj blizini" umesto na celu Srbiju.
-  if(initialMode === 'map' && locationState === 'idle' && !currentFilters.city){
-    requestUserLocation();
-  }
+  // Geolokacija se NE traži automatski: pokreće se isključivo klikom na
+  // "Blizu mene". Mapa se pri otvaranju prilagođava rezultatima pretrage
+  // (ili prikazuje celu Srbiju ako nema upita, grada ni usluge).
 });
 
 window.addEventListener('resize', relocateFiltersForViewport);
@@ -148,6 +146,7 @@ function bindEvents(){
 
   document.getElementById('resetFilters').addEventListener('click', (e)=>{
     e.preventDefault();
+    resetLocationMode();
     document.getElementById('queryInput').value = '';
     document.getElementById('cityInput').value = '';
     document.getElementById('serviceInput').value = '';
@@ -203,14 +202,6 @@ function bindEvents(){
   document.getElementById('mobileViewFab').addEventListener('click', ()=>{
     const goingToMap = viewMode !== 'map';
     setViewMode(goingToMap ? 'map' : 'list');
-    // Podrazumevani prikaz mape na mobilnom je "U mojoj blizini" — pri
-    // prvom otvaranju mape automatski tražimo lokaciju korisnika umesto
-    // da ga dočeka ceo (prazan) prikaz cele Srbije. Ali ne ako je
-    // korisnik već izabrao konkretan grad — tada bi kombinacija
-    // "taj grad" + "u krugu od 5km od mene" često ispala prazna.
-    if(goingToMap && locationState === 'idle' && !userLocation && !currentFilters.city){
-      requestUserLocation();
-    }
     // Ako je korisnik skrolovao nadole kroz listu, mapa (koja je iznad liste)
     // bi inače ostala van ekrana — vrati ga na vrh rezultata da odmah vidi mapu.
     if(goingToMap){
@@ -256,6 +247,15 @@ function resetLocationMode(){
     userLocation = null;
     locationState = 'idle';
     ignoreDistanceLimit = false;
+    // Ako smo sortiranje sami prebacili na "udaljenost" zbog lokacije, vrati ga.
+    if(sortAutoSetByLocation){
+      sortAutoSetByLocation = false;
+      if(currentFilters.sort === 'distance'){
+        currentFilters.sort = 'recommended';
+        const sortSelect = document.getElementById('sortSelect');
+        if(sortSelect) sortSelect.value = 'recommended';
+      }
+    }
     if(userMarker && leafletMap){ leafletMap.removeLayer(userMarker); userMarker = null; }
     if(userCircle && leafletMap){ leafletMap.removeLayer(userCircle); userCircle = null; }
     renderLocationBanner();
@@ -263,10 +263,16 @@ function resetLocationMode(){
 }
 
 function applyFilters(resetPage){
+  const prevQ = currentFilters.q;
+  const prevCity = currentFilters.city;
   syncFiltersFromDom();
   if(resetPage) visibleCount = PAGE_SIZE;
   cancelBoundsMode();
-  resetLocationMode();
+  // "Blizu mene" (filter od 5 km) se gasi samo kad korisnik promeni upit ili grad;
+  // ostali filteri i sortiranje ga ne diraju.
+  if(currentFilters.q !== prevQ || currentFilters.city !== prevCity){
+    resetLocationMode();
+  }
   updateUrl();
   renderResults({fitMap:true});
 }
@@ -514,8 +520,20 @@ function renderMapMarkers(list){
   return points;
 }
 
+// Okvir cele Srbije (jugozapad, severoistok) za prikaz bez upita, grada i usluge.
+const SERBIA_BOUNDS = [[42.2, 18.8], [46.2, 23.0]];
+
+function hasSearchFilters(){
+  return !!(currentFilters.q || currentFilters.city || currentFilters.service ||
+    (currentFilters.selectedServices && currentFilters.selectedServices.length));
+}
+
 function fitMapToPoints(points){
   if(!leafletMap) return;
+  if(!userLocation && !hasSearchFilters()){
+    leafletMap.fitBounds(SERBIA_BOUNDS, {padding:[10,10]});
+    return;
+  }
   if(points.length === 1){
     leafletMap.setView(points[0], 15);
   } else if(points.length > 1){
@@ -601,6 +619,7 @@ function requestUserLocation(){
       // Kad znamo lokaciju korisnika, sortiranje po udaljenosti je
       // podrazumevano najrelevantnije — uskladi i sam padajući meni.
       if(currentFilters.sort === 'recommended'){
+        sortAutoSetByLocation = true;
         currentFilters.sort = 'distance';
         const sortSelect = document.getElementById('sortSelect');
         if(sortSelect) sortSelect.value = 'distance';
