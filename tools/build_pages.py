@@ -5,6 +5,8 @@ Generiše statične SEO stranice iz js/imported-clinics.js (fajl se samo čita).
   /<grad>/index.html                 stranica grada (lista ordinacija); gradovi sa više od
                                      PAGE_SIZE ordinacija dele se: /<grad>/, /<grad>/2/, ...
   /<grad>/<ordinacija>/index.html    jedna stranica po ordinaciji
+  /beograd/<opstina>/index.html      stranica opštine Beograda (opština = deo adrese posle
+                                     "Beograd - "); straniči se kao i gradovi
   /sitemap.xml, /robots.txt
 
 Svaka stranica ima svoj <title>, meta opis i canonical link, a osnovni sadržaj
@@ -45,6 +47,11 @@ PAGE_SIZE = 200  # gradovi sa više ordinacija dele se na stranice po PAGE_SIZE
 RESERVED = {"css", "img", "js", "tools", "index", "pretraga", "kontakt", "cenovnik",
             "ordinacija", "prijava", "nalog", "dodaj-ordinaciju"}
 SKIP_CITIES = {"", "Nepoznato"}
+# Opštine: samo za ovaj grad, iz dela adrese posle "Beograd - ".
+OPSTINE_CITY = "Beograd"
+OPSTINA_RE = re.compile(r'Beograd\s*-\s*(.+?)\s*$')
+# True: "Čukarica - Železnik" -> "Čukarica" (deo pre " - "); False: doslovno kako piše u adresi.
+OPSTINE_MERGE_COMPOUND = False
 
 SERBIAN_MAP = str.maketrans({'č': 'c', 'ć': 'c', 'ž': 'z', 'š': 's', 'đ': 'dj',
                              'Č': 'C', 'Ć': 'C', 'Ž': 'Z', 'Š': 'S', 'Đ': 'Dj'})
@@ -93,6 +100,19 @@ def load_clinics():
     if not out:
         sys.exit('Nije pronađena nijedna ordinacija u ' + str(SRC))
     return out
+
+
+def opstina_of(c):
+    """Opština iz adrese ('..., Beograd - Vračar' -> 'Vračar') ili None."""
+    if c['city'] != OPSTINE_CITY:
+        return None
+    m = OPSTINA_RE.search(c['address'])
+    if not m:
+        return None
+    label = m.group(1).strip()
+    if OPSTINE_MERGE_COMPOUND:
+        label = label.split(' - ')[0].strip()
+    return label or None
 
 
 def clinic_slug(c, city_slug):
@@ -180,7 +200,7 @@ def report_href(c):
             '&city=' + quote(c['city']) + '&id=' + quote(c['id']))
 
 
-def clinic_page(c, city_slug, slug, same_name=False):
+def clinic_page(c, city_slug, slug, same_name=False, opstina=None, op_slug=None):
     path = f'/{city_slug}/{slug}/'
     # ordinacije sa istim nazivom u istom gradu dobijaju adresu u naslovu (jedinstveni naslovi)
     label = f"{c['name']}, {c['address']}" if same_name else c['name']
@@ -194,12 +214,15 @@ def clinic_page(c, city_slug, slug, same_name=False):
         phone_html = f'<p><strong>Telefon:</strong> <a href="tel:{esc(tel)}">{esc(c["phone"])}</a></p>'
     else:
         phone_html = '<p><strong>Telefon:</strong> nije dostupan</p>'
-    body = f'''<div class="breadcrumbs"><a href="/index.html">Početna</a> / <a href="/{city_slug}/">{esc(c['city'])}</a> / {esc(c['name'])}</div>
+    op_crumb = f' / <a href="/{city_slug}/{op_slug}/">{esc(opstina)}</a>' if opstina else ''
+    op_line = (f'\n  <p><strong>Opština:</strong> <a href="/{city_slug}/{op_slug}/">{esc(opstina)}</a></p>'
+               if opstina else '')
+    body = f'''<div class="breadcrumbs"><a href="/index.html">Početna</a> / <a href="/{city_slug}/">{esc(c['city'])}</a>{op_crumb} / {esc(c['name'])}</div>
 <article class="info-card">
   <h1>{esc(c['name'])}</h1>
   <p><strong>Adresa:</strong> {esc(c['address'])}</p>
   {phone_html}
-  <p><strong>Grad:</strong> <a href="/{city_slug}/">{esc(c['city'])}</a></p>
+  <p><strong>Grad:</strong> <a href="/{city_slug}/">{esc(c['city'])}</a></p>{op_line}
   <p><a href="/{city_slug}/">Sve ordinacije u gradu {esc(c['city'])}</a></p>
   <p>Radno vreme, usluge i ocene za ovu ordinaciju još nisu dostupni.</p>
   <p>
@@ -214,30 +237,32 @@ def clinic_page(c, city_slug, slug, same_name=False):
     return path, page(title, clip(desc), path, body, ld)
 
 
-def city_page_path(slug, k):
-    return f'/{slug}/' if k == 1 else f'/{slug}/{k}/'
+def listing_page_path(base, k):
+    return f'{base}/' if k == 1 else f'{base}/{k}/'
 
 
-def city_pages(city, slug, clinics_with_slug):
-    """Lista (path, html): jedna stranica grada, ili više po PAGE_SIZE ordinacija."""
-    n = len(clinics_with_slug)
-    ordered = sorted(clinics_with_slug, key=lambda x: x[0]['name'].lower())
+def listing_pages(base, city_slug, items, name, crumbs, intro, extra_first_page=''):
+    """Lista (path, html) za stranicu sa spiskom ordinacija: jedna, ili više po PAGE_SIZE.
+    base: '/beograd' ili '/beograd/vracar'; name: 'Niš' ili 'Vračar, Beograd';
+    crumbs: [(naziv, putanja)] pre poslednjeg elementa."""
+    n = len(items)
+    ordered = sorted(items, key=lambda x: x[0]['name'].lower())
     pages = [ordered[i:i + PAGE_SIZE] for i in range(0, n, PAGE_SIZE)] or [[]]
     total = len(pages)
-    search = f'/pretraga.html?city={quote(city)}'
+    last = name.split(',')[0]
     out = []
     for k, chunk in enumerate(pages, start=1):
-        path = city_page_path(slug, k)
-        suffix = f' – strana {k}' if k > 1 else ''  # prva strana grada je bez oznake
-        title = f"Zubari i stomatološke ordinacije {city} ({n}){suffix} | {SITE_NAME}"
-        desc = clip(f"Zubari i stomatološke ordinacije, grad: {city}. Spisak ordinacija ({n}) sa adresama i telefonima"
+        path = listing_page_path(base, k)
+        suffix = f' – strana {k}' if k > 1 else ''  # prva strana je bez oznake
+        title = f"Zubari i stomatološke ordinacije {name} ({n}){suffix} | {SITE_NAME}"
+        desc = clip(f"Zubari i stomatološke ordinacije, {name}. Spisak ordinacija ({n}) sa adresama i telefonima"
                     + (f", strana {k} od {total}" if k > 1 else '') + f". Pronađite zubara preko {SITE_NAME}.")
-        items = '\n'.join(
-            f'  <li><a href="/{slug}/{cs}/">{esc(c["name"])}</a> '
+        li = '\n'.join(
+            f'  <li><a href="/{city_slug}/{cs}/">{esc(c["name"])}</a> '
             f'<span style="color:var(--muted);">— {esc(c["address"])}</span></li>'
             for c, cs in chunk)
-        prev_path = city_page_path(slug, k - 1) if k > 1 else None
-        next_path = city_page_path(slug, k + 1) if k < total else None
+        prev_path = listing_page_path(base, k - 1) if k > 1 else None
+        next_path = listing_page_path(base, k + 1) if k < total else None
         pager = ''
         if total > 1:
             links = []
@@ -249,20 +274,44 @@ def city_pages(city, slug, clinics_with_slug):
             pager = ('<nav class="city-pager" aria-label="Strane" '
                      'style="display:flex;gap:18px;align-items:center;margin:18px 0;">'
                      + ' '.join(links) + '</nav>')
-        h1 = f'Zubari i stomatološke ordinacije – {esc(city)}' + (f' (strana {k})' if k > 1 else '')
-        crumbs = ('<a href="/index.html">Početna</a> / ' +
-                  (f'<a href="/{slug}/">{esc(city)}</a> / Strana {k}' if k > 1 else esc(city)))
-        body = f'''<div class="breadcrumbs">{crumbs}</div>
+        h1 = f'Zubari i stomatološke ordinacije – {esc(name)}' + (f' (strana {k})' if k > 1 else '')
+        trail = ''.join(f'<a href="{esc(pth)}">{esc(lbl)}</a> / ' for lbl, pth in crumbs)
+        if k > 1:
+            trail += f'<a href="{base}/">{esc(last)}</a> / Strana {k}'
+        else:
+            trail += esc(last)
+        extra = extra_first_page if k == 1 else ''
+        body = f"""<div class="breadcrumbs"><a href="/index.html">Početna</a> / {trail}</div>
 <h1>{h1}</h1>
-<p>Grad: {esc(city)}. Pregled stomatoloških ordinacija ({n}).
-<a href="{esc(search)}">Pretraži ordinacije u gradu {esc(city)}</a> po usluzi i uz filtere.</p>
-{pager}
+<p>{intro.replace('{n}', str(n))}</p>
+{extra}{pager}
 <ul class="clinic-link-list">
-{items}
+{li}
 </ul>
-{pager}'''
+{pager}"""
         out.append((path, page(title, desc, path, body, prev_path=prev_path, next_path=next_path)))
     return out
+
+
+def city_pages(city, slug, items, opstine=None):
+    """Stranice grada. opstine: [(opština, slug, broj)] - lista linkova na stranicama opština."""
+    search = f'/pretraga.html?city={quote(city)}'
+    intro = (f'Grad: {esc(city)}. Pregled stomatoloških ordinacija ({{n}}). '
+             f'<a href="{esc(search)}">Pretraži ordinacije u gradu {esc(city)}</a> po usluzi i uz filtere.')
+    extra = ''
+    if opstine:
+        lis = '\n'.join(f'  <li><a href="/{slug}/{os_}/">{esc(o)}</a> ({cnt})</li>' for o, os_, cnt in opstine)
+        extra = f'<h2>Opštine</h2>\n<ul class="opstine-list">\n{lis}\n</ul>\n'
+    return listing_pages(f'/{slug}', slug, items, city, [], intro, extra)
+
+
+def opstina_pages(city, city_slug, opstina, op_slug, items):
+    """Stranice opštine grada (npr. /beograd/vracar/)."""
+    search = f'/pretraga.html?city={quote(city)}'
+    intro = (f'Opština: {esc(opstina)}, {esc(city)}. Pregled stomatoloških ordinacija ({{n}}). '
+             f'<a href="{esc(search)}">Pretraži ordinacije u gradu {esc(city)}</a> po usluzi i uz filtere.')
+    return listing_pages(f'/{city_slug}/{op_slug}', city_slug, items, f'{opstina}, {city}',
+                         [(city, f'/{city_slug}/')], intro)
 
 
 def sitemap(paths):
@@ -298,6 +347,8 @@ def clean_previous(base):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--sample', metavar='DIR', help='generiši samo jedan grad i jednu ordinaciju u DIR')
+    ap.add_argument('--list-opstine', action='store_true',
+                    help='ispiši opštine sa brojem ordinacija i izađi (ništa ne generiše)')
     args = ap.parse_args()
 
     clinics = load_clinics()
@@ -334,35 +385,87 @@ def main():
             seen.add(cs)
             plan[city].append((c, cs))
 
+    # opštine (samo OPSTINE_CITY): oznaka -> [(clinic, slug)], uz provere sudara slugova
+    opstine = {}      # oznaka -> {'slug': ..., 'items': [...]}
+    op_of = {}        # id ordinacije -> oznaka
+    if OPSTINE_CITY in plan:
+        city_slug = city_slugs[OPSTINE_CITY]
+        clinic_slugs = {cs for _, cs in plan[OPSTINE_CITY]}
+        total_pages = -(-len(plan[OPSTINE_CITY]) // PAGE_SIZE)
+        page_numbers = {str(k) for k in range(2, total_pages + 1)}
+        for c, cs in plan[OPSTINE_CITY]:
+            label = opstina_of(c)
+            if not label:
+                continue
+            opstine.setdefault(label, {'items': []})['items'].append((c, cs))
+            op_of[c['id']] = label
+        used = set()
+        for label, d in opstine.items():
+            os_ = slugify(label)
+            if not os_ or os_ in used or os_ in clinic_slugs or os_ in page_numbers or os_ in RESERVED:
+                sys.exit(f'Sudar ili neispravan slug opštine "{label}" -> "{os_}"')
+            used.add(os_)
+            d['slug'] = os_
+
+    if args.list_opstine:
+        total = sum(len(d['items']) for d in opstine.values())
+        n_city = len(plan.get(OPSTINE_CITY, []))
+        print(f'{OPSTINE_CITY}: {n_city} ordinacija, sa opštinom {total}, bez opštine {n_city - total}; '
+              f'opština/naselja: {len(opstine)}')
+        for label, d in sorted(opstine.items(), key=lambda x: (-len(x[1]['items']), x[0])):
+            n = len(d['items'])
+            extra = f'  [{-(-n // PAGE_SIZE)} strane]' if n > PAGE_SIZE else ''
+            print(f"{n:5d}  {label:28s} /{city_slugs[OPSTINE_CITY]}/{d['slug']}/{extra}")
+        return
+
     if args.sample:
         out = Path(args.sample)
         out.mkdir(parents=True, exist_ok=True)
         city = 'Beograd' if 'Beograd' in plan else next(iter(plan))
-        for pth, html_ in city_pages(city, city_slugs[city], plan[city])[:2]:
+        ops_list = ([(o, d['slug'], len(d['items'])) for o, d in sorted(opstine.items(), key=lambda x: -len(x[1]['items']))]
+                    if city == OPSTINE_CITY else None)
+        for pth, html_ in city_pages(city, city_slugs[city], plan[city], ops_list)[:2]:
             write(out, pth, html_)
+        if city == OPSTINE_CITY and opstine:
+            label = 'Vračar' if 'Vračar' in opstine else next(iter(opstine))
+            d = opstine[label]
+            for pth, html_ in opstina_pages(city, city_slugs[city], label, d['slug'], d['items'])[:2]:
+                write(out, pth, html_)
         c, cs = plan[city][0]
-        pth, html_ = clinic_page(c, city_slugs[city], cs, same_name_counts[(c['name'].lower(), city)] > 1)
+        lab = op_of.get(c['id'])
+        pth, html_ = clinic_page(c, city_slugs[city], cs, same_name_counts[(c['name'].lower(), city)] > 1,
+                                 lab, opstine[lab]['slug'] if lab else None)
         write(out, pth, html_)
         print('Uzorak upisan u', out)
         return
 
     removed = clean_previous(ROOT)
     paths = ['/', '/pretraga.html', '/kontakt.html']
-    n_clinic = n_city_pages = 0
+    n_clinic = n_city_pages = n_op_pages = 0
     for city in sorted(plan, key=lambda x: city_slugs[x]):
         slug = city_slugs[city]
-        for pth, html_ in city_pages(city, slug, plan[city]):
+        ops_list = ([(o, d['slug'], len(d['items'])) for o, d in sorted(opstine.items(), key=lambda x: (-len(x[1]['items']), x[0]))]
+                    if city == OPSTINE_CITY else None)
+        for pth, html_ in city_pages(city, slug, plan[city], ops_list):
             write(ROOT, pth, html_)
             paths.append(pth)
             n_city_pages += 1
+        if city == OPSTINE_CITY:
+            for label, d in sorted(opstine.items(), key=lambda x: x[1]['slug']):
+                for pth, html_ in opstina_pages(city, slug, label, d['slug'], d['items']):
+                    write(ROOT, pth, html_)
+                    paths.append(pth)
+                    n_op_pages += 1
         for c, cs in plan[city]:
-            pth, html_ = clinic_page(c, slug, cs, same_name_counts[(c['name'].lower(), city)] > 1)
+            lab = op_of.get(c['id'])
+            pth, html_ = clinic_page(c, slug, cs, same_name_counts[(c['name'].lower(), city)] > 1,
+                                     lab, opstine[lab]['slug'] if lab else None)
             write(ROOT, pth, html_)
             paths.append(pth)
             n_clinic += 1
     (ROOT / 'sitemap.xml').write_text(sitemap(paths), encoding='utf-8')
     (ROOT / 'robots.txt').write_text(robots(), encoding='utf-8')
-    print(f'Gradova: {len(plan)}, stranica gradova: {n_city_pages}, ordinacija: {n_clinic}, '
+    print(f'Gradova: {len(plan)}, stranica gradova: {n_city_pages}, stranica opština: {n_op_pages}, ordinacija: {n_clinic}, '
           f'preskočeno (nepoznat grad): {skipped}, obrisano starih direktorijuma: {removed}, '
           f'URL-ova u sitemap-u: {len(paths)}')
 
