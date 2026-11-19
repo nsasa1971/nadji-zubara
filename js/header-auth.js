@@ -14,8 +14,9 @@ function renderAuthArea(){
   const session = getSession();
 
   if(!session){
-    if(area) area.innerHTML = `<a href="prijava.html" class="icon-btn" aria-label="Prijava / Registracija" title="Prijava / Registracija">${ICONS.user}</a>`;
-    if(mobileArea) mobileArea.innerHTML = `<a href="prijava.html">${ICONS.user} Prijava / Registracija</a>`;
+    // Prijava je privremeno isključena (demo prijava bez servera) — "uskoro".
+    if(area) area.innerHTML = `<span class="is-soon-text" title="Prijava uskoro">Prijava · uskoro</span>`;
+    if(mobileArea) mobileArea.innerHTML = `<span class="is-soon-text">${ICONS.user} Prijava · uskoro</span>`;
     return;
   }
 

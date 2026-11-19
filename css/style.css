@@ -820,3 +820,7 @@ svg{display:block;}
 .marker-cluster-small div, .marker-cluster-medium div, .marker-cluster-large div{
   background-color:var(--primary);color:#fff;font-weight:700;font-family:'Poppins',sans-serif;
 }
+
+/* Funkcije koje stižu uskoro (Prijava, Dodaj ordinaciju) */
+.is-soon{opacity:.55;cursor:not-allowed;pointer-events:none;user-select:none}
+.is-soon-text{color:var(--muted);font-size:14px;font-weight:500;cursor:default;white-space:nowrap}
