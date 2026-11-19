@@ -186,7 +186,7 @@ def page(title, description, canonical_path, body, jsonld=None, prev_path=None, 
 <body>
 {head}
 
-<main class="section-tight">
+<main class="section-tight seo-page">
 <div class="container">
 {body}
 </div>

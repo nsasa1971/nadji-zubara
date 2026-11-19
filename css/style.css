@@ -837,3 +837,16 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .map-soon svg{width:34px;height:34px;color:var(--primary);display:block;margin:0 auto 10px;}
 .map-soon b{display:block;font-size:18px;color:var(--navy,#0F2A43);}
 .map-soon p{margin:6px 0 0;font-size:14px;}
+
+/* Generisane SEO stranice (gradovi, opštine, ordinacije): linkovi moraju izgledati klikabilno */
+.seo-page a:not(.btn){color:var(--primary-dark);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1px;}
+.seo-page a:not(.btn):hover,.seo-page a:not(.btn):focus-visible{color:var(--primary);text-decoration-thickness:2px;}
+.seo-page .breadcrumbs a{text-decoration:none;}
+.seo-page .breadcrumbs a:hover{text-decoration:underline;}
+.seo-page .clinic-link-list{list-style:none;margin:0;padding:0;}
+.seo-page .clinic-link-list li{padding:10px 0;border-bottom:1px solid var(--border);line-height:1.5;}
+.seo-page .clinic-link-list li a{font-weight:600;}
+.seo-page .opstine-list{list-style:none;margin:0 0 20px;padding:0;display:flex;flex-wrap:wrap;gap:8px;}
+.seo-page .opstine-list li{border:1px solid var(--border);border-radius:999px;background:#fff;padding:6px 14px;font-size:14px;color:var(--muted);}
+.seo-page .opstine-list li a{font-weight:600;}
+.seo-page .city-pager a{font-weight:600;}
