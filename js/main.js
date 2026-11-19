@@ -55,8 +55,11 @@ function renderHomepage(){
   }
   const serviceSelect = document.querySelector('#heroSearchForm [name="service"]');
   if(serviceSelect){
+    const serviceCounts = getServiceCounts();
     serviceSelect.innerHTML = '<option value="">Sve usluge</option>' +
-      SERVICES.map(s=>`<option value="${s.slug}">${s.name}</option>`).join('');
+      // samo usluge koje imaju bar jednu ordinaciju (isto kao filter u pretrazi)
+      SERVICES.filter(s => serviceCounts[s.slug] > 0)
+        .map(s=>`<option value="${s.slug}">${s.name} (${serviceCounts[s.slug].toLocaleString('sr-RS')})</option>`).join('');
   }
 
   const allListings = getAllPublicListings();
