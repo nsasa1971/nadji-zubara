@@ -228,10 +228,10 @@ def city_pages(city, slug, clinics_with_slug):
     out = []
     for k, chunk in enumerate(pages, start=1):
         path = city_page_path(slug, k)
-        suffix = f' – strana {k}' if total > 1 else ''
+        suffix = f' – strana {k}' if k > 1 else ''  # prva strana grada je bez oznake
         title = f"Zubari i stomatološke ordinacije {city} ({n}){suffix} | {SITE_NAME}"
         desc = clip(f"Zubari i stomatološke ordinacije, grad: {city}. Spisak ordinacija ({n}) sa adresama i telefonima"
-                    + (f", strana {k} od {total}" if total > 1 else '') + f". Pronađite zubara preko {SITE_NAME}.")
+                    + (f", strana {k} od {total}" if k > 1 else '') + f". Pronađite zubara preko {SITE_NAME}.")
         items = '\n'.join(
             f'  <li><a href="/{slug}/{cs}/">{esc(c["name"])}</a> '
             f'<span style="color:var(--muted);">— {esc(c["address"])}</span></li>'
@@ -249,7 +249,7 @@ def city_pages(city, slug, clinics_with_slug):
             pager = ('<nav class="city-pager" aria-label="Strane" '
                      'style="display:flex;gap:18px;align-items:center;margin:18px 0;">'
                      + ' '.join(links) + '</nav>')
-        h1 = f'Zubari i stomatološke ordinacije – {esc(city)}' + (f' (strana {k})' if total > 1 else '')
+        h1 = f'Zubari i stomatološke ordinacije – {esc(city)}' + (f' (strana {k})' if k > 1 else '')
         crumbs = ('<a href="/index.html">Početna</a> / ' +
                   (f'<a href="/{slug}/">{esc(city)}</a> / Strana {k}' if k > 1 else esc(city)))
         body = f'''<div class="breadcrumbs">{crumbs}</div>
