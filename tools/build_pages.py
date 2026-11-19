@@ -145,8 +145,8 @@ SORT_STRIP_PHRASES = [
     "prim dr", "dr",
 ]
 _PHRASES = sorted((tuple(p.split()) for p in SORT_STRIP_PHRASES), key=len, reverse=True)
-# Redosled slova srpske latinice (ostalo - cifre, w, x, y, q - po ASCII redosledu oko nje)
-_ALPHA = "abcčćdđefghijklmnoprsštuvzž"
+# Redosled slova srpske latinice; q, w, x, y su na svojim mestima u abecedi; cifre idu pre slova
+_ALPHA = "abcčćdđefghijklmnopqrsštuvwxyzž"
 _ORDER = {ch: i + 10 for i, ch in enumerate(_ALPHA)}
 
 
