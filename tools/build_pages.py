@@ -94,13 +94,24 @@ ROW = re.compile(
     re.M)
 
 
+def valid_phone(phone):
+    """Telefon se prikazuje samo ako je +381 i ima 8 do 10 cifara posle pozivnog broja zemlje."""
+    if not phone.startswith('+381'):
+        return False
+    digits = re.sub(r'\D', '', phone)[3:]  # bez pozivnog broja 381
+    return 8 <= len(digits) <= 10
+
+
 def load_clinics():
     text = SRC.read_text(encoding='utf-8')
     out = []
     for m in ROW.finditer(text):
         cid, name, city, address, phone = (json.loads(g) for g in m.groups())
+        phone = phone.strip()
         out.append({'id': cid, 'name': name.strip(), 'city': city.strip(),
-                    'address': address.strip(), 'phone': phone.strip()})
+                    'address': address.strip(),
+                    'phone': phone if valid_phone(phone) else '',   # nevažeći telefon se nigde ne prikazuje
+                    'phone_raw': phone})
     if not out:
         sys.exit('Nije pronađena nijedna ordinacija u ' + str(SRC))
     return out
@@ -130,6 +141,8 @@ SORT_STRIP_PHRASES = [
     "ordinacija opste stomatologije", "ordinacija dentalne medicine",
     "specijalisticka ordinacija", "opsta ordinacija", "stomatoloska ordinacija",
     "zubna ordinacija", "ordinacija",
+    # titule na početku (posle opštih reči): "Dr", "Dr.", "Prim. dr"
+    "prim dr", "dr",
 ]
 _PHRASES = sorted((tuple(p.split()) for p in SORT_STRIP_PHRASES), key=len, reverse=True)
 # Redosled slova srpske latinice (ostalo - cifre, w, x, y, q - po ASCII redosledu oko nje)
