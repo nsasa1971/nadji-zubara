@@ -25,7 +25,7 @@
     </nav>
     <div class="header-actions">
       <div id="authArea"></div>
-      <a href="dodaj-ordinaciju.html" class="btn btn-ghost btn-sm">Dodaj ordinaciju</a>
+      <span class="btn btn-ghost btn-sm is-soon" aria-disabled="true">Dodaj ordinaciju · uskoro</span>
       <button class="icon-btn burger" id="burgerBtn" aria-label="Meni"><span data-icon="menu"></span></button>
     </div>
   </div>
@@ -33,7 +33,7 @@
     <a href="index.html">Početna</a>
     <a href="pretraga.html">Pronađi ordinaciju</a>
     <a href="kontakt.html">Kontakt</a>
-    <a href="dodaj-ordinaciju.html" class="btn btn-primary">Dodaj ordinaciju</a>
+    <span class="btn btn-primary is-soon" aria-disabled="true">Dodaj ordinaciju · uskoro</span>
     <div id="mobileAuthArea"></div>
   </div>
 </header>
@@ -83,7 +83,9 @@
       </div>
 
       <div>
-        <form class="form-card" id="contactForm">
+        <form class="form-card" id="contactForm" name="contact" method="POST" action="/" data-netlify="true" netlify-honeypot="bot-field">
+          <input type="hidden" name="form-name" value="contact">
+          <p hidden aria-hidden="true"><label>Ne popunjavajte ovo polje: <input type="text" name="bot-field" tabindex="-1" autocomplete="off"></label></p>
           <div class="form-grid">
             <div class="form-field">
               <label>Ime i prezime *</label>
@@ -110,7 +112,7 @@
           <div style="margin-top:18px;">
             <button type="submit" class="btn btn-primary btn-block">Pošalji poruku</button>
           </div>
-          <p class="skip-note">Demo forma — poruke se ne šalju, samo se prikazuje potvrda.</p>
+          <p class="skip-note" id="contactError" style="display:none;color:#B91C1C;">Poruka nije poslata. Pokušajte ponovo kasnije.</p>
         </form>
 
         <div class="success-box" id="contactSuccess">
@@ -142,7 +144,7 @@
         <ul>
           <li><a href="index.html">Početna</a></li>
           <li><a href="pretraga.html">Pronađi ordinaciju</a></li>
-          <li><a href="dodaj-ordinaciju.html">Dodaj ordinaciju</a></li>
+          <li><span class="is-soon-text">Dodaj ordinaciju (uskoro)</span></li>
           <li><a href="cenovnik.html">Cenovnik</a></li>
           <li><a href="kontakt.html">Kontakt</a></li>
         </ul>
@@ -186,11 +188,27 @@ document.addEventListener('DOMContentLoaded', () => {
   if(qp.get('subject')) form.querySelector('[name="subject"]').value = qp.get('subject');
   if(qp.get('clinic')) form.querySelector('[name="message"]').value = 'Ordinacija: ' + qp.get('clinic') + '\n\nŠta treba ispraviti / ukloniti profil: ';
   const success = document.getElementById('contactSuccess');
-  form.addEventListener('submit', (e)=>{
+  const errorEl = document.getElementById('contactError');
+  form.addEventListener('submit', async (e)=>{
     e.preventDefault();
-    form.style.display = 'none';
-    success.classList.add('show');
-    success.scrollIntoView({behavior:'smooth', block:'start'});
+    errorEl.style.display = 'none';
+    const btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try{
+      // Netlify Forms: POST url-encoded podataka (uključujući form-name i bot-field)
+      const res = await fetch(form.getAttribute('action') || '/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams(new FormData(form)).toString()
+      });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      form.style.display = 'none';
+      success.classList.add('show');
+      success.scrollIntoView({behavior:'smooth', block:'start'});
+    }catch(err){
+      errorEl.style.display = 'block';
+      btn.disabled = false;
+    }
   });
 });
 </script>
