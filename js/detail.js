@@ -27,11 +27,12 @@ function effectiveRating(c, extra){
 }
 
 function renderClinic(c){
+  const contactBase = '&clinic=' + encodeURIComponent(c.name) + '&city=' + encodeURIComponent(c.city) +
+    '&id=' + encodeURIComponent(c.id);
   const reportLink = document.getElementById('reportLink');
-  if(reportLink){
-    reportLink.href = 'kontakt.html?subject=' + encodeURIComponent('Prijava netačnog podatka') +
-      '&clinic=' + encodeURIComponent(c.name + ' (' + c.city + ', id: ' + c.id + ')');
-  }
+  if(reportLink) reportLink.href = 'kontakt.html?subject=netacan-podatak' + contactBase;
+  const removeLink = document.getElementById('removeLink');
+  if(removeLink) removeLink.href = 'kontakt.html?subject=uklanjanje-profila' + contactBase;
   document.title = c.name + ' — Nađi Zubara';
   document.getElementById('pageTitle').textContent = c.name + ' — Nađi Zubara';
 
@@ -121,7 +122,7 @@ function renderClinic(c){
   // Usluge
   document.getElementById('servicesList').innerHTML = c.services.map(slug => `
     <li>
-      <span class="s-name"><span class="icon-wrap" style="background:var(--primary-light);color:var(--primary-dark);">${serviceIcon(slug)}</span> ${serviceName(slug)}</span>
+      <span class="s-name"><span class="icon-wrap" style="background:var(--primary-light);color:var(--primary-dark);">${serviceIcon(slug)}</span> <a class="s-link" href="pretraga.html?service=${encodeURIComponent(slug)}" title="Sve ordinacije: ${serviceName(slug)}">${serviceName(slug)}</a></span>
       <span class="s-price">Kontaktirajte za cenu</span>
     </li>`).join('');
 

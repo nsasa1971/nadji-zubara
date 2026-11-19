@@ -98,10 +98,11 @@
             <div class="form-field full">
               <label>Tema</label>
               <select name="subject">
-                <option>Opšte pitanje</option>
-                <option>Prijava netačnog podatka</option>
-                <option>Saradnja / oglašavanje</option>
-                <option>Tehnički problem</option>
+                <option data-key="opste">Opšte pitanje</option>
+                <option data-key="netacan-podatak">Prijava netačnog podatka</option>
+                <option data-key="uklanjanje-profila">Uklanjanje profila</option>
+                <option data-key="saradnja">Saradnja / oglašavanje</option>
+                <option data-key="tehnicki-problem">Tehnički problem</option>
               </select>
             </div>
             <div class="form-field full">
@@ -185,8 +186,49 @@
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('contactForm');
   const qp = new URLSearchParams(window.location.search);
-  if(qp.get('subject')) form.querySelector('[name="subject"]').value = qp.get('subject');
-  if(qp.get('clinic')) form.querySelector('[name="message"]').value = 'Ordinacija: ' + qp.get('clinic') + '\n\nŠta treba ispraviti / ukloniti profil: ';
+  const subjectSel = form.querySelector('[name="subject"]');
+  const messageEl = form.querySelector('[name="message"]');
+
+  // Podaci o ordinaciji (ako se stiglo sa stranice ordinacije)
+  const clinic = {name: qp.get('clinic') || '', city: qp.get('city') || '', id: qp.get('id') || ''};
+
+  // Šabloni poruke: samo za teme vezane za ordinaciju; za ostale je polje prazno.
+  function templateFor(key){
+    const head = 'Ordinacija: ' + clinic.name + '\nGrad: ' + clinic.city + '\nID: ' + clinic.id + '\n\n';
+    if(key === 'netacan-podatak') return head + 'Koji podatak je netačan (telefon, adresa, radno vreme...) i koja je ispravna vrednost? ';
+    if(key === 'uklanjanje-profila') return head + 'Zašto tražite uklanjanje profila i da li ste vlasnik ili ovlašćeno lice ordinacije? ';
+    return '';
+  }
+  function currentKey(){
+    const o = subjectSel.options[subjectSel.selectedIndex];
+    return o ? o.getAttribute('data-key') : 'opste';
+  }
+
+  // Izbor teme iz URL-a po stabilnom ključu (?subject=netacan-podatak); radi i sa
+  // starim linkovima koji nose ceo naziv teme (poređenje bez dijakritika).
+  function selectSubject(raw){
+    if(!raw) return false;
+    const norm = t => (t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+    const opt = Array.from(subjectSel.options).find(o => o.getAttribute('data-key') === raw || norm(o.value) === norm(raw));
+    if(!opt) return false;
+    subjectSel.value = opt.value;
+    return true;
+  }
+
+  // "Poruka" se menja šablonom samo ako korisnik nije ništa ukucao: prazno polje
+  // ili tekst identičan poslednjem ubačenom šablonu.
+  let lastTemplate = '';
+  function applyTemplate(){
+    const untouched = messageEl.value === '' || messageEl.value === lastTemplate;
+    if(!untouched) return;
+    lastTemplate = templateFor(currentKey());
+    messageEl.value = lastTemplate;
+  }
+
+  // Bez parametara: tema "Opšte pitanje" i prazno polje poruke.
+  messageEl.value = '';
+  if(selectSubject(qp.get('subject'))) applyTemplate();
+  subjectSel.addEventListener('change', applyTemplate);
   const success = document.getElementById('contactSuccess');
   const errorEl = document.getElementById('contactError');
   form.addEventListener('submit', async (e)=>{

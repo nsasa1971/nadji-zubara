@@ -64,7 +64,7 @@ function renderClinicCard(c, opts){
         <div class="reveal-row">${ICONS.location} ${c.address}</div>
       </div>
       <div class="tag-row">
-        <span class="tag">${serviceName(mainService)}</span>
+        <a class="tag tag-link" href="pretraga.html?service=${encodeURIComponent(mainService)}" title="Sve ordinacije: ${serviceName(mainService)}">${serviceName(mainService)}</a>
         ${c.services.length>1 ? `<span class="tag">+${c.services.length-1} usluge</span>` : ''}
       </div>
       <div class="actions">
