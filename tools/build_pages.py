@@ -94,13 +94,24 @@ ROW = re.compile(
     re.M)
 
 
+def valid_phone(phone):
+    """Telefon se prikazuje samo ako je +381 i ima 8 do 10 cifara posle pozivnog broja zemlje."""
+    if not phone.startswith('+381'):
+        return False
+    digits = re.sub(r'\D', '', phone)[3:]  # bez pozivnog broja 381
+    return 8 <= len(digits) <= 10
+
+
 def load_clinics():
     text = SRC.read_text(encoding='utf-8')
     out = []
     for m in ROW.finditer(text):
         cid, name, city, address, phone = (json.loads(g) for g in m.groups())
+        phone = phone.strip()
         out.append({'id': cid, 'name': name.strip(), 'city': city.strip(),
-                    'address': address.strip(), 'phone': phone.strip()})
+                    'address': address.strip(),
+                    'phone': phone if valid_phone(phone) else '',   # nevažeći telefon se nigde ne prikazuje
+                    'phone_raw': phone})
     if not out:
         sys.exit('Nije pronađena nijedna ordinacija u ' + str(SRC))
     return out
@@ -117,6 +128,64 @@ def opstina_of(c):
     if OPSTINE_MERGE_COMPOUND:
         label = label.split(' - ')[0].strip()
     return label or None
+
+
+CYR = dict(zip('абвгдђежзијклљмнњопрстћуфхцчџш', ['a','b','v','g','d','đ','e','ž','z','i','j','k','l','lj','m','n','nj','o','p','r','s','t','ć','u','f','h','c','č','dž','š']))
+
+# Uvodne opšte reči u nazivu (samo za redosled; prikaz naziva se ne menja).
+SORT_STRIP_PHRASES = [
+    "specijalisticka stomatoloska ordinacija", "stomatoloska specijalisticka ordinacija",
+    "samostalna stomatoloska ordinacija", "opsta stomatoloska ordinacija",
+    "privatna stomatoloska ordinacija", "stomatoloska privatna ordinacija",
+    "specijalisticka ordinacija dentalne medicine", "opsta ordinacija dentalne medicine",
+    "ordinacija opste stomatologije", "ordinacija dentalne medicine",
+    "specijalisticka ordinacija", "opsta ordinacija", "stomatoloska ordinacija",
+    "zubna ordinacija", "ordinacija",
+    # titule na početku (posle opštih reči): "Dr", "Dr.", "Prim. dr"
+    "prim dr", "dr",
+]
+_PHRASES = sorted((tuple(p.split()) for p in SORT_STRIP_PHRASES), key=len, reverse=True)
+# Redosled slova srpske latinice; q, w, x, y su na svojim mestima u abecedi; cifre idu pre slova
+_ALPHA = "abcčćdđefghijklmnopqrsštuvwxyzž"
+_ORDER = {ch: i + 10 for i, ch in enumerate(_ALPHA)}
+
+
+def _latin(text):
+    return ''.join(CYR.get(ch, ch) for ch in text.lower())
+
+
+def sort_key(name):
+    """Ključ za redosled po nazivu bez uvodnih opštih reči ("Stomatološka ordinacija ...")."""
+    words = _latin(name).split()
+    plain = [slugify(w) for w in words]  # bez dijakritika, samo za poređenje fraza
+    i = 0
+    while i < len(words):
+        for ph in _PHRASES:
+            if tuple(plain[i:i + len(ph)]) == ph:
+                i += len(ph)
+                break
+        else:
+            break
+    rest = ' '.join(words[i:]) if i < len(words) else ' '.join(words)
+    return [(_ORDER.get(ch, 0 if ch == ' ' else 1 if ch.isdigit() else 5), ch) for ch in rest]
+
+
+def display_address(c, city, opstina_label=None):
+    """Adresa za karticu. Na stranicama Beograda i opština se ne ponavlja grad (i opština):
+    'Gramšijeva 1a, Beograd - Novi Beograd' -> 'Gramšijeva 1a, Novi Beograd' (stranica grada),
+    -> 'Gramšijeva 1a' (stranica te opštine). Ostali gradovi: adresa ostaje kakva jeste."""
+    addr = c['address']
+    if city != OPSTINE_CITY:
+        return addr
+    m = re.search(r',\s*' + re.escape(OPSTINE_CITY) + r'\s*-\s*(.+?)\s*$', addr)
+    if not m:
+        return addr
+    street, rest = addr[:m.start()], m.group(1)
+    if opstina_label is None:
+        return f'{street}, {rest}'
+    parts = [x.strip() for x in rest.split(' - ')]
+    tail = ' - '.join(parts[1:]) if slugify(parts[0]) == slugify(opstina_label) else rest
+    return f'{street}, {tail}' if tail else street
 
 
 def clinic_slug(c, city_slug):
@@ -246,16 +315,32 @@ def clinic_page(c, city_slug, slug, same_name=False, opstina=None, op_slug=None)
     return path, page(title, clip(desc), path, body, ld)
 
 
+def clinic_card(c, city_slug, slug, address):
+    """Kartica ordinacije u stilu stranice pretrage; ceo sadržaj je statički HTML."""
+    href = f'/{city_slug}/{slug}/'
+    phone = ''
+    actions = ''
+    if c['phone']:
+        tel = re.sub(r'[^+0-9]', '', c['phone'])
+        phone = f'\n    <p class="card-phone">{esc(c["phone"])}</p>'
+        actions += f'<a class="btn btn-outline-navy btn-sm" href="tel:{esc(tel)}">Pozovi</a>'
+    actions += f'<a class="btn btn-primary btn-sm" href="{href}">Detalji</a>'
+    return (f'<article class="clinic-card seo-card">\n  <div class="body">\n'
+            f'    <div class="name-row"><h3><a href="{href}">{esc(c["name"])}</a></h3></div>\n'
+            f'    <p class="muted-line">{esc(address)}</p>{phone}\n'
+            f'    <div class="actions">{actions}</div>\n  </div>\n</article>')
+
+
 def listing_page_path(base, k):
     return f'{base}/' if k == 1 else f'{base}/{k}/'
 
 
-def listing_pages(base, city_slug, items, name, crumbs, intro, extra_first_page='', desc_name=None):
+def listing_pages(base, city_slug, items, name, crumbs, intro, extra_first_page='', desc_name=None, addr_fn=None):
     """Lista (path, html) za stranicu sa spiskom ordinacija: jedna, ili više po PAGE_SIZE.
     base: '/beograd' ili '/beograd/vracar'; name: 'Niš' ili 'Vračar, Beograd';
     crumbs: [(naziv, putanja)] pre poslednjeg elementa."""
     n = len(items)
-    ordered = sorted(items, key=lambda x: x[0]['name'].lower())
+    ordered = sorted(items, key=lambda x: (sort_key(x[0]['name']), x[0]['name'].lower()))
     pages = [ordered[i:i + PAGE_SIZE] for i in range(0, n, PAGE_SIZE)] or [[]]
     total = len(pages)
     last = name.split(',')[0]
@@ -266,10 +351,7 @@ def listing_pages(base, city_slug, items, name, crumbs, intro, extra_first_page=
         title = f"Zubari i stomatološke ordinacije {name} ({n}){suffix} | {SITE_NAME}"
         desc = clip(f"Zubari i stomatološke ordinacije, {desc_name or name}. Spisak ordinacija ({n}) sa adresama i telefonima"
                     + (f", strana {k} od {total}" if k > 1 else '') + f". Pronađite zubara preko {SITE_NAME}.")
-        li = '\n'.join(
-            f'  <li><a href="/{city_slug}/{cs}/">{esc(c["name"])}</a> '
-            f'<span style="color:var(--muted);">— {esc(c["address"])}</span></li>'
-            for c, cs in chunk)
+        cards = '\n'.join(clinic_card(c, city_slug, cs, (addr_fn or (lambda x: x['address']))(c)) for c, cs in chunk)
         prev_path = listing_page_path(base, k - 1) if k > 1 else None
         next_path = listing_page_path(base, k + 1) if k < total else None
         pager = ''
@@ -294,9 +376,9 @@ def listing_pages(base, city_slug, items, name, crumbs, intro, extra_first_page=
 <h1>{h1}</h1>
 <p>{intro.replace('{n}', str(n))}</p>
 {extra}{pager}
-<ul class="clinic-link-list">
-{li}
-</ul>
+<div class="cards-grid seo-cards">
+{cards}
+</div>
 {pager}"""
         out.append((path, page(title, desc, path, body, prev_path=prev_path, next_path=next_path)))
     return out
@@ -311,16 +393,20 @@ def city_pages(city, slug, items, opstine=None):
     if opstine:
         lis = '\n'.join(f'  <li><a href="/{slug}/{os_}/">{esc(o)}</a> ({cnt})</li>' for o, os_, cnt in opstine)
         extra = f'<h2>Opštine</h2>\n<ul class="opstine-list">\n{lis}\n</ul>\n'
-    return listing_pages(f'/{slug}', slug, items, city, [], intro, extra, desc_name=f'grad: {city}')
+    return listing_pages(f'/{slug}', slug, items, city, [], intro, extra, desc_name=f'grad: {city}',
+                         addr_fn=lambda c: display_address(c, city))
 
 
 def opstina_pages(city, city_slug, opstina, op_slug, items):
     """Stranice opštine grada (npr. /beograd/vracar/)."""
     search = f'/pretraga.html?city={quote(city)}'
-    intro = (f'Opština: {esc(opstina)}, {esc(city)}. Pregled stomatoloških ordinacija ({{n}}).\n'
+    # ime opštine koje već sadrži ime grada ("Novi Beograd") se ne dopunjava gradom
+    name = opstina if slugify(city) in slugify(opstina).split('-') else f'{opstina}, {city}'
+    intro = (f'Opština: {esc(name)}. Pregled stomatoloških ordinacija ({{n}}).\n'
              f'<a href="{esc(search)}">Pretraži ordinacije u gradu {esc(city)}</a> po usluzi i uz filtere.')
-    return listing_pages(f'/{city_slug}/{op_slug}', city_slug, items, f'{opstina}, {city}',
-                         [(city, f'/{city_slug}/')], intro, desc_name=f'opština {opstina}, {city}')
+    return listing_pages(f'/{city_slug}/{op_slug}', city_slug, items, name,
+                         [(city, f'/{city_slug}/')], intro, desc_name=f'opština {name}',
+                         addr_fn=lambda c: display_address(c, city, opstina))
 
 
 def sitemap(paths):
