@@ -39,6 +39,9 @@
     if(c.status === 'revoked'){
       kids.push(el('p', {style:'margin:12px 0 0;font-size:14px;'}, 'Pristup profilu je ukinut. Za pitanja nas kontaktirajte.'));
     }
+    if((c.status === 'rejected' || c.status === 'revoked') && c.admin_note){
+      kids.push(el('div', {style:'background:#FEF2F2;border-radius:12px;padding:12px 14px;margin-top:12px;font-size:14px;'}, [el('strong', {}, 'Razlog: '), c.admin_note]));
+    }
     if(c.notes) kids.push(el('p', {style:'margin:10px 0 0;font-size:13.5px;color:var(--muted);'}, 'Napomena: ' + c.notes));
     if(clinic) kids.push(el('p', {style:'margin:12px 0 0;font-size:14px;'}, [el('a', {href:'ordinacija.html?id=' + encodeURIComponent(c.clinic_id)}, 'Stranica ordinacije')]));
     return el('div', {class:'info-card'}, kids);
@@ -60,7 +63,7 @@
       el('div', {}, ['Prijavljeni ste kao ', el('strong', {}, user.email || '')]), out
     ]));
     const { data, error } = await sb.from('claims')
-      .select('id, clinic_id, status, requested_at, claimed_at, decided_at, notes, verification_code')
+      .select('id, clinic_id, status, requested_at, claimed_at, decided_at, notes, admin_note, verification_code')
       .order('requested_at', {ascending:false});
     if(error){ app.appendChild(el('div', {class:'info-card'}, 'Podaci trenutno nisu dostupni. Pokušajte ponovo kasnije.')); return; }
     if(!data.length){

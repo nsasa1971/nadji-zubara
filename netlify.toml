@@ -28,3 +28,13 @@
     Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://iyyythycaulhdjzhmqzo.supabase.co; connect-src 'self' https://iyyythycaulhdjzhmqzo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Administratorska stranica: skrivena (noindex), bez keširanja, ista CSP kao za stranice vlasnika.
+[[headers]]
+  for = "/admin.html"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://iyyythycaulhdjzhmqzo.supabase.co; connect-src 'self' https://iyyythycaulhdjzhmqzo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    X-Robots-Tag = "noindex, nofollow"
+    Cache-Control = "no-store"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"

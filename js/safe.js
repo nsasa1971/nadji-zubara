@@ -26,7 +26,11 @@ function safePhone(p){
 function el(tag, attrs, children){
   const n = document.createElement(tag);
   Object.keys(attrs || {}).forEach(k => {
-    if(k === 'href'){ const u = safeUrl(new URL(attrs[k], location.href).href); if(u) n.setAttribute('href', attrs[k]); }
+    if(k === 'href'){
+      const v = String(attrs[k]);
+      if(/^tel:\+?[0-9]{5,20}$/.test(v)) n.setAttribute('href', v);                       // telefon
+      else { const u = safeUrl(new URL(v, location.href).href); if(u) n.setAttribute('href', v); }   // samo http/https
+    }
     else if(k.startsWith('on')) return; // bez inline događaja
     else n.setAttribute(k, attrs[k]);
   });
