@@ -66,7 +66,7 @@ function renderClinicCard(c, opts){
         ${hasReviews ? `<span>${c.reviewCount} recenzija${distance!=null ? ` <span class="distance-chip">• ${formatDistance(c, distance)}</span>` : ''}</span>` : (distance!=null ? `<span class="distance-chip">${formatDistance(c, distance)}</span>` : '')}
       </div>
       <div class="reveal-info">
-        ${c.phone ? `<div class="reveal-row">${ICONS.phone} ${c.phone}</div>` : ''}
+        ${isValidPhone(c.phone) ? `<div class="reveal-row">${ICONS.phone} ${c.phone}</div>` : ''}
         <div class="reveal-row">${ICONS.location} ${c.address}</div>
       </div>
       <div class="tag-row">
@@ -74,7 +74,7 @@ function renderClinicCard(c, opts){
         ${c.services.length>1 ? `<span class="tag">+${c.services.length-1} usluge</span>` : ''}
       </div>
       <div class="actions">
-        ${c.phone
+        ${isValidPhone(c.phone)
           ? `<a class="btn btn-outline-navy btn-sm" href="tel:${c.phone.replace(/\s/g,'')}">${ICONS.phone} Pozovi</a>`
           : (c.email ? `<a class="btn btn-outline-navy btn-sm" href="mailto:${c.email}">${ICONS.mail} Pošalji mejl</a>` : '')}
         <a class="btn btn-primary btn-sm" href="ordinacija.html?id=${c.id}">Detalji</a>

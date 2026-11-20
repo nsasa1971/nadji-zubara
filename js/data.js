@@ -82,6 +82,14 @@ function assignCoordsForCity(city, n){
   });
 })();
 
+// Telefon se prikazuje samo ako je +381 sa 8 do 10 cifara posle pozivnog broja (isto pravilo kao
+// u tools/build_pages.py za statične stranice).
+function isValidPhone(phone){
+  if(!phone || !phone.startsWith('+381')) return false;
+  const digits = phone.replace(/\D/g, '').slice(3);
+  return digits.length >= 8 && digits.length <= 10;
+}
+
 // Koordinata je "proverena" samo ako je eksplicitno označena (coordsVerified === true).
 // Koordinate uvezenih ordinacija su generisane oko centra grada i NISU prave, pa se za njih
 // ne prikazuju markeri na mapi ni udaljenost, i ne učestvuju u "Blizu mene".
