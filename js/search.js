@@ -28,6 +28,11 @@ let userCircle = null;
 const MOBILE_BREAKPOINT = 860;
 
 document.addEventListener('DOMContentLoaded', () => {
+  // sačekaj objavljene profile (najviše 1,5 s) da pretraga, filteri i brojači koriste spojene podatke
+  (window.profilesReady || Promise.resolve()).then(initSearchPage);
+});
+
+function initSearchPage(){
   populateSelects();
   populateServiceCheckboxes();
   applyLocationAvailability();
@@ -42,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Geolokacija se NE traži automatski: pokreće se isključivo klikom na
   // "Blizu mene". Mapa se pri otvaranju prilagođava rezultatima pretrage
   // (ili prikazuje celu Srbiju ako nema upita, grada ni usluge).
-});
+}
 
 window.addEventListener('resize', relocateFiltersForViewport);
 
@@ -669,17 +674,18 @@ function renderMapMarkers(list){
     const marker = L.marker([c.lat, c.lng], {icon: buildMarkerIcon(c)});
     marker.bindPopup(`
       <div class="map-pin-popup">
-        <img src="${clinicImageUrl(c.images[0], 400, 160)}" alt="" loading="lazy">
-        <h5>${c.name}</h5>
-        <div class="map-pin-addr">${c.address || ''}</div>
+        <img src="${clinicImageUrl(c.images[0], 400, 160)}" alt="" data-cover-id="${esc(c.id)}" loading="lazy">
+        <h5>${esc(c.name)}</h5>
+        <div class="map-pin-addr">${esc(c.address || '')}</div>
         ${c.coordsPrecision === 'ulica' ? '<div class="map-pin-approx">Približna lokacija</div>' : ''}
         <a class="btn btn-primary btn-sm" href="ordinacija.html?id=${c.id}">Pogledaj detalje</a>
       </div>
     `, {minWidth:210, maxWidth:240});
     // Uređaji sa hover-om: kratak tooltip (naziv + adresa); na dodir samo klik.
     if(window.matchMedia && window.matchMedia('(hover: hover)').matches){
-      marker.bindTooltip(`<strong>${c.name}</strong><br>${c.address || ''}`, {direction:'top', offset:[0,-16], className:'map-pin-tip'});
+      marker.bindTooltip(`<strong>${esc(c.name)}</strong><br>${esc(c.address || '')}`, {direction:'top', offset:[0,-16], className:'map-pin-tip'});
     }
+    marker.on('popupopen', e => { if(typeof hydrateCovers === 'function') hydrateCovers(e.popup.getElement()); });
     marker.on('click', () => highlightCard(c.id));
     marker.on('mouseover', () => showMapHalo(c));
     marker.on('mouseout', () => hideMapHalo());

@@ -26,8 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if(ICONS[name]) el.innerHTML = ICONS[name];
   });
 
-  initHeroSearch();
-  renderHomepage();
+  // početna: sačekaj objavljene profile (najviše 1,5 s) zbog brojača usluga i kartica
+  (window.profilesReady || Promise.resolve()).then(() => {
+    initHeroSearch();
+    renderHomepage();
+  });
 });
 
 function initHeroSearch(){

@@ -244,17 +244,33 @@ function getAllCityNames(){
 const DAY_KEYS = ['sun','mon','tue','wed','thu','fri','sat'];
 const DAY_LABELS = {mon:'Ponedeljak',tue:'Utorak',wed:'Sreda',thu:'Četvrtak',fri:'Petak',sat:'Subota',sun:'Nedelja'};
 
-function isOpenNow(hours){
+// Radno vreme koje unosi vlasnik je slobodan tekst (do 60 znakova). Prepoznaje se samo oblik
+// "HH:MM-HH:MM" (obična ili duga crtica); sve ostalo ("Zatvoreno", "po dogovoru") ima nepoznat status.
+const HOURS_RANGE_RE = /^\s*(\d{1,2}):(\d{2})\s*[-–—]\s*(\d{1,2}):(\d{2})\s*$/;
+function parseHoursRange(text){
+  if(typeof text !== 'string') return null;
+  const m = HOURS_RANGE_RE.exec(text);
+  if(!m) return null;
+  const sh = +m[1], sm = +m[2], eh = +m[3], em = +m[4];
+  if(sh > 23 || eh > 24 || sm > 59 || em > 59) return null;
+  return {start: sh*60+sm, end: eh*60+em};
+}
+
+// true / false = otvoreno / zatvoreno sada; null = nepoznato (nema podatka ili tekst koji se ne može protumačiti).
+function openNowState(hours){
+  if(!hours) return null;
   const now = new Date();
-  const todayKey = DAY_KEYS[now.getDay()];
-  const range = hours[todayKey];
-  if(!range) return false;
-  const [start,end] = range.split('-');
-  const [sh,sm] = start.split(':').map(Number);
-  const [eh,em] = end.split(':').map(Number);
-  const startMin = sh*60+sm, endMin = eh*60+em;
+  const v = hours[DAY_KEYS[now.getDay()]];
+  if(v === undefined) return null;          // dan koji vlasnik nije naveo
+  if(!v) return false;                      // uvezeno/stari format: null = zatvoreno
+  const r = parseHoursRange(v);
+  if(!r){ return /zatvoren/i.test(v) ? false : null; }
   const nowMin = now.getHours()*60 + now.getMinutes();
-  return nowMin >= startMin && nowMin <= endMin;
+  return r.end >= r.start ? (nowMin >= r.start && nowMin <= r.end) : (nowMin >= r.start || nowMin <= r.end);
+}
+
+function isOpenNow(hours){
+  return openNowState(hours) === true;
 }
 
 function todayKey(){

@@ -1,6 +1,11 @@
 /* Logika stranice pojedinačne ordinacije (ordinacija.html) */
 
 document.addEventListener('DOMContentLoaded', () => {
+  // sačekaj objavljene profile (najviše 1,5 s) da stranica odmah prikaže izmene vlasnika
+  (window.profilesReady || Promise.resolve()).then(initClinicPage);
+});
+
+function initClinicPage(){
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
   const clinic = id ? getClinicById(id) : null;
@@ -16,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindReviewForm(clinic);
   renderBookingCard(clinic);
   bindBookingForm(clinic);
-});
+}
 
 
 // Ocena prikazana na stranici: ako ordinacija nema ugrađenu ocenu (uvezene),
@@ -38,6 +43,7 @@ function renderClinic(c){
 
   document.getElementById('coverImg').src = clinicImageUrl(c.images[0], 1600, 500);
   document.getElementById('coverImg').alt = c.name;
+  document.getElementById('coverImg').setAttribute('data-cover-id', c.id);   // odobrena slika vlasnika zamenjuje opštu
 
   const avatarBox = document.getElementById('avatarBox');
   avatarBox.textContent = c.logoInitials;
@@ -46,7 +52,7 @@ function renderClinic(c){
   document.getElementById('clinicName').textContent = c.name;
   document.getElementById('verifiedBadge').style.display = c.verified ? 'inline-flex' : 'none';
   document.getElementById('clinicShort').innerHTML =
-    `<span style="display:inline-flex;width:14px;height:14px;vertical-align:-2px;margin-right:4px;color:var(--muted)">${ICONS.location}</span>${c.address}`;
+    `<span style="display:inline-flex;width:14px;height:14px;vertical-align:-2px;margin-right:4px;color:var(--muted)">${ICONS.location}</span>${esc(c.address)}`;
 
   const extra = getExtraReviews(c.id);
   const totalReviewCount = c.reviewCount + extra.length;
@@ -58,10 +64,12 @@ function renderClinic(c){
   document.getElementById('reviewCountLine').textContent = hasReviews ? (totalReviewCount + ' recenzija') : '';
 
   const hoursKnown = !c.hoursUnknown;
-  const open = hoursKnown ? isOpenNow(c.hours) : null;
-  const statusHtml = hoursKnown
-    ? `<span class="status-pill ${open?'open':'closed'}">${open?'Otvoreno sada':'Zatvoreno'}</span>`
-    : `<span class="status-pill" style="color:var(--muted);">Radno vreme nepoznato</span>`;
+  const open = hoursKnown ? openNowState(c.hours) : null;
+  const statusHtml = !hoursKnown
+    ? `<span class="status-pill" style="color:var(--muted);">Radno vreme nepoznato</span>`
+    : (open === null
+        ? `<span class="status-pill" style="color:var(--muted);">Pogledajte radno vreme</span>`
+        : `<span class="status-pill ${open?'open':'closed'}">${open?'Otvoreno sada':'Zatvoreno'}</span>`);
   document.getElementById('statusPillTop').innerHTML = statusHtml;
   document.getElementById('statusPillSide').innerHTML = statusHtml;
 
@@ -83,10 +91,11 @@ function renderClinic(c){
   }
 
   document.getElementById('directionsChip').href = 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(c.address);
-  document.getElementById('websiteChip').href = c.website;
-  document.getElementById('websiteChip').style.display = (c.website && c.website !== '#') ? '' : 'none';
-  document.getElementById('websiteLink').href = c.website;
-  document.getElementById('websiteLink').textContent = c.website.replace(/^https?:\/\//,'');
+  const siteUrl = (c.website && c.website !== '#') ? safeUrl(c.website) : '';   // samo http/https
+  document.getElementById('websiteChip').href = siteUrl || '#';
+  document.getElementById('websiteChip').style.display = siteUrl ? '' : 'none';
+  document.getElementById('websiteLink').href = siteUrl || '#';
+  document.getElementById('websiteLink').textContent = siteUrl ? siteUrl.replace(/^https?:\/\//,'') : '';
   const phoneOk = isValidPhone(c.phone);
   document.getElementById('phoneLink').href = phoneOk ? 'tel:' + c.phone.replace(/\s/g,'') : '#';
   document.getElementById('phoneLink').textContent = phoneOk ? c.phone : 'Nije dostupno';
@@ -100,7 +109,7 @@ function renderClinic(c){
   document.getElementById('hoursTable').innerHTML = order.map(k=>`
     <tr class="${k===today?'today':''}">
       <td>${DAY_LABELS[k]}</td>
-      <td>${hoursKnown ? (c.hours[k] ? c.hours[k] : 'Zatvoreno') : 'Pozovite ordinaciju'}</td>
+      <td>${esc(!hoursKnown ? 'Pozovite ordinaciju' : (c.hours[k] ? c.hours[k] : (c.hoursFromProfile ? 'Nije navedeno' : 'Zatvoreno')))}</td>
     </tr>`).join('');
 
   document.getElementById('addressText').textContent = c.address;
@@ -115,8 +124,60 @@ function renderClinic(c){
       <span class="s-name"><span class="icon-wrap" style="background:var(--primary-light);color:var(--primary-dark);">${serviceIcon(slug)}</span> <a class="s-link" href="pretraga.html?service=${encodeURIComponent(slug)}" title="Sve ordinacije: ${serviceName(slug)}">${serviceName(slug)}</a></span>
     </li>`).join('');
 
+  renderProfileExtras(c);
   renderReviews(c);
   renderSimilar(c);
+  if(typeof hydrateCovers === 'function') hydrateCovers(document);
+}
+
+// Dodaci iz profila koji je preuzeo vlasnik: dodatni telefoni, društvene mreže, tim, fotografije.
+const SOCIAL_LABELS = {facebook:'Facebook', instagram:'Instagram', linkedin:'LinkedIn', tiktok:'TikTok', youtube:'YouTube'};
+function renderProfileExtras(c){
+  // dodatni telefoni (prvi je već prikazan)
+  const more = document.getElementById('morePhones');
+  if(more){
+    more.textContent = '';
+    (c.phones || []).slice(1).forEach(p => {
+      const a = el('a', {href:'tel:' + p.replace(/\s/g,'')}, p);
+      more.appendChild(el('p', {style:'margin:0 0 6px;'}, [a]));
+    });
+  }
+  // društvene mreže
+  const soc = document.getElementById('socialsLine');
+  if(soc){
+    soc.textContent = '';
+    const keys = Object.keys(c.socials || {});
+    keys.forEach((k, i) => {
+      const u = safeUrl(c.socials[k]);
+      if(!u || !SOCIAL_LABELS[k]) return;
+      if(soc.childNodes.length) soc.appendChild(document.createTextNode(' · '));
+      soc.appendChild(el('a', {href:u, target:'_blank', rel:'noopener nofollow ugc'}, SOCIAL_LABELS[k]));
+    });
+    soc.style.display = soc.childNodes.length ? '' : 'none';
+  }
+  // tim (samo odobren, bez fotografija)
+  const teamCard = document.getElementById('teamCard');
+  if(teamCard){
+    const list = document.getElementById('teamList');
+    list.textContent = '';
+    (c.team || []).forEach(m => {
+      list.appendChild(el('li', {}, [el('strong', {}, m.name)].concat(m.role ? [document.createTextNode(' — ' + m.role)] : [])));
+    });
+    teamCard.style.display = (c.team && c.team.length) ? '' : 'none';
+  }
+  // fotografije: odeljak tek sa 2 ili više odobrenih slika
+  const photosCard = document.getElementById('photosCard');
+  if(photosCard){
+    const paths = c.approvedImages || [];
+    if(paths.length >= 2 && typeof PF !== 'undefined'){
+      PF.signUrls(paths).then(urls => {
+        const grid = document.getElementById('photosGrid');
+        grid.textContent = '';
+        paths.forEach(p => { if(urls[p]){ const im = el('img', {alt: c.name, loading:'lazy'}); im.src = urls[p]; grid.appendChild(im); } });
+        photosCard.style.display = grid.childNodes.length >= 2 ? '' : 'none';
+      });
+    } else photosCard.style.display = 'none';
+  }
 }
 
 function renderReviews(c){

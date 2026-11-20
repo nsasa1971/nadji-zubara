@@ -63,7 +63,11 @@ SERBIAN_MAP = str.maketrans({'č': 'c', 'ć': 'c', 'ž': 'z', 'š': 's', 'đ': '
 SCRIPTS = """<script src="/js/icons.js"></script>
 <script src="/js/auth.js"></script>
 <script src="/js/header-auth.js"></script>
-<script src="/js/main.js"></script>"""
+<script src="/js/main.js"></script>
+<script src="/js/safe.js"></script>
+<script src="/js/supabase-config.js"></script>
+<script src="/js/profile-common.js"></script>
+<script src="/js/seo-overlay.js"></script>"""
 
 
 def slugify(text):
@@ -284,9 +288,9 @@ def clinic_page(c, city_slug, slug, same_name=False, opstina=None, op_slug=None)
     desc += f" Adresa i kontakt ordinacije, grad: {c['city']}."
     if c['phone']:
         tel = re.sub(r'[^+0-9]', '', c['phone'])
-        phone_html = f'<p><strong>Telefon:</strong> <a href="tel:{esc(tel)}">{esc(c["phone"])}</a></p>'
+        phone_html = f'<p data-pf="phone-p"><strong>Telefon:</strong> <a data-pf="phone-link" href="tel:{esc(tel)}">{esc(c["phone"])}</a></p>'
     else:
-        phone_html = '<p><strong>Telefon:</strong> nije dostupan</p>'
+        phone_html = '<p data-pf="phone-p"><strong>Telefon:</strong> nije dostupan</p>'
     # op_slug je None kad opština nema svoju stranicu (ispod praga): tada je samo običan tekst
     op_crumb = f' / <a href="/{city_slug}/{op_slug}/">{esc(opstina)}</a>' if opstina and op_slug else ''
     if opstina and op_slug:
@@ -295,10 +299,10 @@ def clinic_page(c, city_slug, slug, same_name=False, opstina=None, op_slug=None)
         op_line = f'\n  <p><strong>Opština:</strong> {esc(opstina)}</p>'
     else:
         op_line = ''
-    body = f'''<div class="breadcrumbs"><a href="/index.html">Početna</a> / <a href="/{city_slug}/">{esc(c['city'])}</a>{op_crumb} / {esc(c['name'])}</div>
-<article class="info-card">
-  <h1>{esc(c['name'])}</h1>
-  <p><strong>Adresa:</strong> {esc(c['address'])}</p>
+    body = f'''<div class="breadcrumbs"><a href="/index.html">Početna</a> / <a href="/{city_slug}/">{esc(c['city'])}</a>{op_crumb} / <span data-cid="{esc(c['id'])}" data-pf="name">{esc(c['name'])}</span></div>
+<article class="info-card" data-cid="{esc(c['id'])}">
+  <h1 data-pf="name">{esc(c['name'])}</h1>
+  <p><strong>Adresa:</strong> <span data-pf="address">{esc(c['address'])}</span></p>
   {phone_html}
   <p><strong>Grad:</strong> <a href="/{city_slug}/">{esc(c['city'])}</a></p>{op_line}
   <p><a href="/{city_slug}/">Sve ordinacije u gradu {esc(c['city'])}</a></p>
@@ -322,12 +326,12 @@ def clinic_card(c, city_slug, slug, address):
     actions = ''
     if c['phone']:
         tel = re.sub(r'[^+0-9]', '', c['phone'])
-        phone = f'\n    <p class="card-phone">{esc(c["phone"])}</p>'
-        actions += f'<a class="btn btn-outline-navy btn-sm" href="tel:{esc(tel)}">Pozovi</a>'
+        phone = f'\n    <p class="card-phone" data-pf="phone">{esc(c["phone"])}</p>'
+        actions += f'<a class="btn btn-outline-navy btn-sm" data-pf="phone-link" href="tel:{esc(tel)}">Pozovi</a>'
     actions += f'<a class="btn btn-primary btn-sm" href="{href}">Detalji</a>'
-    return (f'<article class="clinic-card seo-card">\n  <div class="body">\n'
-            f'    <div class="name-row"><h3><a href="{href}">{esc(c["name"])}</a></h3></div>\n'
-            f'    <p class="muted-line">{esc(address)}</p>{phone}\n'
+    return (f'<article class="clinic-card seo-card" data-cid="{esc(c["id"])}">\n  <div class="body">\n'
+            f'    <div class="name-row"><h3><a href="{href}" data-pf="name">{esc(c["name"])}</a></h3></div>\n'
+            f'    <p class="muted-line" data-pf="address">{esc(address)}</p>{phone}\n'
             f'    <div class="actions">{actions}</div>\n  </div>\n</article>')
 
 

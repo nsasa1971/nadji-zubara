@@ -915,3 +915,10 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
   margin-right:12px;border:0;border-radius:8px;padding:8px 14px;font-weight:600;font-family:inherit;font-size:13.5px;cursor:pointer;background:var(--primary-light);color:var(--primary-dark);
 }
 #formApp input[type=file]::file-selector-button:hover{background:var(--primary);color:#fff;}
+
+/* Čekanje (neutralno/žuto) razlikuje se od odbijanja (crveno) */
+.chip.chip-pending{background:#D97706;}
+.badge-verified-inline svg{width:13px;height:13px;}
+/* Fotografije na stranici ordinacije */
+#photosGrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));}
+#photosGrid img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;}
