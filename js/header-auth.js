@@ -14,9 +14,9 @@ function renderAuthArea(){
   const session = getSession();
 
   if(!session){
-    // Prijava je privremeno isključena (demo prijava bez servera) — "uskoro".
-    if(area) area.innerHTML = `<span class="is-soon-text" title="Prijava uskoro">Prijava · uskoro</span>`;
-    if(mobileArea) mobileArea.innerHTML = `<span class="is-soon-text">${ICONS.user} Prijava · uskoro</span>`;
+    // Prijava je privremeno isključena: bez prijavljenog korisnika zaglavlje nema dugme za prijavu.
+    if(area) area.innerHTML = '';
+    if(mobileArea) mobileArea.innerHTML = '';
     return;
   }
 
