@@ -123,5 +123,21 @@ const PF = (function(){
     return factory(ctl ? ctl.signal : undefined).then(v => { clearTimeout(timer); return v; }, () => { clearTimeout(timer); return fallback; });
   }
 
-  return {configured, normalizePhone, cleanProfile, fetchProfiles, fetchImages, signUrls, withTimeout, HOURS_KEYS, SOCIAL_KEYS};
+  // Da li je prijavljeni posetilac verifikovan vlasnik ordinacije? Bez Supabase biblioteke: čita se sesija
+  // iz localStorage (ista koju pravi prijava vlasnika) i jedan upit ka claims (RLS vraća samo posetiočeve
+  // redove). Istekla/nepostojeća sesija = false (dugme "Izmeni profil" se tada ne prikazuje).
+  function myVerifiedClaim(clinicId){
+    try{
+      if(!configured()) return Promise.resolve(false);
+      const ref = new URL(SUPABASE_URL).hostname.split('.')[0];
+      const raw = localStorage.getItem('sb-' + ref + '-auth-token');
+      const s = raw ? JSON.parse(raw) : null;
+      if(!s || typeof s.access_token !== 'string' || !(s.expires_at > Date.now() / 1000)) return Promise.resolve(false);
+      return fetch(SUPABASE_URL + '/rest/v1/claims?select=id&status=eq.verified&clinic_id=eq.' + encodeURIComponent(clinicId) + '&limit=1',
+        {headers:{apikey: SUPABASE_PUBLISHABLE_KEY, Authorization:'Bearer ' + s.access_token, Accept:'application/json'}})
+        .then(r => r.ok ? r.json() : []).then(rows => Array.isArray(rows) && rows.length > 0).catch(() => false);
+    } catch(e){ return Promise.resolve(false); }
+  }
+
+  return {configured, myVerifiedClaim, normalizePhone, cleanProfile, fetchProfiles, fetchImages, signUrls, withTimeout, HOURS_KEYS, SOCIAL_KEYS};
 })();

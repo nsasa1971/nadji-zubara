@@ -3,6 +3,7 @@
    uvezenu. Ako zahtev ne uspe ili traje duže od 1,5 s, stranica radi sa uvezenim podacima.
    Zavisi od: safe.js, supabase-config.js, profile-common.js, services.js, data.js, imported-clinics.js. */
 const PROFILE_WAIT_MS = 1500;
+const PLACEHOLDER_DESCRIPTION_RE = /^Detaljan opis ove ordinacije još nije dostupan/;
 const GENERIC_NAME_WORDS = new Set(['stomatoloska','stomatoloski','specijalisticka','ordinacija','privatna','praksa','dr','stomatolog','poliklinika','centar','zubarska','dental','clinic']);
 
 function initialsFromName(name){
@@ -30,7 +31,9 @@ function applyProfileToClinic(c, p, imagePaths){
     const known = knownServices(p.services);
     if(known.length) c.services = known;
   }
+  // uvezeni opis je šablon "Ako ste vlasnik..." — za preuzet profil se nikad ne prikazuje
   if(p.description) c.description = p.description;
+  else if(PLACEHOLDER_DESCRIPTION_RE.test(c.description || '')) c.description = '';
   if(p.website) c.website = p.website;
   if(p.socials) c.socials = p.socials;
   if(p.team) c.team = p.team;

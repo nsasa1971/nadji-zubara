@@ -38,6 +38,9 @@ function renderClinic(c){
   if(reportLink) reportLink.href = 'kontakt.html?subject=netacan-podatak' + contactBase;
   const removeLink = document.getElementById('removeLink');
   if(removeLink) removeLink.href = 'kontakt.html?subject=uklanjanje-profila' + contactBase;
+  // preuzet profil: uklanjanje ide preko vlasnika ili administratora (link "Prijavi netačan podatak" ostaje)
+  const removeWrap = document.getElementById('removeWrap');
+  if(removeWrap) removeWrap.style.display = c.claimed ? 'none' : '';
   document.title = c.name + ' — Nađi Zubara';
   document.getElementById('pageTitle').textContent = c.name + ' — Nađi Zubara';
 
@@ -101,7 +104,9 @@ function renderClinic(c){
   document.getElementById('phoneLink').textContent = phoneOk ? c.phone : 'Nije dostupno';
 
 
-  document.getElementById('clinicDescription').textContent = c.description;
+  // preuzet profil bez opisa: bez šablona "Ako ste vlasnik..."; nepreuzete ordinacije ostaju kao pre
+  document.getElementById('clinicDescription').textContent =
+    (c.claimed && !c.description) ? 'Ordinacija još nije dodala opis.' : c.description;
 
   // Radno vreme
   const order = ['mon','tue','wed','thu','fri','sat','sun'];
@@ -395,7 +400,23 @@ function renderContactActionsCard(c){
   }
   const reportLink = document.getElementById('reportLink');
   document.getElementById('cardReportLink').href = reportLink ? reportLink.getAttribute('href') : 'kontakt.html?subject=netacan-podatak';
-  document.getElementById('claimLink').href = 'preuzmi.html?id=' + encodeURIComponent(c.id);
+  const claimLink = document.getElementById('claimLink');
+  claimLink.href = 'preuzmi.html?id=' + encodeURIComponent(c.id);
+  claimLink.textContent = 'Ovo je moja ordinacija';
+  if(c.claimed){
+    // preuzeta ordinacija: nema poziva na preuzimanje; verifikovanom vlasniku se nudi "Izmeni profil"
+    claimLink.style.display = 'none';
+    if(typeof PF !== 'undefined' && PF.myVerifiedClaim){
+      PF.myVerifiedClaim(c.id).then(ok => {
+        if(!ok) return;
+        claimLink.textContent = 'Izmeni profil';
+        claimLink.href = 'izmena-profila.html?id=' + encodeURIComponent(c.id);
+        claimLink.style.display = '';
+      });
+    }
+  } else {
+    claimLink.style.display = '';
+  }
   card.style.display = BOOKING_ENABLED ? 'none' : '';
 }
 
