@@ -2,7 +2,7 @@
    Tok: (1) izbor paketa -> (2) forma sa podacima -> (3) potvrda.
    Ako je prisutan ?edit=<id>, korak 1 se preskače i forma se popunjava postojećim podacima. */
 
-const PLAN_LABELS = {besplatno:'Besplatno', standard:'Standard (1.990 RSD/mesečno)', premium:'Premium (3.990 RSD/mesečno)'};
+const PLAN_LABELS = {besplatno:'Besplatno', standard:'Standard', premium:'Premium'};
 const PLAN_PHOTO_LIMIT = {
   besplatno:'Prevucite fotografije ovde ili kliknite da izaberete fajlove (do 3 fotografije u Besplatnom paketu).',
   standard:'Prevucite fotografije ovde ili kliknite da izaberete fajlove (do 10 fotografija u Standard paketu).',

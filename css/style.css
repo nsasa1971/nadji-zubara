@@ -868,3 +868,6 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
   border-radius:50%;background:var(--primary-dark);}
 .map-pin-approx{display:inline-block;margin:0 0 4px;padding:2px 8px;border-radius:999px;font-size:11.5px;font-weight:600;
   color:var(--primary-dark);background:var(--primary-light);}
+
+/* Cenovnik sa jednim paketom: kartica u sredini */
+.pricing-grid.single{grid-template-columns:minmax(0,420px);justify-content:center;}
