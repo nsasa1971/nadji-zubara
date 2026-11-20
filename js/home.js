@@ -59,36 +59,36 @@
   }
 
   function initNumbers(all, cityNames){
-    const cityNote = $('heroCityNote');
-    if(cityNote && cityNames.length){ $('heroCityCount').textContent = fmt(cityNames.length); cityNote.hidden = false; }
-    const stats = $('homeStats');
-    if(!stats) return;
+    const line = $('homeCount');
+    if(!line || !cityNames.length) return;
     $('statOrdinacije').textContent = fmt(all.length);
     $('statGradovi').textContent = fmt(cityNames.length);
-    const onMap = all.filter(hasVerifiedCoords).length;
-    if(onMap > 0){ $('statMapa').textContent = fmt(onMap); $('statMapaBox').hidden = false; }
-    stats.hidden = false;
+    line.hidden = false;
   }
 
   function initCities(all, cityNames){
     const byCity = {};
     all.forEach(c => { byCity[c.city] = (byCity[c.city] || 0) + 1; });
-    document.querySelectorAll('.home-city-count[data-city]').forEach(n => {
+    document.querySelectorAll('.home-tile-count[data-city]').forEach(n => {
       const k = byCity[n.getAttribute('data-city')];
       if(k){ n.textContent = fmt(k) + ' ' + ordWord(k); n.hidden = false; }
     });
-    const list = $('allCitiesList'), box = $('homeAllCities');
-    if(!list || !cityNames.length) return;
+    const list = $('allCitiesList'), box = $('homeAllCities'), btn = $('allCitiesBtn');
+    if(!list || !btn || !cityNames.length) return;
     const sorted = cityNames.slice().sort((a, b) => a.localeCompare(b, 'sr'));
     list.innerHTML = sorted.map(n => `<li><a href="${esc(citySlug(n))}/">${esc(n)}</a> <span>(${fmt(byCity[n] || 0)})</span></li>`).join('');
     $('allCitiesN').textContent = fmt(sorted.length);
-    box.hidden = false;
+    btn.hidden = false;
+    btn.addEventListener('click', () => {
+      const open = box.hidden;
+      box.hidden = !open;
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if(open) box.scrollIntoView({behavior:'smooth', block:'nearest'});
+    });
   }
 
   function initServices(){
     SERVICE_CATALOG.forEach(cat => {
-      const ic = document.querySelector(`[data-service-icon="${cat.key}"]`);
-      if(ic && typeof ICONS !== 'undefined' && ICONS[cat.icon]) ic.innerHTML = ICONS[cat.icon];
       const tz = document.querySelector(`[data-teaser="${cat.key}"]`);
       if(tz) tz.textContent = cat.subservices.slice(0, 3).map(s => s.name).join(', ') + (cat.subservices.length > 3 ? '…' : '');
     });
