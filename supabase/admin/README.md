@@ -10,6 +10,7 @@ Svaka radnja ostavlja trag u `audit_log` (actor = null, jer radi administrator).
 | `02_odobri_izmenu.sql` | Odobrava jednu izmenu iz `pending_changes` (upisuje vrednost u profil) |
 | `03_odbij_izmenu.sql` | Odbija jednu izmenu (uz napomenu koju vlasnik vidi) |
 | `04_zahtevi.sql` | Verifikuje / odbija / opoziva zahtev, vraća profil na 'published' |
+| `05_ukloni_sliku.sql` | Skida odobrenu sliku sa javnog prikaza; menja redosled (naslovna) |
 
 Posle odbijanja ili brisanja slike, fajl ostaje u bucketu `clinic-images`: obriši ga ručno
 (Storage → clinic-images → folder ordinacije) ako ne treba.
