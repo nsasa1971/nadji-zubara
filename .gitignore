@@ -16,3 +16,6 @@ img/dental-care.png
 # OS/editor smeće
 .DS_Store
 Thumbs.db
+
+# Privatni podaci (e-mail adrese ordinacija) — nikad u repo
+private/
