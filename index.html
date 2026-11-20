@@ -13,7 +13,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230EA5A3'/%3E%3Cpath d='M12 5c-1.8 0-2.6.9-3.6.9-1.1 0-2.2-.9-3.1.1-1 1-.4 3 .1 4.9.4 1.7.7 4 1.5 6.1.3 1 .8 1.6 1.6 1.6 1.1 0 1-2.2 1.6-4.3.3-1 .6-1.7 1.4-1.7s1.1.7 1.4 1.7c.6 2.1.5 4.3 1.6 4.3.8 0 1.3-.6 1.6-1.6.7-2.1 1-4.4 1.5-6.1.5-1.9 1.1-3.9.1-4.9-.9-1-2 0-3.1-.1-1-.9-1.8-.9-2-.9Z' fill='white'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Nađi Zubara","url":"https://nadjizubara.netlify.app/","logo":"https://nadjizubara.netlify.app/img/logo.webp"}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Nađi Zubara","url":"https://nadjizubara.netlify.app/","potentialAction":{"@type":"SearchAction","target":"https://nadjizubara.netlify.app/pretraga.html?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
@@ -43,155 +43,122 @@
   </div>
 </header>
 
+<main class="home">
+
 <section class="home-hero">
-  <svg class="home-hero-art" viewBox="0 0 640 460" aria-hidden="true" focusable="false">
-    <defs>
-      <pattern id="hdots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.6" fill="#fff" fill-opacity=".16"/></pattern>
-      <linearGradient id="hglow" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0EA5A3" stop-opacity=".55"/><stop offset="1" stop-color="#0EA5A3" stop-opacity="0"/></linearGradient>
-    </defs>
-    <rect x="40" y="30" width="560" height="400" rx="40" fill="url(#hdots)"/>
-    <circle cx="430" cy="230" r="190" fill="url(#hglow)"/>
-    <circle cx="430" cy="230" r="150" fill="none" stroke="#fff" stroke-opacity=".16" stroke-width="2"/>
-    <circle cx="430" cy="230" r="105" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="2"/>
-    <circle cx="430" cy="230" r="62" fill="#fff" fill-opacity=".08" stroke="#fff" stroke-opacity=".3" stroke-width="2"/>
-    <g transform="translate(398 198) scale(1)"><path fill="#fff" fill-opacity=".95" d="M20 4C10 4 4 11 4 20c0 7 3 11 5 18 2 8 3 22 9 22 5 0 5-12 9-17 2-3 5-3 7 0 4 5 4 17 9 17 6 0 7-14 9-22 2-7 5-11 5-18C57 11 51 4 41 4c-5 0-7 2-10 2s-6-2-11-2z" transform="scale(.9)"/></g>
-    <g fill="#FF6F59"><path transform="translate(560 120) scale(2)" d="M12 2C7.6 2 4 5.5 4 9.9 4 15.8 12 22 12 22s8-6.2 8-12.1C20 5.5 16.4 2 12 2zm0 10.5a2.6 2.6 0 110-5.2 2.6 2.6 0 010 5.2z"/></g>
-    <g fill="#5EE1DE"><path transform="translate(300 330) scale(1.6)" d="M12 2C7.6 2 4 5.5 4 9.9 4 15.8 12 22 12 22s8-6.2 8-12.1C20 5.5 16.4 2 12 2zm0 10.5a2.6 2.6 0 110-5.2 2.6 2.6 0 010 5.2z"/></g>
-    <g fill="#fff" fill-opacity=".85"><path transform="translate(520 330) scale(1.3)" d="M12 2C7.6 2 4 5.5 4 9.9 4 15.8 12 22 12 22s8-6.2 8-12.1C20 5.5 16.4 2 12 2zm0 10.5a2.6 2.6 0 110-5.2 2.6 2.6 0 010 5.2z"/></g>
-    <g fill="#fff"><rect x="268" y="96" width="132" height="40" rx="12" fill-opacity=".12"/><circle cx="288" cy="116" r="8" fill-opacity=".55"/><rect x="304" y="108" width="76" height="7" rx="3.5" fill-opacity=".5"/><rect x="304" y="120" width="52" height="6" rx="3" fill-opacity=".3"/></g>
-  </svg>
-  <div class="container home-hero-inner">
-    <h1>Pronađite zubara u svom gradu</h1>
-    <p class="home-lead">Imenik stomatoloških ordinacija u Srbiji<span id="heroCityNote" hidden>, u <b id="heroCityCount"></b> gradova</span>.</p>
+  <div class="container">
+    <h1>Gde vam je potreban <span class="home-ul">zubar<svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M2 9c14-8 24 6 38-1s24 5 38-1 24 5 38-1 24 5 38-1 24 4 44 0" fill="none" stroke="#FF6F59" stroke-width="4" stroke-linecap="round"/></svg></span>?</h1>
+    <p class="home-lead">Ovde su adrese i telefoni stomatoloških ordinacija iz cele Srbije. Izaberite grad, pogledajte ko je blizu i pozovite.</p>
 
     <form class="home-search" id="heroSearchForm" action="pretraga.html" method="get">
       <label class="home-field"><span>Grad</span>
-        <span class="home-control"><span data-icon="location"></span><select name="city"><option value="">Svi gradovi</option></select></span></label>
+        <span class="home-control"><select name="city"><option value="">Svi gradovi</option></select></span></label>
       <label class="home-field" id="heroServiceField" hidden><span>Usluga</span>
-        <span class="home-control"><span data-icon="tooth"></span><select name="service"><option value="">Sve usluge</option></select></span></label>
-      <label class="home-field"><span>Naziv ordinacije</span>
-        <span class="home-control"><span data-icon="search"></span><input type="text" name="q" placeholder="Npr. Dental, dr Petrović" maxlength="80"></span></label>
-      <button type="submit" class="btn btn-primary home-go">Pretraži</button>
-      <button type="button" class="btn home-near" id="heroNearBtn"><span data-icon="target"></span> Blizu mene</button>
+        <span class="home-control"><select name="service"><option value="">Sve usluge</option></select></span></label>
+      <label class="home-field"><span>Ime ordinacije</span>
+        <span class="home-control"><input type="text" name="q" placeholder="Npr. Dental, dr Petrović" maxlength="80"></span></label>
+      <button type="submit" class="btn btn-primary home-go">Traži</button>
+      <button type="button" class="btn home-near" id="heroNearBtn">Blizu mene</button>
     </form>
     <p class="home-near-msg" id="heroNearMsg" role="status" hidden></p>
+    <p class="home-count" id="homeCount" hidden>Do sada smo upisali <b id="statOrdinacije"></b> ordinacija u <b id="statGradovi"></b> gradova.</p>
   </div>
 </section>
 
-<section class="home-stats-wrap">
-  <div class="container">
-    <div class="home-stats" id="homeStats" hidden>
-      <div class="home-stat"><b id="statOrdinacije"></b><span>ordinacija u imeniku</span></div>
-      <div class="home-stat"><b id="statGradovi"></b><span>gradova i opština</span></div>
-      <div class="home-stat" id="statMapaBox" hidden><b id="statMapa"></b><span>ordinacija sa lokacijom na mapi</span></div>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="gradovi">
+<section class="home-block" id="gradovi">
   <div class="container">
     <div class="home-head">
-      <span class="eyebrow">Gradovi</span>
-      <h2>Najveći gradovi</h2>
-      <p>Izaberite grad i pogledajte sve ordinacije u njemu.</p>
+      <h2>Počnite od svog grada</h2>
+      <p>Najviše ordinacija ima u ovim gradovima. Ostale ćete naći na spisku ispod.</p>
     </div>
-    <div class="home-cities">
-        <a class="home-city" href="beograd/"><span class="home-city-mono" aria-hidden="true">B</span><span class="home-city-name">Beograd</span><span class="home-city-count" data-city="Beograd" hidden></span></a>
-        <a class="home-city" href="novi-sad/"><span class="home-city-mono" aria-hidden="true">N</span><span class="home-city-name">Novi Sad</span><span class="home-city-count" data-city="Novi Sad" hidden></span></a>
-        <a class="home-city" href="nis/"><span class="home-city-mono" aria-hidden="true">N</span><span class="home-city-name">Niš</span><span class="home-city-count" data-city="Niš" hidden></span></a>
-        <a class="home-city" href="kragujevac/"><span class="home-city-mono" aria-hidden="true">K</span><span class="home-city-name">Kragujevac</span><span class="home-city-count" data-city="Kragujevac" hidden></span></a>
-        <a class="home-city" href="pancevo/"><span class="home-city-mono" aria-hidden="true">P</span><span class="home-city-name">Pančevo</span><span class="home-city-count" data-city="Pančevo" hidden></span></a>
-        <a class="home-city" href="kraljevo/"><span class="home-city-mono" aria-hidden="true">K</span><span class="home-city-name">Kraljevo</span><span class="home-city-count" data-city="Kraljevo" hidden></span></a>
-        <a class="home-city" href="subotica/"><span class="home-city-mono" aria-hidden="true">S</span><span class="home-city-name">Subotica</span><span class="home-city-count" data-city="Subotica" hidden></span></a>
-        <a class="home-city" href="zrenjanin/"><span class="home-city-mono" aria-hidden="true">Z</span><span class="home-city-name">Zrenjanin</span><span class="home-city-count" data-city="Zrenjanin" hidden></span></a>
+    <div class="home-mosaic">
+      <a class="home-tile home-tile-big" href="beograd/">
+        <img src="img/city-beograd.webp" alt="Fotografija grada Beograd" width="900" height="675" loading="lazy" decoding="async">
+        <span class="home-tile-text"><strong>Beograd</strong><span class="home-tile-count" data-city="Beograd" hidden></span></span>
+      </a>
+      <a class="home-tile" href="novi-sad/">
+        <img src="img/city-novi-sad.webp" alt="Fotografija grada Novi Sad" width="900" height="675" loading="lazy" decoding="async">
+        <span class="home-tile-text"><strong>Novi Sad</strong><span class="home-tile-count" data-city="Novi Sad" hidden></span></span>
+      </a>
+      <a class="home-tile" href="nis/">
+        <img src="img/city-nis.webp" alt="Fotografija grada Niš" width="900" height="675" loading="lazy" decoding="async">
+        <span class="home-tile-text"><strong>Niš</strong><span class="home-tile-count" data-city="Niš" hidden></span></span>
+      </a>
+      <a class="home-tile" href="kragujevac/">
+        <img src="img/city-kragujevac.webp" alt="Fotografija grada Kragujevac" width="900" height="675" loading="lazy" decoding="async">
+        <span class="home-tile-text"><strong>Kragujevac</strong><span class="home-tile-count" data-city="Kragujevac" hidden></span></span>
+      </a>
+      <a class="home-tile" href="pancevo/">
+        <img src="img/city-pancevo.webp" alt="Fotografija grada Pančevo" width="900" height="675" loading="lazy" decoding="async">
+        <span class="home-tile-text"><strong>Pančevo</strong><span class="home-tile-count" data-city="Pančevo" hidden></span></span>
+      </a>
+      <a class="home-tile" href="kraljevo/">
+        <img src="img/city-kraljevo.webp" alt="Fotografija grada Kraljevo" width="900" height="675" loading="lazy" decoding="async">
+        <span class="home-tile-text"><strong>Kraljevo</strong><span class="home-tile-count" data-city="Kraljevo" hidden></span></span>
+      </a>
+      <a class="home-tile" href="subotica/">
+        <img src="img/city-subotica.webp" alt="Fotografija grada Subotica" width="900" height="675" loading="lazy" decoding="async">
+        <span class="home-tile-text"><strong>Subotica</strong><span class="home-tile-count" data-city="Subotica" hidden></span></span>
+      </a>
+      <a class="home-tile" href="zrenjanin/">
+        <img src="img/city-zrenjanin.webp" alt="Fotografija grada Zrenjanin" width="900" height="675" loading="lazy" decoding="async">
+        <span class="home-tile-text"><strong>Zrenjanin</strong><span class="home-tile-count" data-city="Zrenjanin" hidden></span></span>
+      </a>
+      <button type="button" class="home-tile home-tile-all" id="allCitiesBtn" aria-expanded="false" aria-controls="homeAllCities" hidden><span>Svi gradovi</span><b id="allCitiesN"></b></button>
     </div>
-    <details class="home-allcities" id="homeAllCities" hidden>
-      <summary>Prikaži svih <span id="allCitiesN"></span> gradova</summary>
+    <div class="home-allcities" id="homeAllCities" hidden>
       <ul id="allCitiesList"></ul>
-    </details>
-  </div>
-</section>
-
-<section class="section home-bg-soft" id="usluge">
-  <div class="container">
-    <div class="home-head">
-      <span class="eyebrow">Usluge</span>
-      <h2>Stomatološke usluge</h2>
-      <p>Šta se leči i kako — kratka objašnjenja za svaku oblast.</p>
-    </div>
-    <div class="home-services">
-        <a class="home-service" href="usluge/dijagnostika-preventiva/"><span class="home-service-ic" data-service-icon="dijagnostika-preventiva" aria-hidden="true"></span><span><strong>Dijagnostika i preventiva</strong><span class="home-service-teaser" data-teaser="dijagnostika-preventiva"></span></span></a>
-        <a class="home-service" href="usluge/bolesti-zuba-endodoncija/"><span class="home-service-ic" data-service-icon="bolesti-zuba-endodoncija" aria-hidden="true"></span><span><strong>Bolesti zuba i endodoncija</strong><span class="home-service-teaser" data-teaser="bolesti-zuba-endodoncija"></span></span></a>
-        <a class="home-service" href="usluge/parodontologija/"><span class="home-service-ic" data-service-icon="parodontologija" aria-hidden="true"></span><span><strong>Parodontologija</strong><span class="home-service-teaser" data-teaser="parodontologija"></span></span></a>
-        <a class="home-service" href="usluge/oralna-hirurgija/"><span class="home-service-ic" data-service-icon="oralna-hirurgija" aria-hidden="true"></span><span><strong>Oralna hirurgija</strong><span class="home-service-teaser" data-teaser="oralna-hirurgija"></span></span></a>
-        <a class="home-service" href="usluge/implantologija/"><span class="home-service-ic" data-service-icon="implantologija" aria-hidden="true"></span><span><strong>Implantologija</strong><span class="home-service-teaser" data-teaser="implantologija"></span></span></a>
-        <a class="home-service" href="usluge/stomatoloska-protetika/"><span class="home-service-ic" data-service-icon="stomatoloska-protetika" aria-hidden="true"></span><span><strong>Stomatološka protetika</strong><span class="home-service-teaser" data-teaser="stomatoloska-protetika"></span></span></a>
-        <a class="home-service" href="usluge/ortodoncija/"><span class="home-service-ic" data-service-icon="ortodoncija" aria-hidden="true"></span><span><strong>Ortopedija vilica (ortodoncija)</strong><span class="home-service-teaser" data-teaser="ortodoncija"></span></span></a>
-        <a class="home-service" href="usluge/estetska-stomatologija/"><span class="home-service-ic" data-service-icon="estetska-stomatologija" aria-hidden="true"></span><span><strong>Estetska stomatologija</strong><span class="home-service-teaser" data-teaser="estetska-stomatologija"></span></span></a>
-        <a class="home-service" href="usluge/decija-stomatologija/"><span class="home-service-ic" data-service-icon="decija-stomatologija" aria-hidden="true"></span><span><strong>Dečija stomatologija</strong><span class="home-service-teaser" data-teaser="decija-stomatologija"></span></span></a>
     </div>
   </div>
 </section>
 
-<section class="section" id="preuzeti" hidden>
+<section class="home-block home-block-tint" id="usluge">
   <div class="container">
     <div class="home-head">
-      <span class="eyebrow">Preuzeti profili</span>
-      <h2>Ordinacije sa preuzetim profilom</h2>
-      <p>Ove ordinacije su same dopunile podatke.</p>
+      <h2>Šta vam je potrebno?</h2>
+      <p>Ne znate kako se šta zove? Evo kratkog objašnjenja po oblastima.</p>
+    </div>
+    <ul class="home-svc">
+        <li><a href="usluge/dijagnostika-preventiva/"><span class="home-svc-name">Dijagnostika i preventiva</span><span class="home-svc-teaser" data-teaser="dijagnostika-preventiva"></span></a></li>
+        <li><a href="usluge/bolesti-zuba-endodoncija/"><span class="home-svc-name">Bolesti zuba i endodoncija</span><span class="home-svc-teaser" data-teaser="bolesti-zuba-endodoncija"></span></a></li>
+        <li><a href="usluge/parodontologija/"><span class="home-svc-name">Parodontologija</span><span class="home-svc-teaser" data-teaser="parodontologija"></span></a></li>
+        <li><a href="usluge/oralna-hirurgija/"><span class="home-svc-name">Oralna hirurgija</span><span class="home-svc-teaser" data-teaser="oralna-hirurgija"></span></a></li>
+        <li><a href="usluge/implantologija/"><span class="home-svc-name">Implantologija</span><span class="home-svc-teaser" data-teaser="implantologija"></span></a></li>
+        <li><a href="usluge/stomatoloska-protetika/"><span class="home-svc-name">Stomatološka protetika</span><span class="home-svc-teaser" data-teaser="stomatoloska-protetika"></span></a></li>
+        <li><a href="usluge/ortodoncija/"><span class="home-svc-name">Ortopedija vilica (ortodoncija)</span><span class="home-svc-teaser" data-teaser="ortodoncija"></span></a></li>
+        <li><a href="usluge/estetska-stomatologija/"><span class="home-svc-name">Estetska stomatologija</span><span class="home-svc-teaser" data-teaser="estetska-stomatologija"></span></a></li>
+        <li><a href="usluge/decija-stomatologija/"><span class="home-svc-name">Dečija stomatologija</span><span class="home-svc-teaser" data-teaser="decija-stomatologija"></span></a></li>
+    </ul>
+  </div>
+</section>
+
+<section class="home-block" id="preuzeti" hidden>
+  <div class="container">
+    <div class="home-head">
+      <h2>Ordinacije koje su same dopunile profil</h2>
+      <p>Njihovi podaci su ažurni, a neke su dodale i fotografije.</p>
     </div>
     <div class="cards-grid" id="featuredGrid"></div>
   </div>
 </section>
 
-<section class="section" id="kako">
-  <div class="container">
-    <div class="home-head">
-      <span class="eyebrow">Kako radi</span>
-      <h2>Do ordinacije u tri koraka</h2>
-    </div>
-    <div class="home-steps">
-      <div class="home-step"><span class="home-step-num">1</span><h3>Pretražite</h3><p>Izaberite grad ili upišite naziv ordinacije. Mapa prikazuje ordinacije sa proverenom lokacijom.</p></div>
-      <div class="home-step"><span class="home-step-num">2</span><h3>Uporedite</h3><p>Pogledajte adrese i telefone, a kod ordinacija sa preuzetim profilom i radno vreme, usluge i fotografije.</p></div>
-      <div class="home-step"><span class="home-step-num">3</span><h3>Pozovite</h3><p>Pozovite ordinaciju direktno i dogovorite termin. Zakazivanje preko sajta ne postoji.</p></div>
-    </div>
+<section class="home-block" id="kako">
+  <div class="container home-how">
+    <h2>Kako ovo funkcioniše</h2>
+    <p>Izaberete grad ili ukucate ime ordinacije. Pogledate adresu i telefon, a gde je ordinacija sama dopunila profil, i radno vreme, usluge i slike. Onda pozovete i dogovorite termin. Termine ne zakazujemo mi, a ni preko sajta.</p>
   </div>
 </section>
 
-<section class="section home-owners-wrap" id="vlasnici">
+<section class="home-block home-owners-wrap" id="vlasnici">
   <div class="container">
     <div class="home-owners">
-      <div class="home-owners-text">
-        <span class="eyebrow eyebrow-light">Za vlasnike</span>
-        <h2>Imate ordinaciju?</h2>
-        <p>Vaša ordinacija je verovatno već u imeniku. Preuzmite profil i sami dopunite podatke koje pacijenti traže.</p>
-        <ul class="home-checks">
-          <li>Dopunite telefone i radno vreme</li>
-          <li>Dodajte usluge i kratak opis</li>
-          <li>Objavite fotografije i tim (posle naše provere)</li>
-          <li>Ispravite naziv i adresu</li>
-        </ul>
-        <p class="home-owners-note">Ordinacije koje preuzmu profil imaju prvih 6 meseci besplatno od dana preuzimanja. Plaćeni paketi biće objavljeni kasnije.</p>
-        <div class="home-owners-actions">
-          <a href="pretraga.html" class="btn btn-primary">Pronađite svoju ordinaciju</a>
-          <a href="kontakt.html?subject=netacan-podatak" class="btn home-ghost-light">Prijavi netačan podatak</a>
-        </div>
+      <h2>Radite u ordinaciji?</h2>
+      <p>Vaša ordinacija je verovatno već upisana, ali podaci mogu biti stari ili nepotpuni. Preuzmite profil i ispravite ih sami: telefon, radno vreme, usluge, opis i fotografije.</p>
+      <p class="home-owners-note">Ordinacije koje preuzmu profil imaju prvih 6 meseci besplatno od dana preuzimanja. Plaćeni paketi biće objavljeni kasnije.</p>
+      <div class="home-owners-actions">
+        <a href="pretraga.html" class="btn btn-primary">Pronađite svoju ordinaciju</a>
+        <a href="kontakt.html?subject=netacan-podatak" class="btn home-ghost-light">Prijavi netačan podatak</a>
       </div>
-      <svg class="home-owners-art" viewBox="0 0 360 300" aria-hidden="true" focusable="false">
-        <rect x="30" y="20" width="300" height="260" rx="22" fill="#fff"/>
-        <rect x="30" y="20" width="300" height="78" rx="22" fill="#0EA5A3"/>
-        <rect x="30" y="70" width="300" height="28" fill="#0EA5A3"/>
-        <circle cx="82" cy="100" r="30" fill="#fff"/><circle cx="82" cy="100" r="22" fill="#1b3a3f"/>
-        <path transform="translate(70 87) scale(.4)" fill="#fff" d="M20 4C10 4 4 11 4 20c0 7 3 11 5 18 2 8 3 22 9 22 5 0 5-12 9-17 2-3 5-3 7 0 4 5 4 17 9 17 6 0 7-14 9-22 2-7 5-11 5-18C57 11 51 4 41 4c-5 0-7 2-10 2s-6-2-11-2z"/>
-        <rect x="124" y="46" width="130" height="12" rx="6" fill="#fff" fill-opacity=".9"/>
-        <rect x="124" y="66" width="86" height="9" rx="4.5" fill="#fff" fill-opacity=".6"/>
-        <rect x="56" y="148" width="170" height="10" rx="5" fill="#E6EBF0"/>
-        <rect x="56" y="170" width="248" height="10" rx="5" fill="#E6EBF0"/>
-        <rect x="56" y="192" width="206" height="10" rx="5" fill="#E6EBF0"/>
-        <rect x="56" y="224" width="74" height="28" rx="14" fill="#E3F7F6"/><rect x="138" y="224" width="86" height="28" rx="14" fill="#E3F7F6"/><rect x="232" y="224" width="64" height="28" rx="14" fill="#E3F7F6"/>
-        <circle cx="300" cy="44" r="22" fill="#FF6F59"/>
-        <path d="M290 44l7 7 14-15" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
     </div>
   </div>
 </section>
@@ -201,6 +168,8 @@
     <p><b>O podacima.</b> Podaci o ordinacijama potiču iz javno dostupnih izvora i mogu biti zastareli. Ako primetite grešku, <a href="kontakt.html?subject=netacan-podatak">prijavite je</a>.</p>
   </div>
 </section>
+
+</main>
 
 <footer class="site-footer">
   <div class="container">
