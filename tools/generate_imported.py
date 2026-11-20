@@ -175,7 +175,6 @@ for r in raw_records:
         'city': city or 'Nepoznato',
         'address': address,
         'phone': r['phone'],
-        'email': r['email'],
         'website': r['website'] or '#',
         'priceRange': None,
         'rating': 0,
@@ -220,7 +219,6 @@ for r in out_records:
         f"city:{js_str(r['city'])}," +
         f"address:{js_str(r['address'])}," +
         f"phone:{js_str(r['phone'])}," +
-        f"email:{js_str(r['email'])}," +
         f"website:{js_str(r['website'])}," +
         f"priceRange:null," +
         f"rating:0,reviewCount:0,verified:false,featured:false,imported:true,hoursUnknown:true," +

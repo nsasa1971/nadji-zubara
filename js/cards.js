@@ -75,7 +75,7 @@ function renderClinicCard(c, opts){
       <div class="actions">
         ${isValidPhone(c.phone)
           ? `<a class="btn btn-outline-navy btn-sm" href="tel:${c.phone.replace(/\s/g,'')}">${ICONS.phone} Pozovi</a>`
-          : (c.email ? `<a class="btn btn-outline-navy btn-sm" href="mailto:${c.email}">${ICONS.mail} Pošalji mejl</a>` : '')}
+          : ''}
         <a class="btn btn-primary btn-sm" href="ordinacija.html?id=${c.id}">Detalji</a>
       </div>
     </div>

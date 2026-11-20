@@ -91,16 +91,6 @@ function renderClinic(c){
   document.getElementById('phoneLink').href = phoneOk ? 'tel:' + c.phone.replace(/\s/g,'') : '#';
   document.getElementById('phoneLink').textContent = phoneOk ? c.phone : 'Nije dostupno';
 
-  const emailLine = document.getElementById('emailLine');
-  if(emailLine){
-    if(c.email){
-      emailLine.style.display = '';
-      emailLine.querySelector('a').href = 'mailto:' + c.email;
-      emailLine.querySelector('a').textContent = c.email;
-    } else {
-      emailLine.style.display = 'none';
-    }
-  }
 
   document.getElementById('clinicDescription').textContent = c.description;
 
