@@ -225,7 +225,11 @@ function bindEvents(){
     }
   });
 
-  document.getElementById('clearDistanceBtn').addEventListener('click', showAllIgnoringDistance);
+  // Dugme na praznom stanju: u režimu "pretraži dok pomeram mapu" gasi taj filter, inače ukida ograničenje udaljenosti.
+  document.getElementById('clearDistanceBtn').addEventListener('click', () => {
+    if(mapBoundsFilterActive) showAllResults(); else showAllIgnoringDistance();
+  });
+  document.getElementById('showAllResultsBtn').addEventListener('click', showAllResults);
 
   document.getElementById('mobileFilterBtn').addEventListener('click', openFiltersDrawer);
   document.getElementById('filtersCloseBtn').addEventListener('click', closeFiltersDrawer);
@@ -406,12 +410,29 @@ function renderResults(opts){
   const points = renderMapMarkers(list);
   // Nijedan pin na mapi (npr. nema proverenih koordinata): poruka umesto prazne mape.
   const mapSoon = document.getElementById('mapSoon');
-  if(mapSoon) mapSoon.style.display = (viewMode === 'map' && points.length === 0) ? 'flex' : 'none';
+  // (ne u režimu "pretraži dok pomeram mapu": tada mapa ostaje slobodna i interaktivna)
+  if(mapSoon) mapSoon.style.display = (viewMode === 'map' && points.length === 0 && !(mapBoundsFilterActive && list.length === 0)) ? 'flex' : 'none';
   // Upit == grad: mapa se prilagođava samo ordinacijama iz tog grada
   // (poklapanja po nazivu iz drugih gradova ostaju na mapi, ali ne određuju okvir).
   const fitPoints = queryAsCity()
     ? list.filter(c => cityRank(c) === 0 && hasVerifiedCoords(c)).map(c => [c.lat, c.lng])
     : points;
+
+  // "Pretraži dok pomeram mapu" bez ordinacija u vidljivom delu: mapa NE sme da nestane.
+  // Prikazuje se samo baner preko mape (sa dugmetom "Prikaži sve rezultate"); mapa ostaje
+  // interaktivna i sledeće pomeranje osvežava rezultate.
+  const mapEmptyBanner = document.getElementById('mapEmptyBanner');
+  const boundsEmpty = list.length === 0 && mapBoundsFilterActive && viewMode === 'map' && !!leafletMap;
+  if(mapEmptyBanner) mapEmptyBanner.style.display = boundsEmpty ? 'flex' : 'none';
+  if(boundsEmpty){
+    resultsGrid.innerHTML = '';
+    document.getElementById('mapListCol').innerHTML = '';
+    resultsGrid.style.display = 'none';
+    empty.style.display = 'none';
+    mapSplit.style.display = 'grid';
+    loadMoreWrap.style.display = 'none';
+    return;
+  }
 
   if(list.length === 0){
     resultsGrid.innerHTML = '';
@@ -430,7 +451,9 @@ function renderResults(opts){
       : mapBoundsFilterActive
         ? 'Nema ordinacija u ovom delu mape. Pomerite ili odzumirajte mapu.'
         : 'Pokušajte da promenite filtere ili pretragu.';
-    clearDistanceBtn.style.display = distanceIsCause ? 'inline-flex' : 'none';
+    // u listi (bez mape) filter "pomeram mapu" se gasi ovde; u ostalim slučajevima samo ograničenje udaljenosti
+    clearDistanceBtn.textContent = mapBoundsFilterActive ? 'Prikaži sve rezultate' : 'Prikaži sve, bez ograničenja udaljenosti';
+    clearDistanceBtn.style.display = (distanceIsCause || mapBoundsFilterActive) ? 'inline-flex' : 'none';
     return;
   }
   empty.style.display = 'none';
@@ -464,6 +487,12 @@ function renderResults(opts){
   }
 
   loadMoreWrap.style.display = list.length > visibleCount ? 'block' : 'none';
+}
+
+// "Prikaži sve rezultate": isključuje filter "Pretraži dok pomeram mapu" i vraća mapu na okvir svih rezultata.
+function showAllResults(){
+  cancelBoundsMode();
+  renderResults({fitMap:true});
 }
 
 function showAllIgnoringDistance(){

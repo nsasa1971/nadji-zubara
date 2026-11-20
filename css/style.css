@@ -646,6 +646,10 @@ svg{display:block;}
 .map-locate-btn:hover{color:var(--primary);}
 .map-locate-btn svg{width:20px;height:20px;}
 .map-wrap{position:relative;}
+/* Baner preko mape kad u vidljivom delu nema ordinacija (mapa ostaje interaktivna ispod njega) */
+.map-empty-banner{position:absolute;z-index:450;left:14px;right:72px;bottom:14px;background:#fff;border-radius:12px;
+  box-shadow:var(--shadow-lg);padding:12px 14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:14px;font-weight:600;color:var(--navy);}
+.map-empty-banner span{flex:1 1 220px;}
 .map-pin-popup{font-family:'Poppins',sans-serif;min-width:170px;}
 .map-pin-popup img{width:100%;height:80px;object-fit:cover;border-radius:8px;margin-bottom:8px;}
 .map-pin-popup h5{margin:0 0 4px;font-size:14px;color:var(--navy);}
@@ -695,6 +699,7 @@ svg{display:block;}
   .filters-backdrop.open{display:block;}
 
   .map-list-col{display:none;}
+  .map-empty-banner{left:14px;right:14px;bottom:86px;}  /* iznad plutajućeg dugmeta Lista/Mapa */
   .map-move-control{
     top:68px;left:auto;right:14px;bottom:auto;
     font-size:12px;padding:8px 12px;max-width:calc(100% - 28px);
