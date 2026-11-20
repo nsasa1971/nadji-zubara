@@ -334,6 +334,7 @@ function renderContactActionsCard(c){
   }
   const reportLink = document.getElementById('reportLink');
   document.getElementById('cardReportLink').href = reportLink ? reportLink.getAttribute('href') : 'kontakt.html?subject=netacan-podatak';
+  document.getElementById('claimLink').href = 'preuzmi.html?id=' + encodeURIComponent(c.id);
   card.style.display = BOOKING_ENABLED ? 'none' : '';
 }
 
