@@ -494,6 +494,8 @@ function initMap(){
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
     maxZoom:16
   }).addTo(leafletMap);
+  // Koordinate ordinacija potiču iz OpenStreetMap-a (zahtev licence ODbL).
+  leafletMap.attributionControl.addAttribution('&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   markersLayer = (typeof L.markerClusterGroup === 'function')
     ? L.markerClusterGroup({
         maxClusterRadius:50,
@@ -515,6 +517,17 @@ function initMap(){
 
 function buildMarkerIcon(c){
   const isFeatured = !!c.featured;
+
+  // Približna lokacija (geokodirana samo do ulice): drugačiji marker - isprekidan krug.
+  if(c.coordsPrecision === 'ulica'){
+    return L.divIcon({
+      className:'',
+      html:'<div class="map-marker-approx" title="Približna lokacija"></div>',
+      iconSize:[30,30],
+      iconAnchor:[15,15],
+      popupAnchor:[0,-16]
+    });
+  }
 
   if(!isFeatured){
     // Generička ordinacija — koristi standardnu ikonicu markera sajta.
@@ -554,6 +567,7 @@ function renderMapMarkers(list){
       <div class="map-pin-popup">
         <img src="${clinicImageUrl(c.images[0], 240, 130)}" alt="${c.name}">
         <h5>${c.name}</h5>
+        ${c.coordsPrecision === 'ulica' ? '<div class="map-pin-approx">Približna lokacija</div>' : ''}
         ${c.reviewCount > 0 ? starRow(c.rating) : ''}
         <div style="margin-top:8px;"><a href="ordinacija.html?id=${c.id}">Pogledaj detalje →</a></div>
       </div>

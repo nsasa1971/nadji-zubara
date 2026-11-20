@@ -1,0 +1,7 @@
+# Podaci za geokodiranje (keš sa odgovorima Nominatima) su u repou, ali se ne objavljuju na sajtu.
+# js/imported-coords.js ostaje javan (koristi ga pretraga). force = true jer fajlovi u data/ postoje.
+[[redirects]]
+  from = "/data/*"
+  to = "/404.html"
+  status = 404
+  force = true
