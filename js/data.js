@@ -188,10 +188,17 @@ function getImportedClinics(){
   if(!importedCoordsMerged){
     importedCoordsMerged = true;
     const coords = (typeof IMPORTED_COORDS !== 'undefined') ? IMPORTED_COORDS : {};
+    const importedServices = (typeof IMPORTED_SERVICES !== 'undefined') ? IMPORTED_SERVICES : {};
     list.forEach(c => {
-      // Usluge: uvezene ordinacije nemaju nijednu uslugu iz kataloga (stara vrednost "opsta" je
-      // bila samo podrazumevana i ne odgovara katalogu), pa se ne prikazuje.
-      c.services = knownServices(c.services);
+      // Usluge: uvezene ordinacije imaju usluge samo ako su izričito pomenute na njihovom sajtu
+      // (js/imported-services.js: id -> {s: [ključevi kategorija], izvor, datum}). Stara vrednost
+      // "opsta" iz uvoza je bila samo podrazumevana i ne koristi se.
+      // Bez ispravnog izvora (http/https) usluge se ne prikazuju: svaka mora imati link ka sajtu.
+      const sv = importedServices[c.id];
+      const hasSource = !!(sv && /^https?:\/\//.test(sv.izvor || ''));
+      c.services = hasSource ? knownServices(sv.s) : [];
+      c.servicesSource = c.services.length ? sv.izvor : null;
+      c.servicesDate = c.services.length ? (sv.datum || null) : null;
       const e = coords[c.id];
       if(e && Number.isFinite(e[0]) && Number.isFinite(e[1]) && (e[2] === 'kuca' || e[2] === 'ulica')){
         c.lat = e[0];

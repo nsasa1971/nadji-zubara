@@ -124,6 +124,18 @@ function renderClinic(c){
   const serviceKeys = knownServices(c.services);
   const servicesTab = document.querySelector('.tab-btn[data-tab="usluge"]');
   if(servicesTab) servicesTab.style.display = serviceKeys.length ? '' : 'none';
+  // Izvor usluga (sajt ordinacije), ako postoji: "Usluge prema sajtu ordinacije" + link
+  const srcNote = document.getElementById('servicesSourceNote');
+  if(srcNote){
+    if(serviceKeys.length && c.servicesSource){
+      const link = document.getElementById('servicesSourceLink');
+      link.href = c.servicesSource;
+      link.textContent = 'izvor: ' + c.servicesSource.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
+      srcNote.style.display = '';
+    } else {
+      srcNote.style.display = 'none';
+    }
+  }
   document.getElementById('servicesList').innerHTML = serviceKeys.map(slug => `
     <li>
       <span class="s-name"><span class="icon-wrap" style="background:var(--primary-light);color:var(--primary-dark);">${serviceIcon(slug)}</span> <a class="s-link" href="pretraga.html?service=${encodeURIComponent(slug)}" title="Sve ordinacije: ${serviceName(slug)}">${serviceName(slug)}</a></span>
