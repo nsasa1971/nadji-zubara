@@ -56,10 +56,15 @@ function renderHomepage(){
   const serviceSelect = document.querySelector('#heroSearchForm [name="service"]');
   if(serviceSelect){
     const serviceCounts = getServiceCounts();
+    // samo usluge koje imaju bar jednu ordinaciju (isto kao filter u pretrazi)
+    const availableServices = SERVICES.filter(s => serviceCounts[s.slug] > 0);
     serviceSelect.innerHTML = '<option value="">Sve usluge</option>' +
-      // samo usluge koje imaju bar jednu ordinaciju (isto kao filter u pretrazi)
-      SERVICES.filter(s => serviceCounts[s.slug] > 0)
-        .map(s=>`<option value="${s.slug}">${s.name} (${serviceCounts[s.slug].toLocaleString('sr-RS')})</option>`).join('');
+      availableServices.map(s=>`<option value="${s.slug}">${s.name} (${serviceCounts[s.slug].toLocaleString('sr-RS')})</option>`).join('');
+    // Polje "Usluga" se prikazuje tek kad postoji više od jedne usluge (sa jednom nema šta da se bira).
+    const serviceField = document.getElementById('heroServiceField');
+    const multipleServices = availableServices.length > 1;
+    if(serviceField) serviceField.style.display = multipleServices ? '' : 'none';
+    document.getElementById('heroSearchForm').classList.toggle('no-service', !multipleServices);
   }
 
   const allListings = getAllPublicListings();
@@ -75,6 +80,8 @@ function renderHomepage(){
   if(statOrdinacije){
     document.getElementById('statOrdinacije').textContent = allListings.length + '+';
     document.getElementById('statGradovi').textContent = allCityCount;
+    const heroCityCount = document.getElementById('heroCityCount');
+    if(heroCityCount) heroCityCount.textContent = allCityCount;
     // Recenzije i prosečna ocena se prikazuju samo ako postoje prave recenzije
     // (uvezene ordinacije ih nemaju), inače se ti blokovi sakrivaju.
     const reviewed = allListings.filter(c => c.reviewCount > 0);
@@ -85,6 +92,8 @@ function renderHomepage(){
       const avgRating = reviewed.reduce((a,c)=>a+c.rating*c.reviewCount,0) / totalReviews;
       statRecenzije.textContent = totalReviews.toLocaleString('sr-RS');
       statOcena.textContent = avgRating.toFixed(1);
+      statRecenzije.closest('.stat').style.display = '';
+      statOcena.closest('.stat').style.display = '';
     } else {
       statRecenzije.closest('.stat').style.display = 'none';
       statOcena.closest('.stat').style.display = 'none';

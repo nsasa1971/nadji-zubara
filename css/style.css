@@ -871,3 +871,6 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 
 /* Cenovnik sa jednim paketom: kartica u sredini */
 .pricing-grid.single{grid-template-columns:minmax(0,420px);justify-content:center;}
+
+/* Hero pretraga bez polja "Usluga" (dok postoji samo jedna usluga) */
+@media(min-width:961px){.search-card.no-service{grid-template-columns:1.2fr 1.4fr auto;}}

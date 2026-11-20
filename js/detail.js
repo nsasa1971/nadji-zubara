@@ -75,7 +75,7 @@ function renderClinic(c){
   }
 
   const callBtn = document.getElementById('callNowBtn');
-  if(c.phone){
+  if(isValidPhone(c.phone)){
     callBtn.href = 'tel:' + c.phone.replace(/\s/g,'');
     callBtn.style.display = '';
   } else {
@@ -87,8 +87,9 @@ function renderClinic(c){
   document.getElementById('websiteChip').style.display = (c.website && c.website !== '#') ? '' : 'none';
   document.getElementById('websiteLink').href = c.website;
   document.getElementById('websiteLink').textContent = c.website.replace(/^https?:\/\//,'');
-  document.getElementById('phoneLink').href = 'tel:' + c.phone.replace(/\s/g,'');
-  document.getElementById('phoneLink').textContent = c.phone || 'Nije dostupno';
+  const phoneOk = isValidPhone(c.phone);
+  document.getElementById('phoneLink').href = phoneOk ? 'tel:' + c.phone.replace(/\s/g,'') : '#';
+  document.getElementById('phoneLink').textContent = phoneOk ? c.phone : 'Nije dostupno';
 
   const emailLine = document.getElementById('emailLine');
   if(emailLine){
@@ -137,6 +138,11 @@ function renderReviews(c){
   const hasReviews = totalCount > 0;
 
   document.getElementById('tabReviewCount').textContent = totalCount;
+  // Recenzije se prikazuju samo ako postoje (bez prijave nema ni ostavljanja novih).
+  const reviewChip = document.getElementById('reviewChip');
+  const reviewTab = document.querySelector('.tab-btn[data-tab="recenzije"]');
+  if(reviewChip) reviewChip.style.display = hasReviews ? '' : 'none';
+  if(reviewTab) reviewTab.style.display = hasReviews ? '' : 'none';
   document.getElementById('reviewCountLine').textContent = hasReviews ? (totalCount + ' recenzija') : '';
   document.getElementById('reviewScoreBig').textContent = hasReviews ? effectiveRating(c, extra).toFixed(1) : '—';
   document.getElementById('reviewScoreStars').innerHTML = hasReviews ? starRow(effectiveRating(c, extra)) : '';
@@ -322,9 +328,31 @@ function bindReviewForm(c){
 
 /* ---------- Online zakazivanje termina (Premium) ---------- */
 
+// Online zakazivanje je isključeno dok ne postoje prava prijava i slanje zahteva ordinaciji.
+// Umesto kartice za zakazivanje prikazuje se kartica sa dugmetom "Pozovi" i linkom za prijavu
+// netačnog podatka. Kad se omogući zakazivanje, ovde postaviti true.
+const BOOKING_ENABLED = false;
+
+// Kartica "Pozovite ordinaciju": dugme "Pozovi" samo za važeći telefon + link "Prijavi netačan podatak".
+function renderContactActionsCard(c){
+  const card = document.getElementById('contactActionsCard');
+  if(!card) return;
+  const callBtn = document.getElementById('cardCallBtn');
+  if(isValidPhone(c.phone)){
+    callBtn.href = 'tel:' + c.phone.replace(/\s/g,'');
+    callBtn.style.display = '';
+  } else {
+    callBtn.style.display = 'none';
+  }
+  const reportLink = document.getElementById('reportLink');
+  document.getElementById('cardReportLink').href = reportLink ? reportLink.getAttribute('href') : 'kontakt.html?subject=netacan-podatak';
+  card.style.display = BOOKING_ENABLED ? 'none' : '';
+}
+
 function renderBookingCard(c){
   const card = document.getElementById('bookingCard');
-  if(!c.featured){
+  renderContactActionsCard(c);
+  if(!BOOKING_ENABLED || !c.featured){
     card.style.display = 'none';
     return;
   }
@@ -402,6 +430,7 @@ function renderTimeSlotsForDate(c, dateStr){
 }
 
 function bindBookingForm(c){
+  if(!BOOKING_ENABLED) return;
   const form = document.getElementById('bookingForm');
   form.addEventListener('submit', (e) => {
     e.preventDefault();
