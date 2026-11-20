@@ -280,7 +280,7 @@ svg{display:block;}
 @media(max-width:520px){.services-grid{grid-template-columns:1fr;}}
 
 /* ---------- Clinic cards ---------- */
-.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;}
+.cards-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
 .cards-grid.cols-2{grid-template-columns:repeat(2,1fr);}
 @media(max-width:960px){.cards-grid,.cards-grid.cols-2{grid-template-columns:repeat(2,1fr);}}
 @media(max-width:680px){.cards-grid,.cards-grid.cols-2{grid-template-columns:1fr;}}
@@ -290,12 +290,12 @@ svg{display:block;}
   transition:.2s;display:flex;flex-direction:column;
 }
 .clinic-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-4px);border-color:transparent;}
-.clinic-card .thumb{position:relative;height:190px;background:var(--primary-light);}
+.clinic-card .thumb{position:relative;height:110px;background:var(--primary-light);}
 .clinic-card .thumb img{width:100%;height:100%;object-fit:cover;border-radius:var(--radius) var(--radius) 0 0;}
-.thumb .badges-top{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;}
+.thumb .badges-top{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;align-items:flex-start;}
 .chip{
   display:inline-flex;align-items:center;gap:5px;background:rgba(11,37,69,.72);color:#fff;
-  font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:999px;backdrop-filter:blur(3px);
+  font-size:11px;font-weight:600;padding:3px 8px;border-radius:999px;backdrop-filter:blur(3px);
 }
 .chip.chip-score{background:var(--primary);}
 .chip.chip-open{background:var(--open);}
@@ -304,33 +304,34 @@ svg{display:block;}
 .chip.chip-premium svg{width:11px;height:11px;}
 .chip-group{display:flex;gap:6px;flex-wrap:wrap;}
 .fav-btn{
-  width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.92);
+  width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.92);
   display:flex;align-items:center;justify-content:center;color:var(--navy);flex-shrink:0;
 }
-.fav-btn svg{width:16px;height:16px;}
+.fav-btn svg{width:15px;height:15px;}
 .fav-btn.active{color:var(--accent);}
 .clinic-card .avatar{
-  width:56px;height:56px;border-radius:14px;border:3px solid #fff;box-shadow:var(--shadow-sm);
-  position:absolute;left:16px;bottom:-28px;display:flex;align-items:center;justify-content:center;
-  font-weight:700;color:#fff;font-size:18px;
+  width:44px;height:44px;border-radius:12px;border:3px solid #fff;box-shadow:var(--shadow-sm);
+  position:absolute;left:12px;bottom:-22px;display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:#fff;font-size:15px;
 }
-.clinic-card .body{padding:38px 18px 18px;flex:1;display:flex;flex-direction:column;}
+.clinic-card .body{padding:28px 14px 14px;flex:1;display:flex;flex-direction:column;}
 .clinic-card .name-row{display:flex;align-items:center;gap:6px;margin-bottom:2px;flex-wrap:wrap;}
-.clinic-card .name-row h3{font-size:17px;margin:0;}
+.clinic-card .name-row h3{font-size:15.5px;line-height:1.3;margin:0;}
 .clinic-card .name-row svg{width:16px;height:16px;color:var(--primary);flex-shrink:0;}
-.clinic-card .muted-line{color:var(--muted);font-size:13.5px;margin-bottom:10px;}
+.clinic-card .muted-line{color:var(--muted);font-size:13px;margin-bottom:6px;}
 .stars{display:inline-flex;align-items:center;gap:3px;color:var(--star);}
 .stars svg{width:14px;height:14px;}
 .stars .num{color:var(--text);font-weight:600;font-size:13px;margin-left:4px;}
-.clinic-card .meta-row{display:flex;align-items:center;justify-content:space-between;margin:10px 0 0;font-size:13px;color:var(--muted);}
+.clinic-card .meta-row{display:flex;align-items:center;justify-content:space-between;margin:6px 0 0;font-size:13px;color:var(--muted);}
 .reveal-info{max-height:0;opacity:0;overflow:hidden;transition:max-height .28s ease, opacity .22s ease, margin .28s ease;}
 .clinic-card:hover .reveal-info{max-height:80px;opacity:1;margin:12px 0 4px;}
 .reveal-info .reveal-row{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text);margin-bottom:6px;}
 .reveal-info .reveal-row svg{width:14px;height:14px;color:var(--primary);flex-shrink:0;}
-.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 16px;}
+.tag-row{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px;}
 .tag{background:var(--bg);border:1px solid var(--border);color:var(--muted);font-size:11.5px;font-weight:500;padding:4px 10px;border-radius:999px;}
-.clinic-card .actions{margin-top:auto;display:flex;gap:8px;}
-.clinic-card .actions .btn{flex:1;}
+.clinic-card .actions{margin-top:auto;display:flex;gap:6px;padding-top:6px;}
+.clinic-card .actions .btn{flex:1 1 0;min-width:0;padding:8px 10px;font-size:13px;gap:5px;white-space:nowrap;}
+.clinic-card .actions .btn svg{width:15px;height:15px;flex:none;}
 
 /* ---------- City cards ---------- */
 .city-card{
@@ -625,7 +626,7 @@ svg{display:block;}
 .location-banner button{flex-shrink:0;}
 
 .map-split{display:grid;grid-template-columns:460px 1fr;gap:20px;align-items:start;}
-.map-list-col{display:flex;flex-direction:column;gap:20px;max-height:calc(100vh - 170px);overflow-y:auto;padding:2px 8px 2px 2px;}
+.map-list-col{display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 170px);overflow-y:auto;padding:2px 8px 2px 2px;}
 .map-list-col .clinic-card.highlight{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light);}
 .distance-chip{color:var(--primary-dark);font-weight:700;}
 
@@ -667,6 +668,11 @@ svg{display:block;}
   box-shadow:0 0 0 4px rgba(100,116,139,.12);
 }
 
+/* Od ~1200 px: lista u dve kolone, mapa oko 45% širine (ispod toga lista je u jednoj koloni) */
+@media(min-width:1200px){
+  .map-split{grid-template-columns:minmax(0,55fr) minmax(0,45fr);}
+  .map-list-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-content:start;}
+}
 @media(max-width:1100px){
   .map-split{grid-template-columns:1fr;}
   .map-list-col{max-height:none;overflow:visible;}
@@ -880,17 +886,6 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 /* Hero pretraga bez polja "Usluga" (dok postoji samo jedna usluga) */
 @media(min-width:961px){.search-card.no-service{grid-template-columns:1.2fr 1.4fr auto;}}
 
-/* Bez stock fotografija i izmišljenih inicijala: neutralno polje sa ikonom zuba */
-.clinic-card .thumb-neutral{height:112px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,var(--primary-light),#F4FAFA);border-radius:var(--radius) var(--radius) 0 0;}
-.clinic-card .thumb-neutral .thumb-link{display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:var(--primary);opacity:.5;}
-.clinic-card .thumb-neutral .thumb-link svg{width:44px;height:44px;}
-.clinic-card .thumb-neutral + .body{padding-top:18px;}
-.detail-cover.detail-cover-neutral{height:132px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(135deg,var(--primary-light),#F4FAFA);}
-.detail-cover.detail-cover-neutral::after{display:none;}
-.detail-cover.detail-cover-neutral svg{width:56px;height:56px;color:var(--primary);opacity:.5;}
-.detail-header-inner{padding-top:22px;}
 
 /* Edukativne stranice o uslugama */
 .seo-page .edu h2{font-size:20px;margin:22px 0 8px;}

@@ -39,8 +39,8 @@ function renderClinicCard(c, opts){
   const distance = !hasVerifiedCoords(c) ? null : (typeof c._distance === 'number') ? c._distance : (typeof opts.distanceKm === 'number' ? opts.distanceKm : null);
   return `
   <article class="clinic-card" data-id="${c.id}">
-    <div class="thumb thumb-neutral">
-      <a class="thumb-link" href="ordinacija.html?id=${c.id}" aria-label="${c.name}">${ICONS.tooth}</a>
+    <div class="thumb">
+      <a href="ordinacija.html?id=${c.id}"><img src="${clinicImageUrl(c.images[0], 500, 380)}" alt="${c.name}" loading="lazy"></a>
       <div class="badges-top">
         <div class="chip-group">
           ${c.featured ? `<span class="chip chip-premium">${ICONS.sparkle} Premium</span>` : ''}
@@ -52,6 +52,7 @@ function renderClinicCard(c, opts){
           ${isFav?ICONS.heartFilled:ICONS.heart}
         </button>
       </div>
+      <div class="avatar" style="background:${c.logoColor}">${c.logoImage ? `<img src="${c.logoImage}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : c.logoInitials}</div>
     </div>
     <div class="body">
       <div class="name-row">
