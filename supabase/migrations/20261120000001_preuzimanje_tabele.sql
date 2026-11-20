@@ -1,5 +1,5 @@
 -- Preuzimanje profila ordinacija: tabele i pomoćne funkcije.
--- NIJE primenjeno. Primenjuje se ručno (SQL editor ili `supabase db push`).
+-- Primenjeno na Supabase projekat nadji-zubara (20. 11. 2026). Primenjuje se ručno (SQL editor ili `supabase db push`).
 -- clinic_id je tekstualni id iz js/imported-clinics.js (npr. 'imp-stomatoloska-...'),
 -- jer ordinacije ne žive u bazi.
 
@@ -144,7 +144,9 @@ create trigger clinic_images_audit    after insert or update or delete on public
 
 -- updated_at
 create or replace function public.touch_updated_at()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql
+set search_path = public
+as $$
 begin new.updated_at = now(); return new; end;
 $$;
 create trigger profile_overrides_touch before update on public.profile_overrides

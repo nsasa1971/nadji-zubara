@@ -1,4 +1,4 @@
--- Row Level Security. NIJE primenjeno.
+-- Row Level Security. Primenjeno na Supabase projekat nadji-zubara (20. 11. 2026).
 -- Princip: klijent (anon/authenticated) vidi i menja samo svoje, a profil i
 -- izmene samo dok mu je zahtev 'verified'. ODOBRAVANJE (status -> verified,
 -- approved, ...) radi isključivo administrator iz SQL editora / service role

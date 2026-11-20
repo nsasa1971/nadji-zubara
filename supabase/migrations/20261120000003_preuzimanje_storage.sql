@@ -1,4 +1,4 @@
--- Storage bucket za slike ordinacija. NIJE primenjeno.
+-- Storage bucket za slike ordinacija. Primenjeno na Supabase projekat nadji-zubara (20. 11. 2026).
 -- Putanja objekta: '<clinic_id>/<naziv-fajla>'. Bucket je PRIVATAN: neodobrene
 -- slike nisu javne. Odobrene slike se služe preko potpisanih URL-ova ili se
 -- kasnije premeštaju u javni bucket (odluka za kasniji korak).
