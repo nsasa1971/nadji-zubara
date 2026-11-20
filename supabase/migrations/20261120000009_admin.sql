@@ -1,5 +1,5 @@
 -- Administratorska stranica: admin_users, is_admin(), admin RPC funkcije, storage politike,
--- claims.admin_note. NIJE primenjeno. Pokreće se posle migracija 1-8.
+-- claims.admin_note. Primenjeno 20. 11. 2026. Pokreće se posle migracija 1-8.
 --
 -- Posle primene upiši sebe RUČNO u SQL editoru (adresa ide samo tamo, nikad u repo):
 --   insert into public.admin_users (user_id) select id from auth.users where email = '<tvoja e-adresa>';
