@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
   populateSelects();
   populateServiceCheckboxes();
   applyLocationAvailability();
+  applyDataAvailability();
   readFiltersFromUrl();
   bindEvents();
   syncFiltersFromDom();
@@ -88,6 +89,18 @@ function applyLocationAvailability(){
   const opt = document.querySelector('#sortSelect option[value="distance"]');
   if(opt) opt.remove();
   if(currentFilters.sort === 'distance') currentFilters.sort = 'recommended';
+}
+
+// Filteri i sortiranja po oceni, recenzijama i ceni se prikazuju samo ako takvi podaci postoje
+// (uvezene ordinacije nemaju ocene ni cene); kad se pojave, kontrole se vraćaju same.
+function applyDataAvailability(){
+  const all = getAllPublicListings();
+  const hasRatings = all.some(c => c.reviewCount > 0);
+  const hasPrices = all.some(c => c.priceRange);
+  const hideGroup = sel => { const g = document.querySelector(sel)?.closest('.filter-group'); if(g) g.style.display = 'none'; };
+  const dropSort = vals => vals.forEach(v => document.querySelector(`#sortSelect option[value="${v}"]`)?.remove());
+  if(!hasRatings){ hideGroup('#ratingToggle'); dropSort(['rating', 'reviews']); }
+  if(!hasPrices){ hideGroup('#priceToggle'); dropSort(['price-asc', 'price-desc']); }
 }
 
 function populateSelects(){

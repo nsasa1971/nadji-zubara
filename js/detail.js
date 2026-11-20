@@ -137,6 +137,11 @@ function renderReviews(c){
   const hasReviews = totalCount > 0;
 
   document.getElementById('tabReviewCount').textContent = totalCount;
+  // Recenzije se prikazuju samo ako postoje (bez prijave nema ni ostavljanja novih).
+  const reviewChip = document.getElementById('reviewChip');
+  const reviewTab = document.querySelector('.tab-btn[data-tab="recenzije"]');
+  if(reviewChip) reviewChip.style.display = hasReviews ? '' : 'none';
+  if(reviewTab) reviewTab.style.display = hasReviews ? '' : 'none';
   document.getElementById('reviewCountLine').textContent = hasReviews ? (totalCount + ' recenzija') : '';
   document.getElementById('reviewScoreBig').textContent = hasReviews ? effectiveRating(c, extra).toFixed(1) : '—';
   document.getElementById('reviewScoreStars').innerHTML = hasReviews ? starRow(effectiveRating(c, extra)) : '';

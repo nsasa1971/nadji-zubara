@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nađi Zubara — Pronađite najbolju zubarsku ordinaciju u vašem gradu</title>
-<meta name="description" content="Pretražite zubarske ordinacije širom Srbije — u preko 100 gradova i opština. Uporedite usluge, cene i recenzije pacijenata.">
+<title>Nađi Zubara — Pronađite zubara u vašem gradu</title>
+<meta name="description" content="Adrese i kontakt telefoni stomatoloških ordinacija u 127 gradova Srbije, na jednom mestu.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230EA5A3'/%3E%3Cpath d='M12 5c-1.8 0-2.6.9-3.6.9-1.1 0-2.2-.9-3.1.1-1 1-.4 3 .1 4.9.4 1.7.7 4 1.5 6.1.3 1 .8 1.6 1.6 1.6 1.1 0 1-2.2 1.6-4.3.3-1 .6-1.7 1.4-1.7s1.1.7 1.4 1.7c.6 2.1.5 4.3 1.6 4.3.8 0 1.3-.6 1.6-1.6.7-2.1 1-4.4 1.5-6.1.5-1.9 1.1-3.9.1-4.9-.9-1-2 0-3.1-.1-1-.9-1.8-.9-2-.9Z' fill='white'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,11 +38,11 @@
 
 <section class="hero">
   <div class="container hero-inner">
-    <span class="hero-badge"><span data-icon="sparkle" style="width:16px;height:16px;display:inline-flex"></span> <span id="heroBadgeText">Najveći imenik zubarskih ordinacija u Srbiji</span></span>
-    <h1>Pronađite najboljeg zubara u vašem gradu</h1>
-    <p class="lead">Uporedite ordinacije po oceni, ceni i uslugama — od redovnog pregleda do implantologije i estetske stomatologije.</p>
+    <span class="hero-badge"><span data-icon="sparkle" style="width:16px;height:16px;display:inline-flex"></span> <span id="heroBadgeText">Imenik zubarskih ordinacija u Srbiji</span></span>
+    <h1>Pronađite zubara u vašem gradu</h1>
+    <p class="lead">Adrese i kontakt telefoni stomatoloških ordinacija u <span id="heroCityCount">127</span> gradova Srbije, na jednom mestu.</p>
 
-    <form class="search-card" id="heroSearchForm">
+    <form class="search-card no-service" id="heroSearchForm">
       <div class="field">
         <label>Grad</label>
         <div class="control">
@@ -50,7 +50,7 @@
           <select name="city"><option value="">Svi gradovi</option></select>
         </div>
       </div>
-      <div class="field">
+      <div class="field" id="heroServiceField" style="display:none;">
         <label>Usluga</label>
         <div class="control">
           <span data-icon="tooth"></span>
@@ -85,13 +85,13 @@
   </div>
 </section>
 
-<section class="section bg-white">
+<section class="section bg-white" style="display:none;">
   <div class="container">
     <div class="section-head">
       <div>
         <span class="eyebrow">Preporuka</span>
         <h2>Izdvojene ordinacije</h2>
-        <p>Najbolje ocenjene ordinacije koje su odabrali naši korisnici.</p>
+        <p>Izabrane ordinacije.</p>
       </div>
       <a href="pretraga.html" class="btn btn-outline-navy">Pogledaj sve ordinacije</a>
     </div>
@@ -104,8 +104,8 @@
     <div class="stats-strip">
       <div class="stat"><b id="statOrdinacije">—</b><span>Ordinacija</span></div>
       <div class="stat"><b id="statGradovi">—</b><span>Gradova</span></div>
-      <div class="stat"><b id="statRecenzije">—</b><span>Recenzija pacijenata</span></div>
-      <div class="stat"><b id="statOcena">—</b><span>Prosečna ocena</span></div>
+      <div class="stat" style="display:none;"><b id="statRecenzije">—</b><span>Recenzija pacijenata</span></div>
+      <div class="stat" style="display:none;"><b id="statOcena">—</b><span>Prosečna ocena</span></div>
     </div>
   </div>
 </section>
@@ -124,13 +124,13 @@
       </div>
       <div class="step">
         <div class="num">2</div>
-        <h4>Uporedite</h4>
-        <p>Pogledajte ocene, cene, radno vreme i recenzije pravih pacijenata.</p>
+        <h4>Pogledajte</h4>
+        <p>Pogledajte adresu i kontakt telefon ordinacije u vašem gradu.</p>
       </div>
       <div class="step">
         <div class="num">3</div>
         <h4>Zakažite pregled</h4>
-        <p>Pozovite ordinaciju direktno ili posetite njihov sajt da zakažete termin.</p>
+        <p>Pozovite ordinaciju direktno da zakažete termin.</p>
       </div>
     </div>
   </div>
@@ -139,7 +139,7 @@
 <section class="section bg-navy">
   <div class="container quote-block">
     <span data-icon="quote"></span>
-    <p>Zdrav osmeh počinje sa poverenjem — poverenjem u ordinaciju koju birate. Naš cilj je da to poverenje izgradimo kroz transparentne recenzije i proverene informacije.</p>
+    <p>Zdrav osmeh počinje sa poverenjem — poverenjem u ordinaciju koju birate. Naš cilj je da pomognemo da lakše pronađete ordinaciju — kroz tačne i proverljive informacije.</p>
     <span>Tim Nađi Zubara</span>
   </div>
 </section>
