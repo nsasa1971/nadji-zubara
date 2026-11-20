@@ -58,7 +58,7 @@
         <div class="detail-title-block">
           <div class="name-row">
             <h1 id="clinicName"></h1>
-            <span class="verified-badge" id="verifiedBadge" title="Verifikovana ordinacija" style="display:none;" data-icon="checkCircle"></span>
+            <span class="badge-verified-inline" id="verifiedBadge" title="Preuzet profil" style="display:none;"><span data-icon="checkCircle"></span> Preuzet profil</span>
           </div>
           <p class="muted-line" id="clinicShort"></p>
           <div style="display:flex;align-items:center;gap:14px;margin-top:6px;flex-wrap:wrap;">
@@ -103,6 +103,16 @@
               <p id="clinicDescription"></p>
               <p style="margin-top:14px;font-size:14px;"><a href="kontakt.html" id="reportLink" class="link-reset">Prijavi netačan podatak</a> ili <a href="kontakt.html" id="removeLink" class="link-reset">ukloni profil</a></p>
             </div>
+
+          <div class="info-card" id="teamCard" style="display:none;">
+            <h3>Tim</h3>
+            <ul class="services-list" id="teamList"></ul>
+          </div>
+
+          <div class="info-card" id="photosCard" style="display:none;">
+            <h3>Fotografije</h3>
+            <div class="owner-thumbs" id="photosGrid"></div>
+          </div>
           </div>
 
           <div class="tab-panel" id="tab-recenzije">
@@ -224,7 +234,9 @@
           <div class="info-card">
             <h3><span data-icon="phone"></span> Kontakt</h3>
             <p style="margin-bottom:6px;"><a id="phoneLink" href="#"></a></p>
-            <p style="margin:0;"><a id="websiteLink" href="#" target="_blank" rel="noopener"></a></p>
+            <div id="morePhones"></div>
+            <p style="margin:0;"><a id="websiteLink" href="#" target="_blank" rel="noopener nofollow"></a></p>
+            <p id="socialsLine" style="margin:6px 0 0;display:none;"></p>
           </div>
         </div>
       </div>
@@ -310,6 +322,10 @@
 <script src="js/data.js"></script>
 <script src="js/imported-clinics.js"></script>
 <script src="js/imported-coords.js"></script>
+<script src="js/safe.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/profile-common.js"></script>
+<script src="js/profile-overrides.js"></script>
 <script src="js/cards.js"></script>
 <script src="js/main.js"></script>
 <script src="js/detail.js"></script>

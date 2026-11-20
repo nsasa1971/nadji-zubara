@@ -3,7 +3,7 @@
   const app = document.getElementById('accountApp');
   if(!app) return;
   const STATUS = {
-    pending:{label:'Na čekanju', cls:'chip-closed'},
+    pending:{label:'Na čekanju', cls:'chip-pending'},
     verified:{label:'Verifikovano', cls:'chip-open'},
     rejected:{label:'Odbijeno', cls:'chip-closed'},
     revoked:{label:'Pristup ukinut', cls:'chip-closed'}

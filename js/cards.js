@@ -31,7 +31,7 @@ function scoreFromRating(rating){
 function renderClinicCard(c, opts){
   opts = opts || {};
   const hoursKnown = !c.hoursUnknown;
-  const open = hoursKnown ? isOpenNow(c.hours) : null;
+  const open = hoursKnown ? openNowState(c.hours) : null;
   const hasReviews = c.reviewCount > 0;
   const favs = getFavorites();
   const isFav = favs.includes(c.id);
@@ -40,7 +40,7 @@ function renderClinicCard(c, opts){
   return `
   <article class="clinic-card" data-id="${c.id}">
     <div class="thumb">
-      <a href="ordinacija.html?id=${c.id}"><img src="${clinicImageUrl(c.images[0], 500, 380)}" alt="${c.name}" loading="lazy"></a>
+      <a href="ordinacija.html?id=${c.id}"><img src="${clinicImageUrl(c.images[0], 500, 380)}" alt="${esc(c.name)}" data-cover-id="${esc(c.id)}" loading="lazy"></a>
       <div class="badges-top">
         <div class="chip-group">
           ${c.featured ? `<span class="chip chip-premium">${ICONS.sparkle} Premium</span>` : ''}
@@ -56,17 +56,17 @@ function renderClinicCard(c, opts){
     </div>
     <div class="body">
       <div class="name-row">
-        <h3><a href="ordinacija.html?id=${c.id}">${c.name}</a></h3>
-        ${c.verified ? `<span title="Verifikovana ordinacija">${ICONS.checkCircle}</span>` : ''}
+        <h3><a href="ordinacija.html?id=${c.id}">${esc(c.name)}</a></h3>
+        ${c.verified ? `<span class="badge-verified-inline" title="Preuzet profil">${ICONS.checkCircle} Preuzet profil</span>` : ''}
         ${c.featured ? `<span class="premium-badge-inline" title="Premium ordinacija">${ICONS.sparkle} Premium</span>` : ''}
       </div>
-      <p class="muted-line">${c.address}</p>
+      <p class="muted-line">${esc(c.address)}</p>
       <div class="meta-row">
         ${hasReviews ? starRow(c.rating) : `<span style="color:var(--muted);font-size:13px;">Nema recenzija još</span>`}
         ${hasReviews ? `<span>${c.reviewCount} recenzija${distance!=null ? ` <span class="distance-chip">• ${formatDistance(c, distance)}</span>` : ''}</span>` : (distance!=null ? `<span class="distance-chip">${formatDistance(c, distance)}</span>` : '')}
       </div>
       <div class="reveal-info">
-        ${isValidPhone(c.phone) ? `<div class="reveal-row">${ICONS.phone} ${c.phone}</div>` : ''}
+        ${isValidPhone(c.phone) ? `<div class="reveal-row">${ICONS.phone} ${esc(c.phone)}</div>` : ''}
       </div>
       ${mainService ? `<div class="tag-row">
         <a class="tag tag-link" href="pretraga.html?service=${encodeURIComponent(SERVICE_INDEX[mainService].category)}" title="Sve ordinacije: ${serviceName(SERVICE_INDEX[mainService].category)}">${serviceName(SERVICE_INDEX[mainService].category)}</a>
@@ -83,6 +83,7 @@ function renderClinicCard(c, opts){
 }
 
 function bindFavoriteButtons(root=document){
+  if(typeof hydrateCovers === 'function') hydrateCovers(root);   // odobrene slike vlasnika (potpisani URL-ovi)
   root.querySelectorAll('[data-fav]').forEach(btn=>{
     btn.addEventListener('click', (e)=>{
       e.preventDefault();

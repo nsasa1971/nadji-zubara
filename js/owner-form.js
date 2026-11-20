@@ -12,7 +12,7 @@
   const DAYS = [['mon','Ponedeljak'],['tue','Utorak'],['wed','Sreda'],['thu','Četvrtak'],['fri','Petak'],['sat','Subota'],['sun','Nedelja']];
   const SOCIALS = [['facebook','Facebook'],['instagram','Instagram'],['linkedin','LinkedIn'],['tiktok','TikTok'],['youtube','YouTube']];
   const FIELD_LABEL = {name:'Naziv', address:'Adresa', team:'Tim', images:'Slike'};
-  const STATUS_LABEL = {pending:['Čeka odobrenje','chip-closed'], approved:['Odobreno','chip-open'], rejected:['Odbijeno','chip-closed']};
+  const STATUS_LABEL = {pending:['Čeka odobrenje','chip-pending'], approved:['Odobreno','chip-open'], rejected:['Odbijeno','chip-closed']};
   const IMG_TYPES = {'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp'};
 
   const ERRORS = {
