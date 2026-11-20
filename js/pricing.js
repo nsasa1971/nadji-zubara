@@ -20,7 +20,7 @@ function renderPricingGrid(){
       <h3>${plan.name}</h3>
       <p class="plan-desc">${plan.desc}</p>
       <ul>${plan.features.map(f => `<li>${ICONS.check} ${f}</li>`).join('')}</ul>
-      <span class="btn btn-outline-navy btn-block is-soon" aria-disabled="true">Preuzimanje profila · uskoro</span>
+      <span class="btn btn-outline-navy btn-block is-soon" aria-disabled="true">Uskoro dostupno</span>
     </div>
   `).join('');
 }
