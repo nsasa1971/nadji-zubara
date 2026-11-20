@@ -36,13 +36,6 @@ function renderClinic(c){
   document.title = c.name + ' — Nađi Zubara';
   document.getElementById('pageTitle').textContent = c.name + ' — Nađi Zubara';
 
-  document.getElementById('coverImg').src = clinicImageUrl(c.images[0], 1600, 500);
-  document.getElementById('coverImg').alt = c.name;
-
-  const avatarBox = document.getElementById('avatarBox');
-  avatarBox.textContent = c.logoInitials;
-  avatarBox.style.background = c.logoColor;
-
   document.getElementById('clinicName').textContent = c.name;
   document.getElementById('verifiedBadge').style.display = c.verified ? 'inline-flex' : 'none';
   document.getElementById('clinicShort').innerHTML =
@@ -103,10 +96,6 @@ function renderClinic(c){
   }
 
   document.getElementById('clinicDescription').textContent = c.description;
-
-  document.getElementById('galleryGrid').innerHTML = c.images.map(img =>
-    `<img src="${clinicImageUrl(img, 320, 220)}" alt="${c.name}" loading="lazy">`
-  ).join('');
 
   // Radno vreme
   const order = ['mon','tue','wed','thu','fri','sat','sun'];

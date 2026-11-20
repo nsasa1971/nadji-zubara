@@ -39,8 +39,8 @@ function renderClinicCard(c, opts){
   const distance = !hasVerifiedCoords(c) ? null : (typeof c._distance === 'number') ? c._distance : (typeof opts.distanceKm === 'number' ? opts.distanceKm : null);
   return `
   <article class="clinic-card" data-id="${c.id}">
-    <div class="thumb">
-      <a href="ordinacija.html?id=${c.id}"><img src="${clinicImageUrl(c.images[0], 500, 380)}" alt="${c.name}" loading="lazy"></a>
+    <div class="thumb thumb-neutral">
+      <a class="thumb-link" href="ordinacija.html?id=${c.id}" aria-label="${c.name}">${ICONS.tooth}</a>
       <div class="badges-top">
         <div class="chip-group">
           ${c.featured ? `<span class="chip chip-premium">${ICONS.sparkle} Premium</span>` : ''}
@@ -52,7 +52,6 @@ function renderClinicCard(c, opts){
           ${isFav?ICONS.heartFilled:ICONS.heart}
         </button>
       </div>
-      <div class="avatar" style="background:${c.logoColor}">${c.logoImage ? `<img src="${c.logoImage}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : c.logoInitials}</div>
     </div>
     <div class="body">
       <div class="name-row">
@@ -60,14 +59,13 @@ function renderClinicCard(c, opts){
         ${c.verified ? `<span title="Verifikovana ordinacija">${ICONS.checkCircle}</span>` : ''}
         ${c.featured ? `<span class="premium-badge-inline" title="Premium ordinacija">${ICONS.sparkle} Premium</span>` : ''}
       </div>
-      <p class="muted-line">${c.short}</p>
+      <p class="muted-line">${c.address}</p>
       <div class="meta-row">
         ${hasReviews ? starRow(c.rating) : `<span style="color:var(--muted);font-size:13px;">Nema recenzija još</span>`}
         ${hasReviews ? `<span>${c.reviewCount} recenzija${distance!=null ? ` <span class="distance-chip">• ${formatDistance(c, distance)}</span>` : ''}</span>` : (distance!=null ? `<span class="distance-chip">${formatDistance(c, distance)}</span>` : '')}
       </div>
       <div class="reveal-info">
         ${isValidPhone(c.phone) ? `<div class="reveal-row">${ICONS.phone} ${c.phone}</div>` : ''}
-        <div class="reveal-row">${ICONS.location} ${c.address}</div>
       </div>
       <div class="tag-row">
         <a class="tag tag-link" href="pretraga.html?service=${encodeURIComponent(mainService)}" title="Sve ordinacije: ${serviceName(mainService)}">${serviceName(mainService)}</a>
