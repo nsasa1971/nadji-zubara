@@ -15,6 +15,8 @@ let sortAutoSetByLocation = false;
 let searchAsMoveMap = false;
 let mapBoundsFilterActive = false;
 let currentMapBounds = null;
+// Upit i grad pre uključivanja "Pretraži dok pomeram mapu" (vraćaju se kad se filter isključi).
+let savedBeforeBounds = null;
 
 let leafletMap = null;
 let markersLayer = null;
@@ -187,6 +189,7 @@ function bindEvents(){
   document.getElementById('resetFilters').addEventListener('click', (e)=>{
     e.preventDefault();
     resetLocationMode();
+    cancelBoundsMode();   // "Resetuj" gasi i režim "pomeram mapu" (bez vraćanja starih vrednosti)
     document.getElementById('queryInput').value = '';
     document.getElementById('cityInput').value = '';
     document.getElementById('serviceInput').value = '';
@@ -213,15 +216,10 @@ function bindEvents(){
   });
 
   document.getElementById('searchAsMoveCheckbox').addEventListener('change', (e)=>{
-    searchAsMoveMap = e.target.checked;
-    if(!searchAsMoveMap){
-      mapBoundsFilterActive = false;
-      currentMapBounds = null;
-      renderResults({fitMap:true});
-    } else if(leafletMap){
-      mapBoundsFilterActive = true;
-      currentMapBounds = leafletMap.getBounds();
-      renderResults({fitMap:false});
+    if(e.target.checked){
+      if(leafletMap) enterBoundsMode(); else e.target.checked = false;
+    } else {
+      exitBoundsMode();
     }
   });
 
@@ -276,7 +274,43 @@ function syncFiltersFromDom(){
   currentFilters.selectedServices = getSelectedServices();
 }
 
+// Režim "Pretraži dok pomeram mapu": rezultate određuje samo vidljivi deo mape, uz ostale filtere
+// (usluga i sl.). Filter grada i tekstualni upit se tada ne primenjuju (inače bi pomeranje mape van
+// izabranog grada uvek dalo 0), pa se polja grada i upita prazne, a prethodne vrednosti se pamte.
+function enterBoundsMode(){
+  if(mapBoundsFilterActive) return;
+  const cityInput = document.getElementById('cityInput');
+  const queryInput = document.getElementById('queryInput');
+  savedBeforeBounds = {city: cityInput.value, q: queryInput.value};
+  cityInput.value = '';
+  queryInput.value = '';
+  currentFilters.city = '';
+  currentFilters.q = '';
+  searchAsMoveMap = true;
+  mapBoundsFilterActive = true;
+  currentMapBounds = leafletMap.getBounds();
+  document.getElementById('searchAsMoveCheckbox').checked = true;
+  renderResults({fitMap:false});
+}
+
+// Isključivanje filtera (kvačica ili "Prikaži sve rezultate"): vraćaju se prethodni grad i upit,
+// a mapa se vraća na okvir tih rezultata.
+function exitBoundsMode(){
+  const saved = savedBeforeBounds;
+  cancelBoundsMode();
+  if(saved){
+    document.getElementById('cityInput').value = saved.city;
+    document.getElementById('queryInput').value = saved.q;
+    syncFiltersFromDom();
+    updateUrl();
+  }
+  renderResults({fitMap:true});
+}
+
+// Izlazak iz režima bez vraćanja prethodnih vrednosti (korisnik je sam uneo novi upit/grad,
+// ili je uključen "Blizu mene").
 function cancelBoundsMode(){
+  savedBeforeBounds = null;
   if(mapBoundsFilterActive || searchAsMoveMap){
     mapBoundsFilterActive = false;
     searchAsMoveMap = false;
@@ -311,14 +345,19 @@ function applyFilters(resetPage){
   const prevCity = currentFilters.city;
   syncFiltersFromDom();
   if(resetPage) visibleCount = PAGE_SIZE;
-  cancelBoundsMode();
+  // U režimu "pomeram mapu" promena usluge i ostalih filtera ne gasi režim; novi upit ili grad
+  // (korisnik ih je uneo u prazna polja) počinje običnu pretragu i gasi režim.
+  if(!mapBoundsFilterActive || currentFilters.q !== '' || currentFilters.city !== ''){
+    cancelBoundsMode();
+  }
   // "Blizu mene" (filter od 5 km) se gasi samo kad korisnik promeni upit ili grad;
   // ostali filteri i sortiranje ga ne diraju.
   if(currentFilters.q !== prevQ || currentFilters.city !== prevCity){
     resetLocationMode();
   }
   updateUrl();
-  renderResults({fitMap:true});
+  // U režimu "pomeram mapu" mapa se ne pomera pri promeni ostalih filtera (rezultate određuje njen položaj).
+  renderResults({fitMap: !mapBoundsFilterActive});
 }
 
 function updateUrl(){
@@ -345,9 +384,13 @@ function cityRank(c){
 }
 
 function getFilteredClinics(){
+  // U režimu "pomeram mapu" se grad i upit ne primenjuju (određuje ih vidljivi deo mape).
+  const boundsMode = mapBoundsFilterActive && !!currentMapBounds;
   let list = getAllPublicListings().filter(c=>{
-    if(currentFilters.q && !normalizeText(c.name).includes(currentFilters.q) && !normalizeText(c.city).includes(currentFilters.q)) return false;
-    if(currentFilters.city && c.city !== currentFilters.city) return false;
+    if(!boundsMode){
+      if(currentFilters.q && !normalizeText(c.name).includes(currentFilters.q) && !normalizeText(c.city).includes(currentFilters.q)) return false;
+      if(currentFilters.city && c.city !== currentFilters.city) return false;
+    }
     if(currentFilters.service && !c.services.includes(currentFilters.service)) return false;
     if(currentFilters.selectedServices && currentFilters.selectedServices.length){
       const hasAny = currentFilters.selectedServices.some(s=>c.services.includes(s));
@@ -491,8 +534,7 @@ function renderResults(opts){
 
 // "Prikaži sve rezultate": isključuje filter "Pretraži dok pomeram mapu" i vraća mapu na okvir svih rezultata.
 function showAllResults(){
-  cancelBoundsMode();
-  renderResults({fitMap:true});
+  exitBoundsMode();
 }
 
 function showAllIgnoringDistance(){
@@ -519,7 +561,8 @@ function setViewMode(mode){
   const fabIcon = document.getElementById('mobileViewFabIcon');
   if(fabLabel) fabLabel.textContent = mode === 'map' ? 'Lista' : 'Mapa';
   if(fabIcon) fabIcon.innerHTML = mode === 'map' ? ICONS.list : ICONS.compass;
-  renderResults({fitMap: mode==='map'});
+  // u režimu "pomeram mapu" promena prikaza lista/mapa ne sme da pomeri mapu
+  renderResults({fitMap: mode==='map' && !mapBoundsFilterActive});
 }
 
 /* ---------- Mapa (Leaflet + OpenStreetMap) ---------- */
