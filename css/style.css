@@ -879,3 +879,15 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 
 /* Hero pretraga bez polja "Usluga" (dok postoji samo jedna usluga) */
 @media(min-width:961px){.search-card.no-service{grid-template-columns:1.2fr 1.4fr auto;}}
+
+/* Bez stock fotografija i izmišljenih inicijala: neutralno polje sa ikonom zuba */
+.clinic-card .thumb-neutral{height:112px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--primary-light),#F4FAFA);border-radius:var(--radius) var(--radius) 0 0;}
+.clinic-card .thumb-neutral .thumb-link{display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:var(--primary);opacity:.5;}
+.clinic-card .thumb-neutral .thumb-link svg{width:44px;height:44px;}
+.clinic-card .thumb-neutral + .body{padding-top:18px;}
+.detail-cover.detail-cover-neutral{height:132px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--primary-light),#F4FAFA);}
+.detail-cover.detail-cover-neutral::after{display:none;}
+.detail-cover.detail-cover-neutral svg{width:56px;height:56px;color:var(--primary);opacity:.5;}
+.detail-header-inner{padding-top:22px;}

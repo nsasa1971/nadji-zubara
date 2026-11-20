@@ -650,7 +650,6 @@ function renderMapMarkers(list){
     const marker = L.marker([c.lat, c.lng], {icon: buildMarkerIcon(c)});
     marker.bindPopup(`
       <div class="map-pin-popup">
-        <img src="${clinicImageUrl(c.images[0], 240, 130)}" alt="${c.name}">
         <h5>${c.name}</h5>
         ${c.coordsPrecision === 'ulica' ? '<div class="map-pin-approx">Približna lokacija</div>' : ''}
         ${c.reviewCount > 0 ? starRow(c.rating) : ''}

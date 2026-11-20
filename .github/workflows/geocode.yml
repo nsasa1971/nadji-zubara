@@ -57,7 +57,7 @@ jobs:
             python tools/geocode_clinics.py --limit 300
             code=$?
             set -e
-            commit_push "$(date -u +%H:%M UTC)"
+            commit_push "$(date -u +%H:%M) UTC"
             if [ "$code" -eq 10 ]; then
               continue      # ima još neobrađenih adresa
             fi
