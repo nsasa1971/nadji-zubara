@@ -89,9 +89,11 @@
 
   function initServices(){
     SERVICE_CATALOG.forEach(cat => {
-      const tz = document.querySelector(`[data-teaser="${cat.key}"]`);
-      if(tz) tz.textContent = cat.subservices.slice(0, 3).map(s => s.name).join(', ') + (cat.subservices.length > 3 ? '…' : '');
+      const ic = document.querySelector(`[data-service-icon="${cat.key}"]`);
+      if(ic && typeof ICONS !== 'undefined' && ICONS[cat.icon]) ic.innerHTML = ICONS[cat.icon];
     });
+    const all = document.querySelector('[data-svc-all-icon]');
+    if(all && typeof ICONS !== 'undefined' && ICONS.arrowRight) all.innerHTML = ICONS.arrowRight;
   }
 
   // preuzeti profili po većim gradovima (gradovi iz mozaika); sekcija se prikazuje tek kad ih ima
