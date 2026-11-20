@@ -3,26 +3,8 @@
    (Zameniti stvarnim podacima kada budu dostupni.)
    ========================================================= */
 
-const SERVICES = [
-  { slug:'opsta', name:'Opšta stomatologija', icon:'tooth' },
-  { slug:'ortodoncija', name:'Ortodoncija', icon:'braces' },
-  { slug:'implantologija', name:'Implantologija', icon:'implant' },
-  { slug:'estetska', name:'Estetska stomatologija', icon:'sparkle' },
-  { slug:'decija', name:'Dečja stomatologija', icon:'baby' },
-  { slug:'oralna-hirurgija', name:'Oralna hirurgija', icon:'scalpel' },
-  { slug:'parodontologija', name:'Parodontologija', icon:'shield' },
-  { slug:'protetika', name:'Protetika', icon:'crown' },
-  { slug:'endodoncija', name:'Endodoncija', icon:'droplet' }
-];
-
-function serviceName(slug){
-  const s = SERVICES.find(x=>x.slug===slug);
-  return s ? s.name : slug;
-}
-function serviceIcon(slug){
-  const s = SERVICES.find(x=>x.slug===slug);
-  return s ? ICONS[s.icon] : ICONS.tooth;
-}
+// Katalog usluga (SERVICES, serviceName, serviceIcon, clinicHasService...) je u js/services.js,
+// koji se učitava pre ovog fajla.
 
 const CITIES = [
   { name:'Beograd', count:0, img:'img/city-beograd.webp' },
@@ -165,7 +147,7 @@ function normalizeMyListing(l){
     ownerListing: true,
     plan: l.plan || 'besplatno',
     featured: l.plan === 'premium',
-    services: l.services && l.services.length ? l.services : ['opsta'],
+    services: knownServices(l.services),
     short: l.description ? (l.description.length > 90 ? l.description.slice(0,90)+'…' : l.description) : 'Novododata ordinacija.',
     description: l.description || 'Vlasnik ove ordinacije još nije dodao detaljan opis.',
     hours: l.hours || {mon:'08:00-20:00',tue:'08:00-20:00',wed:'08:00-20:00',thu:'08:00-20:00',fri:'08:00-20:00',sat:'09:00-14:00',sun:null},
@@ -207,6 +189,9 @@ function getImportedClinics(){
     importedCoordsMerged = true;
     const coords = (typeof IMPORTED_COORDS !== 'undefined') ? IMPORTED_COORDS : {};
     list.forEach(c => {
+      // Usluge: uvezene ordinacije nemaju nijednu uslugu iz kataloga (stara vrednost "opsta" je
+      // bila samo podrazumevana i ne odgovara katalogu), pa se ne prikazuje.
+      c.services = knownServices(c.services);
       const e = coords[c.id];
       if(e && Number.isFinite(e[0]) && Number.isFinite(e[1]) && (e[2] === 'kuca' || e[2] === 'ulica')){
         c.lat = e[0];
@@ -230,7 +215,10 @@ function getAllPublicListings(){
 function getServiceCounts(){
   const counts = {};
   getAllPublicListings().forEach(c => {
-    (c.services || []).forEach(s => { counts[s] = (counts[s] || 0) + 1; });
+    // broji se po ordinaciji jednom: svaka usluga i njena kategorija
+    const keys = new Set();
+    knownServices(c.services).forEach(k => { keys.add(k); keys.add(SERVICE_INDEX[k].category); });
+    keys.forEach(k => { counts[k] = (counts[k] || 0) + 1; });
   });
   return counts;
 }

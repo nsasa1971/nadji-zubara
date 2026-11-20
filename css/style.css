@@ -388,7 +388,7 @@ svg{display:block;}
 
 /* ---------- Footer ---------- */
 .site-footer{background:var(--navy);color:#aebfd2;padding:64px 0 0;}
-.footer-grid{display:grid;grid-template-columns:1.6fr 1fr 1fr 1.2fr;gap:32px;padding-bottom:48px;border-bottom:1px solid rgba(255,255,255,.08);}
+.footer-grid{display:grid;grid-template-columns:1.5fr 1fr 1.3fr 1fr 1.2fr;gap:32px;padding-bottom:48px;border-bottom:1px solid rgba(255,255,255,.08);}
 .footer-grid h5{color:#fff;font-size:15px;margin-bottom:18px;}
 .footer-grid li{margin-bottom:10px;font-size:14px;}
 .footer-grid a:hover{color:#fff;}
@@ -891,3 +891,9 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .detail-cover.detail-cover-neutral::after{display:none;}
 .detail-cover.detail-cover-neutral svg{width:56px;height:56px;color:var(--primary);opacity:.5;}
 .detail-header-inner{padding-top:22px;}
+
+/* Edukativne stranice o uslugama */
+.seo-page .edu h2{font-size:20px;margin:22px 0 8px;}
+.seo-page .edu p{margin:0 0 14px;line-height:1.65;}
+.seo-page .edu ul,.seo-page .edu-list{list-style:disc;padding-left:22px;margin:0 0 16px;}
+.seo-page .edu li,.seo-page .edu-list li{margin-bottom:8px;line-height:1.55;}

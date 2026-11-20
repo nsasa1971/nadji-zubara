@@ -101,6 +101,12 @@ function applyDataAvailability(){
   const hasPrices = all.some(c => c.priceRange);
   const hideGroup = sel => { const g = document.querySelector(sel)?.closest('.filter-group'); if(g) g.style.display = 'none'; };
   const dropSort = vals => vals.forEach(v => document.querySelector(`#sortSelect option[value="${v}"]`)?.remove());
+  // Usluge: filter se prikazuje samo ako postoji bar jedna usluga sa ordinacijom (inače nema šta da se bira).
+  if(getFilterableServices().length === 0){
+    const sel = document.getElementById('serviceInput');
+    if(sel && sel.parentElement) sel.parentElement.style.display = 'none';
+    hideGroup('#servicesFilter');
+  }
   if(!hasRatings){ hideGroup('#ratingToggle'); dropSort(['rating', 'reviews']); }
   if(!hasPrices){ hideGroup('#priceToggle'); dropSort(['price-asc', 'price-desc']); }
 }
@@ -112,7 +118,7 @@ function populateSelects(){
 
   const serviceSel = document.getElementById('serviceInput');
   serviceSel.innerHTML = '<option value="">Sve usluge</option>' +
-    getFilterableServices().map(s=>`<option value="${s.slug}">${s.name} (${s.count.toLocaleString('sr-RS')})</option>`).join('');
+    getFilterableServices().map(s=>`<option value="${s.slug}">${s.sub ? '\u00A0\u00A0— ' : ''}${s.name} (${s.count.toLocaleString('sr-RS')})</option>`).join('');
 }
 
 // Usluge za filter: samo one koje imaju bar jednu ordinaciju u podacima (sa brojem).
@@ -120,15 +126,24 @@ function populateSelects(){
 // da bi izabrani filter ostao vidljiv i dosledan (sa brojem 0).
 function getFilterableServices(){
   const counts = getServiceCounts();
-  const fromUrl = new URLSearchParams(window.location.search).get('service');
-  return SERVICES
-    .map(s => ({slug:s.slug, name:s.name, count:counts[s.slug] || 0}))
-    .filter(s => s.count > 0 || s.slug === fromUrl);
+  let fromUrl = new URLSearchParams(window.location.search).get('service');
+  if(fromUrl && !SERVICE_INDEX[fromUrl]) fromUrl = null;   // nepoznat/stari ključ se ignoriše
+  const out = [];
+  SERVICE_CATALOG.forEach(cat => {
+    const n = counts[cat.key] || 0;
+    if(n > 0 || cat.key === fromUrl) out.push({slug:cat.key, name:cat.name, count:n, sub:false});
+    // podusluge se nude samo ako imaju bar jednu ordinaciju
+    cat.subservices.forEach(sv => {
+      const m = counts[sv.key] || 0;
+      if(m > 0 || sv.key === fromUrl) out.push({slug:sv.key, name:sv.name, count:m, sub:true});
+    });
+  });
+  return out;
 }
 
 function populateServiceCheckboxes(){
   const wrap = document.getElementById('servicesFilter');
-  wrap.innerHTML = getFilterableServices().map(s=>`
+  wrap.innerHTML = getFilterableServices().filter(s => !s.sub).map(s=>`
     <label class="checkbox-row">
       <input type="checkbox" value="${s.slug}" class="service-checkbox">
       ${s.name} (${s.count.toLocaleString('sr-RS')})
@@ -391,9 +406,9 @@ function getFilteredClinics(){
       if(currentFilters.q && !normalizeText(c.name).includes(currentFilters.q) && !normalizeText(c.city).includes(currentFilters.q)) return false;
       if(currentFilters.city && c.city !== currentFilters.city) return false;
     }
-    if(currentFilters.service && !c.services.includes(currentFilters.service)) return false;
+    if(currentFilters.service && !clinicHasService(c, currentFilters.service)) return false;
     if(currentFilters.selectedServices && currentFilters.selectedServices.length){
-      const hasAny = currentFilters.selectedServices.some(s=>c.services.includes(s));
+      const hasAny = currentFilters.selectedServices.some(s=>clinicHasService(c, s));
       if(!hasAny) return false;
     }
     if(currentFilters.price && c.priceRange !== currentFilters.price) return false;
