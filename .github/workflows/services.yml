@@ -1,0 +1,83 @@
+name: Prepoznavanje usluga sa sajtova ordinacija
+
+# Ručno pokretanje: Actions -> "Prepoznavanje usluga sa sajtova ordinacija" -> Run workflow.
+# Radi nad granom `usluge-sajtovi` i na nju commituje keš (data/services-cache.json, ne objavljuje se
+# na sajtu) i js/imported-services.js, posle svake serije sajtova.
+# Potreban je secret SCRAPER_EMAIL (kontakt u User-Agent-u: NadjiZubara/1.0 (<e-mail>)).
+# Skripta poštuje robots.txt i šalje najviše 1 zahtev u sekundi po domenu.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: services
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      SCRAPER_EMAIL: ${{ secrets.SCRAPER_EMAIL }}
+      TARGET_BRANCH: usluge-sajtovi
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Testovi logike (lažne stranice, bez mreže)
+        run: python -m unittest discover -s tools -p "test_scrape_services.py" -v
+
+      - name: Čitanje sajtova (serije od 10, commit posle svake)
+        run: |
+          set -u
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          commit_push() {
+            git add data/services-cache.json js/imported-services.js
+            if git diff --cached --quiet; then
+              echo "Nema promena za commit."
+              return 0
+            fi
+            git commit -m "Usluge sa sajtova: keš i izlaz ($1)"
+            for i in 1 2 3 4; do
+              git pull --rebase origin "$TARGET_BRANCH" && git push origin "HEAD:$TARGET_BRANCH" && return 0
+              sleep $((i * 5))
+            done
+            return 1
+          }
+
+          while true; do
+            set +e
+            python tools/scrape_services.py --limit 10
+            code=$?
+            set -e
+            commit_push "$(date -u +%H:%M) UTC"
+            if [ "$code" -eq 10 ]; then
+              continue      # ima još sajtova
+            fi
+            exit "$code"    # 0 = gotovo, ostalo = greška
+          done
+
+      - name: Izveštaj
+        if: always()
+        run: python tools/scrape_services.py --report || true
+
+      - name: Commit preostalog (ako je posao prekinut usred serije)
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          python tools/scrape_services.py --build-only || true
+          git add data/services-cache.json js/imported-services.js
+          if ! git diff --cached --quiet; then
+            git commit -m "Usluge sa sajtova: keš i izlaz (završni commit)"
+            git pull --rebase origin "$TARGET_BRANCH" && git push origin "HEAD:$TARGET_BRANCH" || true
+          fi
