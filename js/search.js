@@ -578,6 +578,10 @@ function setViewMode(mode){
   if(fabIcon) fabIcon.innerHTML = mode === 'map' ? ICONS.list : ICONS.compass;
   // u režimu "pomeram mapu" promena prikaza lista/mapa ne sme da pomeri mapu
   renderResults({fitMap: mode==='map' && !mapBoundsFilterActive});
+  if(mode === 'list' && pendingCardId){
+    const id = pendingCardId; pendingCardId = null;
+    setTimeout(() => flashCard(id), 60);
+  }
 }
 
 /* ---------- Mapa (Leaflet + OpenStreetMap) ---------- */
@@ -665,12 +669,17 @@ function renderMapMarkers(list){
     const marker = L.marker([c.lat, c.lng], {icon: buildMarkerIcon(c)});
     marker.bindPopup(`
       <div class="map-pin-popup">
+        <img src="${clinicImageUrl(c.images[0], 400, 160)}" alt="" loading="lazy">
         <h5>${c.name}</h5>
+        <div class="map-pin-addr">${c.address || ''}</div>
         ${c.coordsPrecision === 'ulica' ? '<div class="map-pin-approx">Približna lokacija</div>' : ''}
-        ${c.reviewCount > 0 ? starRow(c.rating) : ''}
-        <div style="margin-top:8px;"><a href="ordinacija.html?id=${c.id}">Pogledaj detalje →</a></div>
+        <a class="btn btn-primary btn-sm" href="ordinacija.html?id=${c.id}">Pogledaj detalje</a>
       </div>
-    `);
+    `, {minWidth:210, maxWidth:240});
+    // Uređaji sa hover-om: kratak tooltip (naziv + adresa); na dodir samo klik.
+    if(window.matchMedia && window.matchMedia('(hover: hover)').matches){
+      marker.bindTooltip(`<strong>${c.name}</strong><br>${c.address || ''}`, {direction:'top', offset:[0,-16], className:'map-pin-tip'});
+    }
     marker.on('click', () => highlightCard(c.id));
     marker.on('mouseover', () => showMapHalo(c));
     marker.on('mouseout', () => hideMapHalo());
@@ -723,12 +732,53 @@ function centerOnNearestPremium(){
   }
 }
 
+let pendingCardId = null;
+let highlightTimer = null;
+
+function findCardEl(id){
+  return Array.from(document.querySelectorAll('#mapListCol .clinic-card, #resultsGrid .clinic-card'))
+    .find(el => el.getAttribute('data-id') === id);
+}
+
+// Skroluje do kartice i kratko je istakne (okvir bledi posle ~2 s).
+function flashCard(id){
+  const target = findCardEl(id);
+  if(!target) return false;
+  document.querySelectorAll('.clinic-card.highlight').forEach(el => el.classList.remove('highlight'));
+  const box = target.parentElement;
+  if(box && box.scrollHeight > box.clientHeight + 1 && getComputedStyle(box).overflowY !== 'visible'){
+    const tr = target.getBoundingClientRect(), br = box.getBoundingClientRect();
+    box.scrollTo({top: box.scrollTop + (tr.top - br.top) - (br.height - tr.height)/2, behavior:'smooth'});
+  } else {
+    target.scrollIntoView({behavior:'smooth', block:'center'});
+  }
+  target.classList.add('highlight');
+  clearTimeout(highlightTimer);
+  highlightTimer = setTimeout(() => target.classList.remove('highlight'), 2000);
+  return true;
+}
+
 function highlightCard(id){
-  document.querySelectorAll('.map-list-col .clinic-card').forEach(el=>{
-    el.classList.toggle('highlight', el.getAttribute('data-id') === id);
-  });
-  const target = document.querySelector(`.map-list-col .clinic-card[data-id="${id}"]`);
-  if(target) target.scrollIntoView({behavior:'smooth', block:'nearest'});
+  // Kartica na stranici liste koja još nije učitana: učitaj dovoljno kartica.
+  const list = getFilteredClinics();
+  const idx = list.findIndex(x => x.id === id);
+  if(idx < 0) return;
+  if(idx >= visibleCount){
+    visibleCount = Math.ceil((idx + 1) / PAGE_SIZE) * PAGE_SIZE;
+    if(viewMode === 'map'){
+      // samo kartice (bez ponovnog iscrtavanja pinova, da otvoreni prozor ostane)
+      const col = document.getElementById('mapListCol');
+      const toShow = list.slice(0, visibleCount);
+      col.innerHTML = toShow.map(c => renderClinicCard(c)).join('');
+      bindFavoriteButtons(col);
+      bindMapListHover(col, toShow);
+      document.getElementById('loadMoreWrap').style.display = list.length > visibleCount ? 'block' : 'none';
+    }
+  }
+  const col = document.getElementById('mapListCol');
+  const listShown = viewMode === 'list' || (col && getComputedStyle(col).display !== 'none');
+  if(listShown){ pendingCardId = null; flashCard(id); }
+  else pendingCardId = id; // telefon u prikazu "Mapa": prikaz se ne menja, dugme "Lista" vodi na karticu
 }
 
 function showMapHalo(c){
