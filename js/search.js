@@ -44,6 +44,7 @@ function initSearchPage(){
   initMap();
   const initialMode = window.innerWidth <= MOBILE_BREAKPOINT ? 'list' : 'map';
   setViewMode(initialMode);
+  applyNearFromHome();
   // Geolokacija se NE traži automatski: pokreće se isključivo klikom na
   // "Blizu mene". Mapa se pri otvaranju prilagođava rezultatima pretrage
   // (ili prikazuje celu Srbiju ako nema upita, grada ni usluge).
@@ -827,8 +828,18 @@ function requestUserLocation(){
   renderLocationBanner();
 
   navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      userLocation = {lat: pos.coords.latitude, lng: pos.coords.longitude};
+    (pos) => applyUserLocation(pos.coords.latitude, pos.coords.longitude),
+    () => {
+      locationState = 'denied';
+      renderLocationBanner();
+    },
+    {enableHighAccuracy:true, timeout:8000, maximumAge:300000}
+  );
+}
+
+// Lokacija korisnika je poznata (klik na "Blizu mene" ovde ili na početnoj).
+function applyUserLocation(lat, lng){
+      userLocation = {lat, lng};
       locationState = 'granted';
       ignoreDistanceLimit = false;
       cancelBoundsMode();
@@ -847,13 +858,18 @@ function requestUserLocation(){
       // na nju umesto na "goli" GPS centar korisnika — daje kontekst
       // (susedne ordinacije oko nje) i ističe premium oglase.
       setTimeout(centerOnNearestPremium, 50);
-    },
-    () => {
-      locationState = 'denied';
-      renderLocationBanner();
-    },
-    {enableHighAccuracy:true, timeout:8000, maximumAge:300000}
-  );
+}
+
+// Dolazak sa početne ("Blizu mene"): lokacija je tamo već tražena klikom i sačuvana na kratko.
+// Bez sačuvane lokacije se ništa ne dešava (nema automatskog traženja lokacije).
+function applyNearFromHome(){
+  if(new URLSearchParams(location.search).get('blizu') !== '1') return;
+  let loc = null;
+  try{ loc = JSON.parse(sessionStorage.getItem('nz_near') || 'null'); sessionStorage.removeItem('nz_near'); }catch(e){}
+  if(!loc || !Number.isFinite(loc.lat) || !Number.isFinite(loc.lng) || Date.now() - loc.t > 120000) return;
+  clearCityFilter();
+  setViewMode('map');
+  applyUserLocation(loc.lat, loc.lng);
 }
 
 function placeUserMarker(){
