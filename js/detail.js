@@ -109,11 +109,13 @@ function renderClinic(c){
   document.getElementById('addressText').textContent = c.address;
   document.getElementById('mapFrame').src = 'https://www.google.com/maps?q=' + encodeURIComponent(c.address) + '&output=embed';
 
-  // Usluge
-  document.getElementById('servicesList').innerHTML = c.services.map(slug => `
+  // Usluge: sekcija (tab) se prikazuje samo kad ordinacija ima bar jednu uslugu iz kataloga
+  const serviceKeys = knownServices(c.services);
+  const servicesTab = document.querySelector('.tab-btn[data-tab="usluge"]');
+  if(servicesTab) servicesTab.style.display = serviceKeys.length ? '' : 'none';
+  document.getElementById('servicesList').innerHTML = serviceKeys.map(slug => `
     <li>
       <span class="s-name"><span class="icon-wrap" style="background:var(--primary-light);color:var(--primary-dark);">${serviceIcon(slug)}</span> <a class="s-link" href="pretraga.html?service=${encodeURIComponent(slug)}" title="Sve ordinacije: ${serviceName(slug)}">${serviceName(slug)}</a></span>
-      <span class="s-price">Kontaktirajte za cenu</span>
     </li>`).join('');
 
   renderReviews(c);
@@ -364,7 +366,7 @@ function renderBookingCard(c){
   form.style.display = 'block';
 
   const serviceSelect = document.getElementById('bookingServiceSelect');
-  serviceSelect.innerHTML = c.services.map(slug => `<option value="${slug}">${serviceName(slug)}</option>`).join('');
+  serviceSelect.innerHTML = knownServices(c.services).map(slug => `<option value="${slug}">${serviceName(slug)}</option>`).join('');
 
   const dateInput = document.getElementById('bookingDateInput');
   const todayStr = new Date().toISOString().slice(0,10);

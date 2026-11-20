@@ -1,0 +1,41 @@
+{
+ "disclaimer": "Informacije na ovoj stranici su opšte prirode i ne zamenjuju pregled i savet stomatologa. Za procenu stanja i izbor postupka obratite se stomatologu.",
+ "kategorije": {
+  "dijagnostika-preventiva": {
+   "sta_je": "Dijagnostika i preventiva obuhvataju preglede usta i zuba, savetovanje o održavanju oralne higijene, uklanjanje zubnog kamenca i peskiranje, kao i preventivne postupke poput fluorizacije i zalivanja fisura. Cilj ovih postupaka je da se stanje zuba i desni prati i da se eventualne promene primete na vreme.",
+   "kada": "Kontrolni pregledi se obično zakazuju u redovnim razmacima, a koliko često, određuje stomatolog prema stanju pacijenta. Pregled je prirodan prvi korak i kada se pojavi bol, osetljivost, krvarenje desni ili bilo kakva promena u ustima."
+  },
+  "bolesti-zuba-endodoncija": {
+   "sta_je": "Ova oblast obuhvata lečenje oštećenja zuba, kao što je karijes, i obnovu zuba ispunima (plombama), uključujući kompozitne, takozvane bele plombe. Endodoncija se bavi lečenjem unutrašnjosti zuba, odnosno kanala korena zuba.",
+   "kada": "Pregled se obično traži kada zub boli, reaguje na toplo, hladno ili slatko, ili kada se na zubu primeti rupica ili promena boje. Da li je potrebna plomba ili lečenje kanala, procenjuje stomatolog nakon pregleda, a po potrebi i snimka."
+  },
+  "parodontologija": {
+   "sta_je": "Parodontologija se bavi tkivima koja okružuju i drže zube: desnima, kosti i drugim potpornim tkivima. Obuhvata lečenje upale desni i parodontopatije radi očuvanja potpornog tkiva zuba.",
+   "kada": "Pregled se obično traži kada desni crvene, otiču ili krvare, kada se oseti neprijatan zadah koji ne prolazi ili kada se zubi čine pomerenim ili klimavim. Dijagnozu i plan lečenja određuje stomatolog."
+  },
+  "oralna-hirurgija": {
+   "sta_je": "Oralna hirurgija obuhvata hirurške zahvate u ustima i na vilicama: obično i komplikovano vađenje zuba, hirurško vađenje impaktiranih zuba (poput umnjaka) i druge hirurške intervencije.",
+   "kada": "Zahvat dolazi u obzir kada stomatolog proceni da zub ne može da se sačuva ili ukloni na uobičajen način, ili kada je potrebna hirurška procena. Pre zahvata se obično radi pregled i, po potrebi, snimak, a o postupku odlučuju pacijent i lekar."
+  },
+  "implantologija": {
+   "sta_je": "Implantologija se bavi ugradnjom zubnih implantata, koji se postavljaju u vilicu, i rešenjima koja se na njima izrađuju, na primer All-on-4 ili All-on-6.",
+   "kada": "Implantati su jedna od mogućnosti kada zub nedostaje. Da li su pogodno rešenje i koje, zavisi od zdravlja usta i kosti i od procene stomatologa, koji može da objasni dostupne mogućnosti."
+  },
+  "stomatoloska-protetika": {
+   "sta_je": "Stomatološka protetika se bavi izradom nadoknada za oštećene ili izgubljene zube: krunica (metalokeramičkih i bezmetalnih, uključujući cirkonijumske), mostova i parcijalnih ili totalnih proteza.",
+   "kada": "O protetskoj nadoknadi se obično razgovara kada je zub jako oštećen ili nedostaje jedan ili više zuba. Vrstu rada i materijal bira stomatolog zajedno sa pacijentom, prema stanju zuba i potrebama."
+  },
+  "ortodoncija": {
+   "sta_je": "Ortopedija vilica (ortodoncija) se bavi položajem zuba i odnosom vilica. Za ispravljanje položaja zuba i vilica koriste se fiksne proteze (aparati), mobilni aparati i providni alineri.",
+   "kada": "Pregled kod ortodonta se obično traži kada zubi stoje nepravilno, kada se vilice ne poklapaju ili kada na to ukaže stomatolog. Da li je lečenje potrebno, koji aparat se koristi i koliko dugo traje, određuje specijalista nakon pregleda."
+  },
+  "estetska-stomatologija": {
+   "sta_je": "Estetska stomatologija obuhvata postupke koji se tiču izgleda zuba, kao što su izbeljivanje zuba, estetske fasete (viniri) i estetski ispuni.",
+   "kada": "Ovi postupci se razmatraju kada pacijent želi da promeni izgled zuba, uz prethodni pregled koji pokazuje da li su za njega pogodni. Šta je moguće i prikladno, procenjuje stomatolog, a rezultat zavisi od stanja zuba."
+  },
+  "decija-stomatologija": {
+   "sta_je": "Dečija stomatologija obuhvata preglede, preventivu i lečenje mlečnih i mladih stalnih zuba, prilagođene deci.",
+   "kada": "Dete se obično vodi na prvi pregled kada izniknu prvi zubi ili kada roditelj primeti bol, promenu na zubu ili ima neko pitanje. Učestalost kontrola i postupke određuje stomatolog prema uzrastu i stanju deteta."
+  }
+ }
+}

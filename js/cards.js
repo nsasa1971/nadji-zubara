@@ -35,7 +35,7 @@ function renderClinicCard(c, opts){
   const hasReviews = c.reviewCount > 0;
   const favs = getFavorites();
   const isFav = favs.includes(c.id);
-  const mainService = c.services[0];
+  const mainService = knownServices(c.services)[0];   // bez usluge nema ni oznake
   const distance = !hasVerifiedCoords(c) ? null : (typeof c._distance === 'number') ? c._distance : (typeof opts.distanceKm === 'number' ? opts.distanceKm : null);
   return `
   <article class="clinic-card" data-id="${c.id}">
@@ -67,10 +67,10 @@ function renderClinicCard(c, opts){
       <div class="reveal-info">
         ${isValidPhone(c.phone) ? `<div class="reveal-row">${ICONS.phone} ${c.phone}</div>` : ''}
       </div>
-      <div class="tag-row">
-        <a class="tag tag-link" href="pretraga.html?service=${encodeURIComponent(mainService)}" title="Sve ordinacije: ${serviceName(mainService)}">${serviceName(mainService)}</a>
+      ${mainService ? `<div class="tag-row">
+        <a class="tag tag-link" href="pretraga.html?service=${encodeURIComponent(SERVICE_INDEX[mainService].category)}" title="Sve ordinacije: ${serviceName(SERVICE_INDEX[mainService].category)}">${serviceName(SERVICE_INDEX[mainService].category)}</a>
         ${c.services.length>1 ? `<span class="tag">+${c.services.length-1} usluge</span>` : ''}
-      </div>
+      </div>` : ''}
       <div class="actions">
         ${isValidPhone(c.phone)
           ? `<a class="btn btn-outline-navy btn-sm" href="tel:${c.phone.replace(/\s/g,'')}">${ICONS.phone} Pozovi</a>`
