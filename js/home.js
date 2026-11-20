@@ -94,15 +94,25 @@
     });
   }
 
-  // preuzeti profili sa odobrenom slikom; sekcija se prikazuje tek kad ih ima bar 3
+  // preuzeti profili po većim gradovima (gradovi iz mozaika); sekcija se prikazuje tek kad ih ima
   function initClaimed(all){
-    const sec = $('preuzeti'), grid = $('featuredGrid');
-    if(!sec || !grid) return;
-    const picks = all.filter(c => c.claimed && c.approvedImages && c.approvedImages.length).slice(0, 6);
-    if(picks.length < 3) return;
-    grid.innerHTML = picks.map(c => renderClinicCard(c)).join('');
-    bindFavoriteButtons(grid);
-    sec.hidden = false;
+    const sec = $('preuzeti'), box = $('claimedByCity');
+    if(!sec || !box) return;
+    const cities = Array.from(document.querySelectorAll('.home-tile[href] .home-tile-count[data-city]')).map(n => n.getAttribute('data-city'));
+    let shown = 0;
+    cities.forEach(city => {
+      const list = all.filter(c => c.claimed && c.city === city)
+        .sort((a, b) => ((b.approvedImages ? b.approvedImages.length : 0) - (a.approvedImages ? a.approvedImages.length : 0)))
+        .slice(0, 3);
+      if(!list.length) return;
+      const group = document.createElement('div');
+      group.className = 'home-cgroup';
+      group.innerHTML = `<div class="home-cgroup-head"><h3>${esc(city)}</h3><a href="${esc(citySlug(city))}/">Sve ordinacije u gradu →</a></div><div class="cards-grid">${list.map(c => renderClinicCard(c)).join('')}</div>`;
+      box.appendChild(group);
+      bindFavoriteButtons(group);
+      shown++;
+    });
+    if(shown) sec.hidden = false;
   }
 
   function init(){

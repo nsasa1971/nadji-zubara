@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Zubar u vašem gradu: imenik stomatoloških ordinacija | Nađi Zubara</title>
-<meta name="description" content="Pronađite stomatološku ordinaciju u svom gradu: adrese i telefoni ordinacija širom Srbije, pretraga po gradu i nazivu, mapa i stranice po gradovima i uslugama.">
+<meta name="description" content="Pronađite stomatološku ordinaciju u svom gradu: adrese i telefoni ordinacija širom Srbije, pretraga po gradu i nazivu, mapa, često postavljena pitanja i članci o zdravlju zuba.">
 <link rel="canonical" href="https://nadjizubara.netlify.app/">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Nađi Zubara — imenik stomatoloških ordinacija u Srbiji">
@@ -14,9 +14,11 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="img/ordinacija-cover.webp">
 <link rel="stylesheet" href="css/style.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Nađi Zubara","url":"https://nadjizubara.netlify.app/","logo":"https://nadjizubara.netlify.app/img/logo.webp"}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Nađi Zubara","url":"https://nadjizubara.netlify.app/","potentialAction":{"@type":"SearchAction","target":"https://nadjizubara.netlify.app/pretraga.html?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Da li je korišćenje sajta besplatno?", "acceptedAnswer": {"@type": "Answer", "text": "Da. Pretraga ordinacija, pregled adresa i telefona i čitanje članaka su besplatni i ne zahtevaju nalog."}}, {"@type": "Question", "name": "Mogu li da zakažem termin preko sajta?", "acceptedAnswer": {"@type": "Answer", "text": "Ne. Termine ne zakazujemo mi, a ni preko sajta. Pozovite ordinaciju na broj koji je naveden i dogovorite termin direktno."}}, {"@type": "Question", "name": "Odakle potiču podaci o ordinacijama?", "acceptedAnswer": {"@type": "Answer", "text": "Podaci potiču iz javno dostupnih izvora i mogu biti zastareli. Ako primetite grešku, prijavite je preko forme za kontakt, a ordinacije mogu same da ispravljaju svoje podatke."}}, {"@type": "Question", "name": "Šta znači „Preuzet profil“?", "acceptedAnswer": {"@type": "Answer", "text": "To je ordinacija čiji je vlasnik ili ovlašćeno lice preuzeo profil: mi smo ga prethodno proverili pozivom na broj iz imenika. Takve ordinacije mogu da dopune radno vreme, usluge, opis, fotografije i tim."}}, {"@type": "Question", "name": "Zašto neka ordinacija nema tačnu lokaciju na mapi?", "acceptedAnswer": {"@type": "Answer", "text": "Tačnu lokaciju imamo za većinu ordinacija, ali ne za sve. Ako lokacija nije proverena, ordinaciju nećete videti na mapi, ali su adresa i telefon i dalje prikazani."}}, {"@type": "Question", "name": "Kako da prijavim netačan podatak ili zatražim uklanjanje profila?", "acceptedAnswer": {"@type": "Answer", "text": "Otvorite stranicu ordinacije i kliknite „Prijavi netačan podatak“, ili nam pišite preko forme za kontakt i izaberite odgovarajuću temu."}}, {"@type": "Question", "name": "Kako da preuzmem profil svoje ordinacije?", "acceptedAnswer": {"@type": "Answer", "text": "Pronađite ordinaciju u pretrazi, otvorite njenu stranicu i kliknite „Ovo je moja ordinacija“. Prijavite se linkom koji stiže na vašu e-adresu i pošaljite zahtev. Zatim ćemo vas pozvati na broj iz imenika, a kod za proveru nalazi se u odeljku „Moj nalog“."}}, {"@type": "Question", "name": "Šta mogu sam da menjam na profilu?", "acceptedAnswer": {"@type": "Answer", "text": "Odmah objavljujete telefone, radno vreme, usluge, kratak opis, sajt i društvene mreže. Naziv, adresa, fotografije i tim objavljuju se tek posle naše provere."}}, {"@type": "Question", "name": "Koliko košta preuzimanje profila?", "acceptedAnswer": {"@type": "Answer", "text": "Ordinacije koje preuzmu profil imaju prvih 6 meseci besplatno od dana preuzimanja. Plaćeni paketi biće objavljeni kasnije."}}, {"@type": "Question", "name": "Šta ako moje ordinacije nema u imeniku?", "acceptedAnswer": {"@type": "Answer", "text": "Javite nam se preko forme za kontakt."}}, {"@type": "Question", "name": "Zašto proveravate pozivom?", "acceptedAnswer": {"@type": "Answer", "text": "Da bismo se uverili da profil preuzima vlasnik ili ovlašćeno lice. Zato zovemo na broj koji je već u imeniku."}}, {"@type": "Question", "name": "Kako da uklonim profil ordinacije?", "acceptedAnswer": {"@type": "Answer", "text": "Pošaljite zahtev preko forme za kontakt i izaberite temu „Uklanjanje profila“."}}]}</script>
 </head>
 <body>
 
@@ -112,7 +114,17 @@
   </div>
 </section>
 
-<section class="home-block home-block-tint" id="usluge">
+<section class="home-block home-block-tint" id="preuzeti" hidden>
+  <div class="container">
+    <div class="home-head">
+      <h2>Ordinacije sa preuzetim profilom</h2>
+      <p>U većim gradovima, ordinacije koje su same dopunile svoje podatke.</p>
+    </div>
+    <div id="claimedByCity"></div>
+  </div>
+</section>
+
+<section class="home-block" id="usluge">
   <div class="container">
     <div class="home-head">
       <h2>Šta vam je potrebno?</h2>
@@ -132,20 +144,51 @@
   </div>
 </section>
 
-<section class="home-block" id="preuzeti" hidden>
-  <div class="container">
-    <div class="home-head">
-      <h2>Ordinacije koje su same dopunile profil</h2>
-      <p>Njihovi podaci su ažurni, a neke su dodale i fotografije.</p>
-    </div>
-    <div class="cards-grid" id="featuredGrid"></div>
-  </div>
-</section>
-
-<section class="home-block" id="kako">
+<section class="home-block home-block-tint" id="kako">
   <div class="container home-how">
     <h2>Kako ovo funkcioniše</h2>
     <p>Izaberete grad ili ukucate ime ordinacije. Pogledate adresu i telefon, a gde je ordinacija sama dopunila profil, i radno vreme, usluge i slike. Onda pozovete i dogovorite termin. Termine ne zakazujemo mi, a ni preko sajta.</p>
+  </div>
+</section>
+
+<section class="home-block" id="clanci">
+  <div class="container">
+    <div class="home-head">
+      <h2>Korisno pročitati</h2>
+      <p>Kratki članci o zdravlju zuba i izboru ordinacije.</p>
+    </div>
+    <div class="home-articles">
+      <a class="home-article" href="clanci/koliko-cesto-ici-kod-stomatologa/"><h3>Koliko često treba ići kod stomatologa</h3><p>Koliko često su preporučeni kontrolni pregledi, šta se na njima radi i kada ne treba čekati zakazani termin.</p><span class="home-article-more">Pročitaj članak →</span></a>
+      <a class="home-article" href="clanci/kako-izabrati-stomatolosku-ordinaciju/"><h3>Kako izabrati stomatološku ordinaciju</h3><p>Na šta da obratite pažnju pri izboru ordinacije: lokacija, usluge, radno vreme, komunikacija i cena unapred.</p><span class="home-article-more">Pročitaj članak →</span></a>
+      <a class="home-article" href="clanci/prvi-pregled-kod-stomatologa/"><h3>Šta očekivati na prvom pregledu kod stomatologa</h3><p>Kako izgleda prvi pregled: razgovor, pregled usta, eventualni snimak i plan lečenja. Kako da se pripremite i šta da pitate.</p><span class="home-article-more">Pročitaj članak →</span></a>
+      <a class="home-article" href="clanci/zubobolja-kada-hitno-kod-stomatologa/"><h3>Zubobolja: kada ne treba čekati</h3><p>Znaci da je potrebno odmah da se javite stomatologu ili hitnoj službi, i šta ne treba raditi dok ne dođete do pregleda.</p><span class="home-article-more">Pročitaj članak →</span></a>
+    </div>
+    <p class="home-articles-all"><a href="clanci/">Svi članci →</a></p>
+  </div>
+</section>
+
+<section class="home-block home-block-tint" id="pitanja">
+  <div class="container home-faq">
+    <div class="home-head">
+      <h2>Često postavljena pitanja</h2>
+      <p>Odgovori za pacijente i za ordinacije.</p>
+    </div>
+    <div class="home-faq-group"><h3>Za pacijente</h3>
+      <details class="home-faq-item"><summary>Da li je korišćenje sajta besplatno?</summary><div class="home-faq-a"><p>Da. Pretraga ordinacija, pregled adresa i telefona i čitanje članaka su besplatni i ne zahtevaju nalog.</p></div></details>
+      <details class="home-faq-item"><summary>Mogu li da zakažem termin preko sajta?</summary><div class="home-faq-a"><p>Ne. Termine ne zakazujemo mi, a ni preko sajta. Pozovite ordinaciju na broj koji je naveden i dogovorite termin direktno.</p></div></details>
+      <details class="home-faq-item"><summary>Odakle potiču podaci o ordinacijama?</summary><div class="home-faq-a"><p>Podaci potiču iz javno dostupnih izvora i mogu biti zastareli. Ako primetite grešku, prijavite je preko forme za kontakt, a ordinacije mogu same da ispravljaju svoje podatke.</p></div></details>
+      <details class="home-faq-item"><summary>Šta znači „Preuzet profil“?</summary><div class="home-faq-a"><p>To je ordinacija čiji je vlasnik ili ovlašćeno lice preuzeo profil: mi smo ga prethodno proverili pozivom na broj iz imenika. Takve ordinacije mogu da dopune radno vreme, usluge, opis, fotografije i tim.</p></div></details>
+      <details class="home-faq-item"><summary>Zašto neka ordinacija nema tačnu lokaciju na mapi?</summary><div class="home-faq-a"><p>Tačnu lokaciju imamo za većinu ordinacija, ali ne za sve. Ako lokacija nije proverena, ordinaciju nećete videti na mapi, ali su adresa i telefon i dalje prikazani.</p></div></details>
+      <details class="home-faq-item"><summary>Kako da prijavim netačan podatak ili zatražim uklanjanje profila?</summary><div class="home-faq-a"><p>Otvorite stranicu ordinacije i kliknite „Prijavi netačan podatak“, ili nam pišite preko forme za kontakt i izaberite odgovarajuću temu.</p></div></details>
+    </div>
+    <div class="home-faq-group"><h3>Za ordinacije</h3>
+      <details class="home-faq-item"><summary>Kako da preuzmem profil svoje ordinacije?</summary><div class="home-faq-a"><p>Pronađite ordinaciju u pretrazi, otvorite njenu stranicu i kliknite „Ovo je moja ordinacija“. Prijavite se linkom koji stiže na vašu e-adresu i pošaljite zahtev. Zatim ćemo vas pozvati na broj iz imenika, a kod za proveru nalazi se u odeljku „Moj nalog“.</p></div></details>
+      <details class="home-faq-item"><summary>Šta mogu sam da menjam na profilu?</summary><div class="home-faq-a"><p>Odmah objavljujete telefone, radno vreme, usluge, kratak opis, sajt i društvene mreže. Naziv, adresa, fotografije i tim objavljuju se tek posle naše provere.</p></div></details>
+      <details class="home-faq-item"><summary>Koliko košta preuzimanje profila?</summary><div class="home-faq-a"><p>Ordinacije koje preuzmu profil imaju prvih 6 meseci besplatno od dana preuzimanja. Plaćeni paketi biće objavljeni kasnije.</p></div></details>
+      <details class="home-faq-item"><summary>Šta ako moje ordinacije nema u imeniku?</summary><div class="home-faq-a"><p>Javite nam se preko forme za kontakt.</p></div></details>
+      <details class="home-faq-item"><summary>Zašto proveravate pozivom?</summary><div class="home-faq-a"><p>Da bismo se uverili da profil preuzima vlasnik ili ovlašćeno lice. Zato zovemo na broj koji je već u imeniku.</p></div></details>
+      <details class="home-faq-item"><summary>Kako da uklonim profil ordinacije?</summary><div class="home-faq-a"><p>Pošaljite zahtev preko forme za kontakt i izaberite temu „Uklanjanje profila“.</p></div></details>
+    </div>
   </div>
 </section>
 
