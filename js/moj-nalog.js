@@ -31,7 +31,7 @@
     }
     if(c.status === 'verified' && c.claimed_at){
       kids.push(el('p', {style:'margin:12px 0 0;font-size:14px;'}, 'Verifikovano: ' + fmtDate(c.claimed_at) + '. Besplatno do ' + fmtDate(addMonths(c.claimed_at, 6)) + '.'));
-      kids.push(el('p', {style:'margin:6px 0 0;font-size:13.5px;color:var(--muted);'}, 'Forma za izmenu profila biće dostupna u narednom koraku.'));
+      kids.push(el('p', {style:'margin:12px 0 0;'}, [el('a', {class:'btn btn-primary btn-sm', href:'izmena-profila.html?id=' + encodeURIComponent(c.clinic_id)}, 'Izmeni profil')]));
     }
     if(c.status === 'rejected'){
       kids.push(el('p', {style:'margin:12px 0 0;font-size:14px;'}, 'Zahtev je odbijen' + (c.decided_at ? ' ' + fmtDate(c.decided_at) : '') + '. Novi zahtev možete poslati posle 30 dana.'));
