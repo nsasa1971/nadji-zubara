@@ -1,5 +1,5 @@
 -- B2: kolone name/address (samo čitanje za klijenta), CHECK ograničenja, ograničenja slika
--- i izmena, stroža politika za upload slika. NIJE primenjeno.
+-- i izmena, stroža politika za upload slika. Primenjeno 20. 11. 2026.
 -- Pokreće se posle migracija 1-6.
 
 -- ----------------------------------------------- odobren naziv i adresa (javno)
@@ -11,7 +11,8 @@ grant select (name, address) on public.profile_overrides to anon, authenticated;
 
 -- ----------------------------------------------------- pomoćne funkcije (CHECK)
 create or replace function public.valid_phones(p text[]) returns boolean
-language sql immutable as $$
+language sql immutable
+set search_path = public as $$
   select p is null or (
     coalesce(array_length(p, 1), 0) <= 3
     and not exists (select 1 from unnest(p) x
@@ -19,7 +20,8 @@ language sql immutable as $$
 $$;
 
 create or replace function public.valid_services(p text[]) returns boolean
-language sql immutable as $$
+language sql immutable
+set search_path = public as $$
   select p is null or (
     coalesce(array_length(p, 1), 0) <= 40
     and not exists (select 1 from unnest(p) x where x is null or char_length(x) not between 1 and 80));
@@ -27,7 +29,8 @@ $$;
 
 -- radno vreme: objekat sa ključevima mon..sun, svaka vrednost tekst do 60 znakova (ili null)
 create or replace function public.valid_hours(j jsonb) returns boolean
-language sql immutable as $$
+language sql immutable
+set search_path = public as $$
   select j is null or (
     jsonb_typeof(j) = 'object'
     and pg_column_size(j) <= 1024
@@ -40,7 +43,8 @@ $$;
 
 -- društvene mreže: najviše ovih 5 ključeva, vrednost je http(s) adresa do 300 znakova
 create or replace function public.valid_socials(j jsonb) returns boolean
-language sql immutable as $$
+language sql immutable
+set search_path = public as $$
   select j is null or (
     jsonb_typeof(j) = 'object'
     and pg_column_size(j) <= 2048
@@ -54,7 +58,8 @@ $$;
 
 -- tim: niz do 30 članova {name, role}, do 8 KB
 create or replace function public.valid_team(j jsonb) returns boolean
-language sql immutable as $$
+language sql immutable
+set search_path = public as $$
   select j is null or (
     jsonb_typeof(j) = 'array'
     and jsonb_array_length(j) <= 30
@@ -71,7 +76,8 @@ $$;
 
 -- izmena na čekanju: oblik zavisi od polja
 create or replace function public.valid_change(f text, v jsonb) returns boolean
-language sql immutable as $$
+language sql immutable
+set search_path = public as $$
   select pg_column_size(v) <= 20480 and case f
     when 'name'    then jsonb_typeof(v) = 'string' and char_length(v #>> '{}') between 2 and 150
     when 'address' then jsonb_typeof(v) = 'string' and char_length(v #>> '{}') between 3 and 200
