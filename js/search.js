@@ -481,6 +481,7 @@ function renderResults(opts){
   const fitPoints = queryAsCity()
     ? list.filter(c => cityRank(c) === 0 && hasVerifiedCoords(c)).map(c => [c.lat, c.lng])
     : points;
+  lastFitPoints = fitPoints;
 
   // "Pretraži dok pomeram mapu" bez ordinacija u vidljivom delu: mapa NE sme da nestane.
   // Prikazuje se samo baner preko mape (sa dugmetom "Prikaži sve rezultate"); mapa ostaje
@@ -739,6 +740,7 @@ function centerOnNearestPremium(){
   }
 }
 
+let lastFitPoints = [];
 let pendingCardId = null;
 let highlightTimer = null;
 
@@ -858,6 +860,32 @@ function applyUserLocation(lat, lng){
       // na nju umesto na "goli" GPS centar korisnika — daje kontekst
       // (susedne ordinacije oko nje) i ističe premium oglase.
       setTimeout(centerOnNearestPremium, 50);
+      ensureNearView();
+}
+
+// "Blizu mene": mapa se mora naći na okviru ordinacija u blizini (ne na početnom prikazu Srbije), a na telefonu
+// stranica se pomera tako da je mapa odmah u vidokrugu. Okvir se ponavlja još par puta (sporiji telefoni, raspored
+// koji se menja dok se učitavaju fontovi/slike), osim ako korisnik u međuvremenu sam pomeri ili zumira mapu.
+function ensureNearView(){
+  if(!leafletMap || !userLocation || viewMode !== 'map') return;
+  let userMoved = false;
+  const stop = () => { userMoved = true; };
+  leafletMap.once('dragstart', stop);
+  leafletMap.once('mousedown touchstart', stop);
+  const refit = () => {
+    if(userMoved || !userLocation || viewMode !== 'map') return;
+    leafletMap.invalidateSize();
+    fitMapToPoints(lastFitPoints);
+  };
+  [120, 500, 1200].forEach(ms => setTimeout(refit, ms));
+  if(window.innerWidth <= MOBILE_BREAKPOINT){
+    setTimeout(() => {
+      const target = document.getElementById('mapSplit');
+      if(!target || userMoved) return;
+      const top = target.getBoundingClientRect().top + window.scrollY - 150;
+      window.scrollTo({top: Math.max(0, top), behavior: 'auto'});
+    }, 150);
+  }
 }
 
 // Dolazak sa početne ("Blizu mene"): lokacija je tamo već tražena klikom i sačuvana na kratko.
