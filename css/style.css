@@ -1114,7 +1114,7 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 }
 @media(max-width:640px){
   .home{font-size:16.5px;}
-  .home-hero{background-position:78% center;padding:28px 0 56px;min-height:calc(100vh - 76px);min-height:calc(100svh - 76px);display:flex;flex-direction:column;justify-content:center;}
+  .home-hero{background-position:86% 40%;padding:32px 0 36px;min-height:min(calc(100vh - 76px),540px);min-height:min(calc(100svh - 76px),540px);display:flex;flex-direction:column;justify-content:center;}
   .home-hero h1{font-size:clamp(28px,8.4vw,34px);line-height:1.12;margin:0 0 12px;}
   .home-lead{font-size:15.5px;line-height:1.5;margin:0 0 20px;}
   .home-lead-more{display:none;}
