@@ -242,10 +242,15 @@
   }
 
   /* ------------------------------------------------------------------ okvir */
+  // render() se može pozvati istovremeno više puta (odmah i ponovo na SIGNED_IN pri povratku sa magic linka):
+  // stariji pozivi se posle svakog čekanja odbacuju, pa se prikaz ne duplira.
+  let renderSeq = 0;
   async function render(){
+    const seq = ++renderSeq;
     app.textContent = '';
     if(!sb){ app.appendChild(el('div', {class:'info-card'}, 'Nedostupno.')); return; }
     const user = await getOwnerUser();
+    if(seq !== renderSeq) return;
     if(!user){
       const box = el('div', {class:'info-card'}, [el('h3', {}, 'Prijava'), el('div', {id:'loginBox'})]);
       app.appendChild(box);
@@ -257,6 +262,7 @@
     const head = el('div', {style:'display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;'}, [
       el('div', {}, ['Prijavljeni ste kao ', el('strong', {}, user.email || '')]), out]);
     const { data: isAdmin, error } = await sb.rpc('is_admin');
+    if(seq !== renderSeq) return;
     if(error || isAdmin !== true){
       app.appendChild(head);
       app.appendChild(el('div', {class:'info-card'}, [el('h3', {}, 'Nemate pristup'), el('p', {style:'margin:0;'}, 'Ovaj nalog nije administratorski.')]));
@@ -277,6 +283,7 @@
     content.textContent = 'Učitavanje…';
     const view = tab === 'claims' ? viewClaims : tab === 'changes' ? viewChanges : viewProfiles;
     const nodes = await view();
+    if(seq !== renderSeq) return;
     content.textContent = '';
     nodes.forEach(n => content.appendChild(n));
   }
