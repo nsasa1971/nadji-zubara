@@ -47,30 +47,41 @@
     return el('div', {class:'info-card'}, kids);
   }
 
+  // render() se može pozvati više puta istovremeno (odmah pri učitavanju i ponovo kad Supabase javi
+  // SIGNED_IN, npr. pri povratku sa magic linka). Svaki poziv gradi sadržaj odvojeno (u fragmentu) i
+  // upisuje ga samo ako je i dalje najnoviji; stariji pozivi se odbacuju, pa nema dupliranih kartica.
+  let renderSeq = 0;
   async function render(){
-    app.textContent = '';
-    if(!sb){ app.appendChild(el('div', {class:'info-card'}, 'Ova funkcija trenutno nije dostupna.')); return; }
+    const seq = ++renderSeq;
+    const out = document.createDocumentFragment();
+    const commit = () => { if(seq === renderSeq){ app.textContent = ''; app.appendChild(out); } };
+    if(!sb){ out.appendChild(el('div', {class:'info-card'}, 'Ova funkcija trenutno nije dostupna.')); commit(); return; }
     const user = await getOwnerUser();
+    if(seq !== renderSeq) return;
     if(!user){
       const box = el('div', {class:'info-card'}, [el('h3', {}, 'Prijava'), el('div', {id:'loginBox'})]);
-      app.appendChild(box);
+      out.appendChild(box);
       renderLoginForm(box.querySelector('#loginBox'), 'moj-nalog.html', 'Unesite e-adresu — poslaćemo vam link za prijavu. Lozinka nije potrebna.');
+      commit();
       return;
     }
-    const out = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Odjavi se');
-    out.addEventListener('click', async () => { await ownerSignOut(); render(); });
-    app.appendChild(el('div', {style:'display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;'}, [
-      el('div', {}, ['Prijavljeni ste kao ', el('strong', {}, user.email || '')]), out
+    const logout = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Odjavi se');
+    logout.addEventListener('click', async () => { await ownerSignOut(); render(); });
+    out.appendChild(el('div', {style:'display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px;'}, [
+      el('div', {}, ['Prijavljeni ste kao ', el('strong', {}, user.email || '')]), logout
     ]));
     const { data, error } = await sb.from('claims')
       .select('id, clinic_id, status, requested_at, claimed_at, decided_at, notes, admin_note, verification_code')
       .order('requested_at', {ascending:false});
-    if(error){ app.appendChild(el('div', {class:'info-card'}, 'Podaci trenutno nisu dostupni. Pokušajte ponovo kasnije.')); return; }
+    if(seq !== renderSeq) return;
+    if(error){ out.appendChild(el('div', {class:'info-card'}, 'Podaci trenutno nisu dostupni. Pokušajte ponovo kasnije.')); commit(); return; }
     if(!data.length){
-      app.appendChild(el('div', {class:'info-card'}, [el('p', {style:'margin:0 0 12px;'}, 'Nemate nijedan zahtev. Pronađite svoju ordinaciju i kliknite „Ovo je moja ordinacija“.'), el('a', {class:'btn btn-primary', href:'pretraga.html'}, 'Pronađi ordinaciju')]));
+      out.appendChild(el('div', {class:'info-card'}, [el('p', {style:'margin:0 0 12px;'}, 'Nemate nijedan zahtev. Pronađite svoju ordinaciju i kliknite „Ovo je moja ordinacija“.'), el('a', {class:'btn btn-primary', href:'pretraga.html'}, 'Pronađi ordinaciju')]));
+      commit();
       return;
     }
-    data.forEach(c => app.appendChild(claimCard(c)));
+    data.forEach(c => out.appendChild(claimCard(c)));
+    commit();
   }
 
   if(sb) sb.auth.onAuthStateChange((evt) => { if(evt === 'SIGNED_IN') setTimeout(render, 0); });
