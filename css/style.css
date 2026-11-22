@@ -1114,9 +1114,9 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 }
 @media(max-width:640px){
   .home{font-size:16.5px;}
-  .home-hero{padding:22px 0 20px;}
-  .home-hero h1{font-size:clamp(25px,7.4vw,30px);line-height:1.12;margin:0 0 8px;}
-  .home-lead{font-size:14px;line-height:1.45;margin:0 0 12px;}
+  .home-hero{background-position:78% center;padding:28px 0 56px;min-height:calc(100vh - 76px);min-height:calc(100svh - 76px);display:flex;flex-direction:column;justify-content:center;}
+  .home-hero h1{font-size:clamp(28px,8.4vw,34px);line-height:1.12;margin:0 0 12px;}
+  .home-lead{font-size:15.5px;line-height:1.5;margin:0 0 20px;}
   .home-lead-more{display:none;}
   .home-search,.home-search:has(#heroServiceField:not([hidden])){grid-template-columns:1fr 1fr;gap:8px;padding:10px;border-radius:16px;}
   .home-field{grid-column:1/-1;}
