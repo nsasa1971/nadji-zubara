@@ -14,7 +14,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="img/ordinacija-cover.webp" fetchpriority="high">
+<link rel="preload" as="image" href="img/hero-ordinacija.jpg" media="(min-width:641px)" fetchpriority="high">
+<link rel="preload" as="image" href="img/hero-ordinacija-mobile.jpg" media="(max-width:640px)" fetchpriority="high">
 <link rel="stylesheet" href="css/style.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Nađi Zubara","url":"https://nadjizubara.rs/","logo":"https://nadjizubara.rs/img/logo.webp"}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Nađi Zubara","url":"https://nadjizubara.rs/","potentialAction":{"@type":"SearchAction","target":"https://nadjizubara.rs/pretraga.html?q={search_term_string}","query-input":"required name=search_term_string"}}</script>
@@ -48,28 +49,28 @@
 <main class="home">
 
 <section class="home-hero">
-  <!-- NAPOMENA: privremeno postojeća fotografija; kad stignu hero-ordinacija.jpg (1500x450) i hero-ordinacija-mobile.jpg (640x450),
-       zameniti src/srcset i width/height ispod. -->
-  <picture class="home-hero-pic">
-    <source media="(max-width:640px)" srcset="img/ordinacija-cover.webp" width="1200" height="642">
-    <img src="img/ordinacija-cover.webp" width="1200" height="642" alt="Stomatolog i pacijent u ordinaciji" fetchpriority="high" decoding="async">
-  </picture>
-  <div class="container">
-    <h1>Gde vam je potreban <span class="home-ul">zubar<svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M2 9c14-8 24 6 38-1s24 5 38-1 24 5 38-1 24 5 38-1 24 4 44 0" fill="none" stroke="#FF6F59" stroke-width="4" stroke-linecap="round"/></svg></span>?</h1>
-    <p class="home-lead">Ovde su adrese i telefoni stomatoloških ordinacija iz cele Srbije. Izaberite grad, pogledajte ko je blizu i pozovite.</p>
+  <div class="container home-hero-grid">
+    <div class="home-hero-text">
+      <h1>Gde vam je potreban <span class="home-ul">zubar<svg viewBox="0 0 200 14" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M2 9c14-8 24 6 38-1s24 5 38-1 24 5 38-1 24 5 38-1 24 4 44 0" fill="none" stroke="#FF6F59" stroke-width="4" stroke-linecap="round"/></svg></span>?</h1>
+      <p class="home-lead">Ovde su adrese i telefoni stomatoloških ordinacija iz cele Srbije. Izaberite grad, pogledajte ko je blizu i pozovite.</p>
 
-    <form class="home-search" id="heroSearchForm" action="pretraga.html" method="get">
-      <label class="home-field"><span class="home-lbl">Grad</span>
-        <span class="home-control"><select name="city"><option value="">Svi gradovi</option></select></span></label>
-      <label class="home-field" id="heroServiceField" hidden><span class="home-lbl">Usluga</span>
-        <span class="home-control"><select name="service"><option value="">Sve usluge</option></select></span></label>
-      <label class="home-field"><span class="home-lbl">Ime ordinacije</span>
-        <span class="home-control"><input type="text" name="q" placeholder="Npr. Dental, dr Petrović" maxlength="80"></span></label>
-      <button type="submit" class="btn btn-primary home-go">Traži</button>
-      <button type="button" class="btn home-near" id="heroNearBtn">Blizu mene</button>
-    </form>
-    <p class="home-near-msg" id="heroNearMsg" role="status" hidden></p>
-    <p class="home-count" id="homeCount" hidden>Do sada smo upisali <b id="statOrdinacije"></b> ordinacija u <b id="statGradovi"></b> gradova.</p>
+      <form class="home-search" id="heroSearchForm" action="pretraga.html" method="get">
+        <label class="home-field"><span class="home-lbl">Grad</span>
+          <span class="home-control"><select name="city"><option value="">Svi gradovi</option></select></span></label>
+        <label class="home-field" id="heroServiceField" hidden><span class="home-lbl">Usluga</span>
+          <span class="home-control"><select name="service"><option value="">Sve usluge</option></select></span></label>
+        <label class="home-field home-field-name"><span class="home-lbl">Ime ordinacije</span>
+          <span class="home-control"><input type="text" name="q" placeholder="Npr. Dental, dr Petrović" maxlength="80"></span></label>
+        <button type="submit" class="btn btn-primary home-go">Traži</button>
+        <button type="button" class="btn home-near" id="heroNearBtn">Blizu mene</button>
+      </form>
+      <p class="home-near-msg" id="heroNearMsg" role="status" hidden></p>
+      <p class="home-count" id="homeCount" hidden>Do sada smo upisali <b id="statOrdinacije"></b> ordinacija u <b id="statGradovi"></b> gradova.</p>
+    </div>
+    <picture class="home-hero-pic">
+      <source media="(max-width:640px)" srcset="img/hero-ordinacija-mobile.jpg" width="640" height="450">
+      <img src="img/hero-ordinacija.jpg" width="1500" height="450" alt="Devojka drži telefon sa aplikacijom Nađi Zubara" fetchpriority="high" decoding="async">
+    </picture>
   </div>
 </section>
 
@@ -181,6 +182,11 @@
       <h2>Radite u ordinaciji?</h2>
       <p>Vaša ordinacija je verovatno već upisana, ali podaci mogu biti stari ili nepotpuni. Preuzmite profil i ispravite ih sami: telefon, radno vreme, usluge, opis i fotografije.</p>
       <p class="home-owners-note">Ordinacije koje preuzmu profil imaju prvih 6 meseci besplatno od dana preuzimanja. Plaćeni paketi biće objavljeni kasnije.</p>
+      <ul class="home-adv">
+        <li><span class="home-adv-ic ic-poboljsajte" aria-hidden="true"></span>Ispravite podatke</li>
+        <li><span class="home-adv-ic ic-pruzite" aria-hidden="true"></span>Dodajte radno vreme, usluge i slike</li>
+        <li><span class="home-adv-ic ic-oglasite" aria-hidden="true"></span>Budite vidljivi pacijentima u svom gradu</li>
+      </ul>
       <div class="home-owners-actions">
         <a href="pretraga.html" class="btn btn-primary">Pronađite svoju ordinaciju</a>
         <a href="kontakt.html?subject=netacan-podatak" class="btn home-ghost-light">Prijavi netačan podatak</a>
