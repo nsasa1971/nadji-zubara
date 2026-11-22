@@ -181,7 +181,11 @@ function bindEvents(){
     document.querySelectorAll('.service-checkbox').forEach(cb=>cb.checked=false);
     applyFilters(true);
   });
-  document.getElementById('sortSelect').addEventListener('change', ()=>applyFilters(false));
+  document.getElementById('sortSelect').addEventListener('change', ()=>{
+    applyFilters(false);
+    // "Najbliže meni" bez poznate lokacije: tražimo je (dozvola se pita tek sada); poredak se menja kad stigne
+    if(document.getElementById('sortSelect').value === 'distance' && !userLocation) requestUserLocation();
+  });
   document.getElementById('openNowFilter').addEventListener('change', ()=>applyFilters(true));
   document.getElementById('verifiedFilter').addEventListener('change', ()=>applyFilters(true));
 
@@ -820,10 +824,23 @@ function bindMapListHover(container, list){
 
 /* ---------- Geolokacija korisnika ---------- */
 
+// Lokacija nije dostupna: sortiranje "Najbliže meni" se ne može primeniti, pa se vraća na preporučeno
+// (da padajući meni ne pokazuje poredak koji se ne primenjuje); baner objašnjava razlog.
+function revertDistanceSort(){
+  if(userLocation || currentFilters.sort !== 'distance') return;
+  currentFilters.sort = 'recommended';
+  const sel = document.getElementById('sortSelect');
+  if(sel) sel.value = 'recommended';
+  renderResults({fitMap:false});
+  const b = document.getElementById('locationBanner');
+  if(b && b.getBoundingClientRect().top < 0) b.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
 function requestUserLocation(){
   if(!navigator.geolocation){
     locationState = 'unavailable';
     renderLocationBanner();
+    revertDistanceSort();
     return;
   }
   locationState = 'requesting';
@@ -834,6 +851,7 @@ function requestUserLocation(){
     () => {
       locationState = 'denied';
       renderLocationBanner();
+      revertDistanceSort();
     },
     {enableHighAccuracy:true, timeout:8000, maximumAge:300000}
   );
