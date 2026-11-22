@@ -64,6 +64,65 @@
     $('statOrdinacije').textContent = fmt(all.length);
     $('statGradovi').textContent = fmt(cityNames.length);
     line.hidden = false;
+    countUp($('statOrdinacije'), all.length, line);
+    countUp($('statGradovi'), cityNames.length, line);
+  }
+
+  // brojevi se brzo "dobroje" kad traka prvi put uđe u vidno polje; bez animacije ostaje krajnja vrednost
+  function countUp(el, target, trigger){
+    if(!el || !('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const io = new IntersectionObserver(es => {
+      if(!es.some(e => e.isIntersecting)) return;
+      io.disconnect();
+      const t0 = performance.now(), dur = 900;
+      (function step(now){
+        const k = Math.min(1, (now - t0) / dur), v = Math.round(target * (1 - Math.pow(1 - k, 3)));
+        el.textContent = fmt(v);
+        if(k < 1) requestAnimationFrame(step); else el.textContent = fmt(target);
+      })(t0);
+    }, {threshold: .4});
+    io.observe(trigger);
+  }
+
+  // pojavljivanje elemenata pri skrolu (opacity + transform); bez JS-a / uz reduced-motion sve je odmah vidljivo
+  function initReveal(){
+    const d = document.documentElement;
+    if(!d.classList.contains('js-anim')) return;
+    const els = Array.from(document.querySelectorAll('[data-reveal]'));
+    const io = new IntersectionObserver(es => {
+      es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('is-in'); io.unobserve(e.target); } });
+    }, {rootMargin: '0px 0px -8% 0px', threshold: .08});
+    els.forEach(el => {
+      const sib = Array.from(el.parentElement.children).filter(c => c.hasAttribute('data-reveal'));
+      el.style.setProperty('--d', Math.min(sib.indexOf(el), 5) * 70 + 'ms');
+      io.observe(el);
+    });
+    d.setAttribute('data-fx-ready', '1');
+  }
+
+  // glatko otvaranje/zatvaranje FAQ (Web Animations API; bez animacije uz reduced-motion)
+  function initFaq(){
+    if(matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    document.querySelectorAll('.home-faq-item').forEach(det => {
+      const sum = det.querySelector('summary'), body = det.querySelector('.home-faq-a');
+      if(!sum || !body || !body.animate) return;
+      let anim = null;
+      sum.addEventListener('click', e => {
+        e.preventDefault();
+        if(anim) anim.cancel();
+        if(!det.open){
+          det.open = true;
+          const h = body.offsetHeight;
+          anim = body.animate({height:['0px', h + 'px'], opacity:[0,1]}, {duration:220, easing:'ease-out'});
+          anim.onfinish = anim.oncancel = () => { anim = null; };
+        } else {
+          const h = body.offsetHeight;
+          anim = body.animate({height:[h + 'px','0px'], opacity:[1,0]}, {duration:180, easing:'ease-in'});
+          anim.onfinish = () => { det.open = false; anim = null; };
+          anim.oncancel = () => { anim = null; };
+        }
+      });
+    });
   }
 
   function initCities(all, cityNames){
@@ -127,6 +186,8 @@
       initServices();
       initClaimed(all);
     } catch(e){ /* stranica ostaje upotrebljiva i bez dinamičkog dela */ }
+    initFaq();
+    initReveal();
     document.querySelectorAll('[data-icon]').forEach(n => { const k = n.getAttribute('data-icon'); if(typeof ICONS !== 'undefined' && ICONS[k] && !n.innerHTML) n.innerHTML = ICONS[k]; });
   }
   document.addEventListener('DOMContentLoaded', () => (window.profilesReady || Promise.resolve()).then(init));
