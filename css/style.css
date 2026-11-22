@@ -1114,7 +1114,8 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 }
 @media(max-width:640px){
   .home{font-size:16.5px;}
-  .home-hero{background-position:86% 40%;padding:32px 0 36px;min-height:min(calc(100vh - 76px),540px);min-height:min(calc(100svh - 76px),540px);display:flex;flex-direction:column;justify-content:center;}
+  .home-hero{background:linear-gradient(180deg,rgba(6,25,45,0) 30%,rgba(6,25,45,.5) 100%),url('../img/hero-mobile.webp') 64% top/cover no-repeat;background-color:#0b3a66;padding:28px 0 28px;min-height:calc(100vh - 76px);min-height:calc(100svh - 76px);display:flex;flex-direction:column;justify-content:flex-end;}
+  .home-hero h1,.home-lead{text-shadow:0 1px 14px rgba(4,20,40,.55);}
   .home-hero h1{font-size:clamp(28px,8.4vw,34px);line-height:1.12;margin:0 0 12px;}
   .home-lead{font-size:15.5px;line-height:1.5;margin:0 0 20px;}
   .home-lead-more{display:none;}
@@ -1144,5 +1145,6 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
   .home-owners-actions{grid-template-columns:1fr;}
   .home-adv{grid-template-columns:1fr;gap:10px;margin-top:16px;}
 }
+@media(max-width:640px) and (max-height:700px){.home-hero{padding-bottom:48px;}}
 /* atribut hidden mora da važi i za home-* elemente koji imaju sopstveni display */
 .home-field[hidden],.home-strip[hidden],.home-allcities[hidden],.home-near-msg[hidden],.home-tile-count[hidden],.home-tile-all[hidden],#preuzeti[hidden]{display:none !important;}
