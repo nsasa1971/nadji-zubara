@@ -69,7 +69,7 @@
   function initCities(all, cityNames){
     const byCity = {};
     all.forEach(c => { byCity[c.city] = (byCity[c.city] || 0) + 1; });
-    document.querySelectorAll('.home-tile-count[data-city]').forEach(n => {
+    document.querySelectorAll('.home-city-count[data-city]').forEach(n => {
       const k = byCity[n.getAttribute('data-city')];
       if(k){ n.textContent = fmt(k) + ' ' + ordWord(k); n.hidden = false; }
     });
@@ -100,7 +100,7 @@
   function initClaimed(all){
     const sec = $('preuzeti'), box = $('claimedByCity');
     if(!sec || !box) return;
-    const cities = Array.from(document.querySelectorAll('.home-tile[href] .home-tile-count[data-city]')).map(n => n.getAttribute('data-city'));
+    const cities = Array.from(document.querySelectorAll('.home-city[href] .home-city-count[data-city]')).map(n => n.getAttribute('data-city'));
     let shown = 0;
     cities.forEach(city => {
       const list = all.filter(c => c.claimed && c.city === city)

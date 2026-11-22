@@ -4,7 +4,7 @@
   {
    "slug": "koliko-cesto-ici-kod-stomatologa",
    "title": "Koliko često treba ići kod stomatologa",
-   "description": "Koliko često su preporučeni kontrolni pregledi, šta se na njima radi i kada ne treba čekati zakazani termin.",
+   "description": "Koliko često ići na kontrolu, šta se radi na pregledu i kada ne treba čekati zakazani termin.",
    "date": "2026-11-20",
    "service": "dijagnostika-preventiva",
    "sections": [
@@ -41,7 +41,7 @@
   {
    "slug": "kako-izabrati-stomatolosku-ordinaciju",
    "title": "Kako izabrati stomatološku ordinaciju",
-   "description": "Na šta da obratite pažnju pri izboru ordinacije: lokacija, usluge, radno vreme, komunikacija i cena unapred.",
+   "description": "Na šta da obratite pažnju pri izboru ordinacije: lokacija, usluge, radno vreme, komunikacija i okvirna cena unapred.",
    "date": "2026-11-20",
    "service": "dijagnostika-preventiva",
    "sections": [
@@ -125,7 +125,7 @@
   {
    "slug": "zubobolja-kada-hitno-kod-stomatologa",
    "title": "Zubobolja: kada ne treba čekati",
-   "description": "Znaci da je potrebno odmah da se javite stomatologu ili hitnoj službi, i šta ne treba raditi dok ne dođete do pregleda.",
+   "description": "Znakovi koji znače da se odmah javite stomatologu ili hitnoj službi, i šta ne treba raditi dok ne dođete do pregleda.",
    "date": "2026-11-20",
    "service": "bolesti-zuba-endodoncija",
    "sections": [
