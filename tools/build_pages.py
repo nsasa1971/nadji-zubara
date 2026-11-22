@@ -35,7 +35,7 @@ from urllib.parse import quote
 
 # ---------------------------------------------------------------------------
 # Jedino mesto gde se definiše adresa sajta.
-BASE_URL = "https://nadjizubara.netlify.app"
+BASE_URL = "https://nadjizubara.rs"
 # ---------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
