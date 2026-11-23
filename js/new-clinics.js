@@ -14,7 +14,14 @@ const NEWC = (function(){
   // Isto pravilo kao clean_text / clean_free_text u bazi (migracije 30 i 50).
   const URLISH = /https?:|www\.|\.(com|rs|net|org|info|biz|eu|co|me|io|app|shop|online|site)(\b|\/)/i;
   function cleanText(t){ return typeof t === 'string' && !URLISH.test(t) && t.indexOf('@') < 0 && t.replace(/[^0-9]/g, '').length < 6; }
-  function cleanFreeText(t){ return typeof t === 'string' && !URLISH.test(t) && t.indexOf('@') < 0 && !/[0-9][0-9 ./()-]{5,}[0-9]/.test(t); }
+  // Pre provere telefona maskiraju se datumi (12.03.1998, 1998-03-12) i rasponi godina (1998-2005), kao u bazi (migracija 60).
+  function cleanFreeText(t){
+    if(typeof t !== 'string' || URLISH.test(t) || t.indexOf('@') >= 0) return false;
+    const m = t.replace(/\b[0-9]{1,2}[./-][0-9]{1,2}[./-](19|20)[0-9]{2}\.?/g, ' ')
+               .replace(/\b(19|20)[0-9]{2}-[0-9]{1,2}-[0-9]{1,2}\b/g, ' ')
+               .replace(/\b(19|20)[0-9]{2}\s?[-–—]\s?((19|20)[0-9]{2}|[0-9]{2})\b/g, ' ');
+    return !/[0-9][0-9 ./()-]{5,}[0-9]/.test(m);
+  }
 
   const ERR = {
     rate_limit: 'Sa ove e-adrese je već poslato nekoliko zahteva u poslednjih 24 sata. Pokušajte kasnije ili nam pišite na info@nadjizubara.rs.',
