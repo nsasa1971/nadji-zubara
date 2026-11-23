@@ -19,7 +19,8 @@
     owner_not_verified:'Podnosilac izmene nije (više) verifikovan vlasnik ove ordinacije.',
     no_pending_images:'Nijedna slika iz izmene više ne čeka (vlasnik ih je uklonio).',
     profile_not_found:'Profil ne postoji.',
-    image_not_found:'Slika nije pronađena među odobrenima.'
+    image_not_found:'Slika nije pronađena među odobrenima.',
+    invalid_period:'Nedozvoljen period (mesec ili godina).'
   };
   function errText(error){
     const m = (error && error.message) || '';
@@ -27,6 +28,7 @@
     return 'Radnja nije uspela: ' + (m || 'nepoznata greška');
   }
   function fmtDate(d){ return d ? new Date(d).toLocaleString('sr-Latn-RS', {day:'numeric', month:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'}) : ''; }
+  function fmtDay(d){ return d ? new Date(d).toLocaleDateString('sr-Latn-RS', {day:'numeric', month:'numeric', year:'numeric'}) : ''; }
   const FIELD = {name:'Naziv', address:'Adresa', team:'Tim', images:'Slike'};
   const CLAIM_STATUS = {pending:['Na čekanju','chip-pending'], verified:['Verifikovano','chip-open'], rejected:['Odbijeno','chip-closed'], revoked:['Opozvano','chip-closed']};
 
@@ -44,6 +46,11 @@
       const ok = el('button', {type:'button', class:'btn btn-primary'}, opts.confirmLabel || 'Potvrdi');
       const cancel = el('button', {type:'button', class:'btn btn-outline-navy'}, 'Otkaži');
       const kids = [el('h3', {id:'dlgTitle', style:'margin:0 0 8px;'}, opts.title), el('p', {style:'margin:0 0 12px;'}, opts.text)];
+      let choice = null;
+      if(opts.choices){
+        choice = el('select', {id:'dlgChoice'}, opts.choices.map(c => el('option', {value:c.value}, c.label)));
+        kids.push(el('div', {class:'form-field'}, [el('label', {for:'dlgChoice'}, opts.choiceLabel || 'Izbor'), choice]));
+      }
       if(opts.noteMode && opts.noteMode !== 'none'){
         kids.push(el('div', {class:'form-field'}, [el('label', {for:'dlgNote'}, opts.noteMode === 'required' ? 'Napomena (obavezna)' : 'Napomena (nije obavezna)'), note]));
       }
@@ -58,10 +65,10 @@
       ok.addEventListener('click', () => {
         const v = note.value.trim();
         if(opts.noteMode === 'required' && !v){ err.textContent = 'Napomena je obavezna.'; note.focus(); return; }
-        close({ok:true, note: v || null});
+        close({ok:true, note: v || null, choice: choice ? choice.value : null});
       });
       document.body.appendChild(overlay);
-      (opts.noteMode && opts.noteMode !== 'none' ? note : cancel).focus();
+      (opts.noteMode && opts.noteMode !== 'none' ? note : (choice || cancel)).focus();
     });
   }
 
@@ -213,27 +220,65 @@
       return el('div', {class:'owner-thumb'}, kids);
     }));
   }
+  // rok profila: filter i sortiranje (stanje se pamti dok je stranica otvorena)
+  let profFilter = 'all', profSort = 'recent';
+  const DAY_MS = 86400000;
+  function daysLeft(exp){ return Math.ceil((new Date(exp).getTime() - Date.now()) / DAY_MS); }
+  function expiryText(exp){
+    if(!exp) return '— (nema verifikovanog zahteva)';
+    const d = daysLeft(exp);
+    return fmtDay(exp) + (d > 0 ? ' (za ' + d + (d === 1 ? ' dan)' : ' dana)') : ' (istekao pre ' + Math.max(1, -d) + (Math.max(1, -d) === 1 ? ' dan)' : ' dana)'));
+  }
   async function viewProfiles(){
     const out = [];
     const { data, error } = await sb.rpc('admin_list_profiles');
     if(error){ out.push(el('div', {class:'info-card'}, errText(error))); return out; }
-    if(!data.length) out.push(el('div', {class:'info-card'}, 'Još nijedan profil nije objavljen.'));
-    for(const p of data){
+    if(!data.length){ out.push(el('div', {class:'info-card'}, 'Još nijedan profil nije objavljen.')); return out; }
+    const mkSel = (id, label, cur, opts, set) => {
+      const sel = el('select', {id, 'aria-label':label}, opts.map(([v, l]) => { const o = el('option', {value:v}, l); if(v === cur) o.selected = true; return o; }));
+      sel.addEventListener('change', () => { set(sel.value); render(); });
+      return sel;
+    };
+    out.push(el('div', {style:'display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;'}, [
+      mkSel('profFilter', 'Filter roka', profFilter, [['all','Svi profili'],['soon','Ističu u narednih 30 dana'],['expired','Istekli']], v => { profFilter = v; }),
+      mkSel('profSort', 'Sortiranje', profSort, [['recent','Poslednja izmena'],['expiry','Najpre ističu (po isteku)']], v => { profSort = v; })
+    ]));
+    const now = Date.now();
+    let list = data.slice();
+    if(profFilter === 'soon') list = list.filter(p => p.expires_at && new Date(p.expires_at).getTime() > now && new Date(p.expires_at).getTime() <= now + 30 * DAY_MS);
+    if(profFilter === 'expired') list = list.filter(p => p.expires_at && new Date(p.expires_at).getTime() <= now);
+    if(profSort === 'expiry') list.sort((a, b) => (a.expires_at ? new Date(a.expires_at).getTime() : Infinity) - (b.expires_at ? new Date(b.expires_at).getTime() : Infinity));
+    if(!list.length) out.push(el('div', {class:'info-card'}, 'Nema profila za izabrani filter.'));
+    for(const p of list){
       const info = clinicInfo(p.clinic_id);
       const published = p.status === 'published';
+      const expired = !!p.expires_at && new Date(p.expires_at).getTime() <= now;
+      const soon = !!p.expires_at && !expired && daysLeft(p.expires_at) <= 30;
       const kids = [
         el('div', {style:'display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap;'}, [
           el('div', {}, [el('strong', {}, p.name || info.name), el('div', {style:'color:var(--muted);font-size:14px;'}, p.address || info.address)]),
-          chip(published ? 'Objavljen' : 'Sakriven', published ? 'chip-open' : 'chip-closed')]),
-        row('Vlasnik', p.owner_email || '— (nema verifikovanog)'), row('Odobrene slike', String(p.approved_images)), row('Poslednja izmena', fmtDate(p.updated_at))
+          el('div', {style:'display:flex;gap:6px;flex-wrap:wrap;'}, [
+            chip(published ? 'Objavljen' : 'Sakriven', published ? 'chip-open' : 'chip-closed'),
+            expired ? chip('Istekao', 'chip-closed') : (soon ? chip('Ističe uskoro', 'chip-pending') : null)].filter(Boolean))]),
+        row('Vlasnik', p.owner_email || '— (nema verifikovanog)'),
+        row('Ističe', expiryText(p.expires_at)),
+        row('Besplatno do / plaćeno do', (p.valid_until ? fmtDay(p.valid_until) : '—') + ' / ' + (p.paid_until ? fmtDay(p.paid_until) : '—')),
+        row('Odobrene slike', String(p.approved_images)), row('Poslednja izmena', fmtDate(p.updated_at))
       ];
       const btns = [
         actionBtn(published ? 'Sakrij' : 'Objavi', published ? 'btn-outline-navy' : 'btn-primary', async () => {
           const r = await confirmDialog({title: published ? 'Sakriti profil?' : 'Objaviti profil?', text: published ? 'Profil „' + info.name + '“ se skriva sa sajta (prikazuju se uvezeni podaci).' : 'Profil „' + info.name + '“ postaje javno vidljiv.', noteMode:'none', confirmLabel: published ? 'Sakrij' : 'Objavi'});
           if(r.ok) await run(() => sb.rpc('admin_set_profile_status', {p_clinic_id:p.clinic_id, p_status: published ? 'hidden' : 'published'}), published ? 'Profil je sakriven.' : 'Profil je objavljen.');
-        }),
-        actionBtn(openImages[p.clinic_id] ? 'Sakrij slike' : 'Slike (' + p.approved_images + ')', 'btn-outline-navy', async () => { openImages[p.clinic_id] = !openImages[p.clinic_id]; await render(); })
+        })
       ];
+      if(p.expires_at){
+        btns.push(actionBtn('Označi plaćeno', 'btn-primary', async () => {
+          const r = await confirmDialog({title:'Označiti kao plaćeno?', text:'Profil „' + info.name + '“ ostaje potpun do izabranog roka. Period se računa od trenutnog isteka (ili od danas ako je već istekao).',
+            noteMode:'none', confirmLabel:'Označi plaćeno', choiceLabel:'Period', choices:[{value:'month', label:'Mesec dana'},{value:'year', label:'Godinu dana'}]});
+          if(r.ok) await run(() => sb.rpc('admin_mark_paid', {p_clinic_id:p.clinic_id, p_period:r.choice === 'year' ? 'year' : 'month'}), 'Plaćanje je evidentirano.');
+        }));
+      }
+      btns.push(actionBtn(openImages[p.clinic_id] ? 'Sakrij slike' : 'Slike (' + p.approved_images + ')', 'btn-outline-navy', async () => { openImages[p.clinic_id] = !openImages[p.clinic_id]; await render(); }));
       kids.push(el('div', {style:'display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;'}, btns));
       if(openImages[p.clinic_id]) kids.push(await approvedImagesBlock(p.clinic_id, info));
       out.push(el('div', {class:'info-card'}, kids));

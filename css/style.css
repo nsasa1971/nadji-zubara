@@ -1185,3 +1185,12 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .pricing-card .plan-desc{flex:none;min-height:0;}
 .pricing-note{margin:0;font-size:14px;font-weight:600;color:var(--primary-dark);}
 @media(max-width:900px){.pricing-grid.two{grid-template-columns:1fr;}}
+
+/* cenovnik: istaknute cene, dugme u kartici, sitan red */
+.price-lines{margin:0 0 20px;display:flex;flex-direction:column;gap:6px;}
+.price-big{font-size:28px;font-weight:800;color:var(--navy);line-height:1.15;}
+.price-big span{font-size:15px;font-weight:600;color:var(--muted);}
+.pricing-card .pricing-card-cta{margin-top:6px;white-space:normal;text-align:center;line-height:1.3;min-height:52px;padding:12px 22px;color:#0B2545;text-wrap:balance;}
+.pricing-fine{margin:14px 0 0;text-align:center;font-size:12.5px;color:var(--muted);}
+@media(max-width:900px){.pricing-card ul{margin-bottom:0;flex:none;}.pricing-card{padding:28px 24px;}.pricing-card .pricing-card-cta{margin-top:22px;}}
+@media(max-width:480px){.price-big{font-size:24px;}}
