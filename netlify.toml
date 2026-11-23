@@ -57,21 +57,21 @@
 [[headers]]
   for = "/preuzmi.html"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://iyyythycaulhdjzhmqzo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://iyyythycaulhdjzhmqzo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
 [[headers]]
   for = "/moj-nalog.html"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://iyyythycaulhdjzhmqzo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://iyyythycaulhdjzhmqzo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
 [[headers]]
   for = "/izmena-profila.html"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://iyyythycaulhdjzhmqzo.supabase.co; connect-src 'self' https://iyyythycaulhdjzhmqzo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://iyyythycaulhdjzhmqzo.supabase.co; connect-src 'self' https://iyyythycaulhdjzhmqzo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
@@ -79,8 +79,31 @@
 [[headers]]
   for = "/admin.html"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://iyyythycaulhdjzhmqzo.supabase.co; connect-src 'self' https://iyyythycaulhdjzhmqzo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://iyyythycaulhdjzhmqzo.supabase.co; connect-src 'self' https://iyyythycaulhdjzhmqzo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
     X-Robots-Tag = "noindex, nofollow"
     Cache-Control = "no-store"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "no-referrer"
+
+# Keš (brzina): fontovi se nikad ne menjaju pod istim imenom (immutable, godinu dana); slike 7 dana; CSS/JS nemaju
+# heš u imenu, pa kratko (1 h, uz osvežavanje u pozadini), da izmene stignu brzo. HTML ostaje na podrazumevanom
+# Netlify ponašanju (uvek provera sveže verzije). Netlify sam uključuje gzip/brotli za html, css, js, json, svg.
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, stale-while-revalidate=86400"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, stale-while-revalidate=86400"

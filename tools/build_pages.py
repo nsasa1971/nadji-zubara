@@ -221,6 +221,8 @@ def chrome():
     return _CHROME
 
 
+FONT_PRELOAD = """<link rel="preload" href="/fonts/montserrat-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/montserrat-latin-ext.woff2" as="font" type="font/woff2" crossorigin>"""
 ICON_LINKS = """<link rel="icon" href="/favicon.ico" sizes="48x48">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -263,9 +265,7 @@ def page(title, description, canonical_path, body, jsonld=None, prev_path=None, 
 <meta property="og:url" content="{esc(canonical)}">
 {OG_IMAGE_META}
 {ICON_LINKS}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+{FONT_PRELOAD}
 <link rel="stylesheet" href="/css/style.css">{ld}
 </head>
 <body>
@@ -573,6 +573,55 @@ def clean_previous(base):
     return removed
 
 
+# ---------------------------------------------------------------------------
+# Početna: brojevi, brojači po gradu, spisak gradova i opcije pretrage se ugrađuju u index.html pri build-u,
+# da početna ne mora da učitava js/imported-clinics.js za prvi prikaz (isti rezultati kao raniji js/home.js).
+SR_ORDER = 'abcčćdđefghijklmnoprsštuvzž'
+
+
+def sr_key(name):
+    t = name.lower()
+    return [SR_ORDER.index(ch) if ch in SR_ORDER else 100 + ord(ch) for ch in t]
+
+
+def fmt_n(n):
+    return f'{n:,}'.replace(',', '.')
+
+
+def ord_word(n):
+    m10, m100 = n % 10, n % 100
+    return 'ordinacije' if (2 <= m10 <= 4 and not (12 <= m100 <= 14)) else 'ordinacija'
+
+
+def inject_home_static(clinics, by_city, city_slugs):
+    p = ROOT / 'index.html'
+    s = p.read_text(encoding='utf-8')
+    cities = sorted(by_city.keys(), key=sr_key)
+
+    def mark(name, value):
+        nonlocal s
+        pat = re.compile(r'<!--home:%s-->.*?<!--/home:%s-->' % (name, name), re.S)
+        if not pat.search(s):
+            sys.exit('index.html: nema oznake home:' + name)
+        s = pat.sub(lambda m: f'<!--home:{name}-->{value}<!--/home:{name}-->', s, count=1)
+
+    mark('n', fmt_n(len(clinics)))
+    mark('c', fmt_n(len(cities)))
+    mark('c2', fmt_n(len(cities)))
+    mark('cityopts', ''.join(f'<option value="{esc(c)}">{esc(c)}</option>' for c in cities))
+    mark('citylist', ''.join(
+        f'<li><a href="{city_slugs[c]}/">{esc(c)}</a> <span>({fmt_n(len(by_city[c]))})</span></li>' for c in cities))
+
+    def tile(m):
+        city = html.unescape(m.group(1))
+        k = len(by_city.get(city, []))
+        txt = f'{fmt_n(k)} {ord_word(k)}' if k else ''
+        return f'<span class="home-tile-count" data-city="{m.group(1)}">{txt}</span>'
+    s = re.sub(r'<span class="home-tile-count" data-city="([^"]+)">[^<]*</span>', tile, s)
+    p.write_text(s, encoding='utf-8')
+
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--sample', metavar='DIR', help='generiši samo jedan grad i jednu ordinaciju u DIR')
@@ -600,6 +649,9 @@ def main():
         if s in city_slugs.values():
             sys.exit(f'Dva grada daju isti slug: {s}')
         city_slugs[city] = s
+
+    if not args.sample:
+        inject_home_static(clinics, by_city, city_slugs)
 
     plan = {}  # grad -> [(clinic, slug)]
     for city, lst in by_city.items():
