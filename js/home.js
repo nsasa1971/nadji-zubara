@@ -58,7 +58,7 @@
     [$('statOrdinacije'), $('statGradovi')].forEach(el => {
       if(!el) return;
       const n = parseInt(el.textContent.replace(/\D/g, ''), 10);
-      if(n > 0) countUp(el, n, line);
+      if(n > 0){ el.dataset.target = n; countUp(el, n, line); }
     });
   }
 
@@ -70,9 +70,10 @@
       io.disconnect();
       const t0 = performance.now(), dur = 900;
       (function step(now){
-        const k = Math.min(1, (now - t0) / dur), v = Math.round(target * (1 - Math.pow(1 - k, 3)));
+        const tg = parseInt(el.dataset.target, 10) || target;   // broj se može povećati dok traje animacija (nove ordinacije iz baze)
+        const k = Math.min(1, (now - t0) / dur), v = Math.round(tg * (1 - Math.pow(1 - k, 3)));
         el.textContent = fmt(v);
-        if(k < 1) requestAnimationFrame(step); else el.textContent = fmt(target);
+        if(k < 1) requestAnimationFrame(step); else el.textContent = fmt(tg);
       })(t0);
     }, {threshold: .4});
     io.observe(trigger);
@@ -160,7 +161,7 @@
   // Podaci o ordinacijama (js/imported-clinics.js, ~1,8 MB) se ne učitavaju za prvi prikaz: tek kad korisnik
   // skroluje blizu odeljka sa potvrđenim profilima, ili krene da koristi formu pretrage.
   const DATA_SCRIPTS = ['js/data.js', 'js/imported-clinics.js', 'js/imported-coords.js', 'js/imported-services.js',
-                        'js/profile-common.js', 'js/profile-overrides.js', 'js/cards.js'];
+                        'js/profile-common.js', 'js/new-clinics.js', 'js/profile-overrides.js', 'js/cards.js'];
   let dataPromise = null;
   function loadData(){
     if(dataPromise) return dataPromise;
@@ -178,7 +179,26 @@
       const all = getAllPublicListings();
       initServiceSelect();
       initClaimed(all);
+      addNewClinicsToNumbers();
     } catch(e){ /* bez dinamičkog dela */ }
+  }
+
+  // Objavljene nove ordinacije iz baze dodaju se na statične brojeve (ukupno, gradovi, pločice gradova).
+  function addNewClinicsToNumbers(){
+    if(typeof NEW_PUBLISHED === 'undefined' || !NEW_PUBLISHED.length) return;
+    const num = e => parseInt(e.textContent.replace(/\D/g, ''), 10) || 0;
+    const plural = n => (n % 10 === 1 && n % 100 !== 11) ? 'ordinacija' : ((n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? 'ordinacije' : 'ordinacija');
+    const total = $('statOrdinacije'), cities = $('statGradovi');
+    if(total){ const v = (parseInt(total.dataset.target, 10) || num(total)) + NEW_PUBLISHED.length; total.dataset.target = v; total.textContent = fmt(v); }
+    if(cities){
+      const known = new Set(getImportedClinics().map(c => c.city));
+      const fresh = new Set(NEW_PUBLISHED.map(c => c.city).filter(g => g && g !== 'Nepoznato' && !known.has(g)));
+      if(fresh.size){ const v = (parseInt(cities.dataset.target, 10) || num(cities)) + fresh.size; cities.dataset.target = v; cities.textContent = fmt(v); }
+    }
+    document.querySelectorAll('.home-tile-count[data-city]').forEach(n => {
+      const extra = NEW_PUBLISHED.filter(c => c.city === n.getAttribute('data-city')).length;
+      if(extra){ const v = num(n) + extra; n.textContent = fmt(v) + ' ' + plural(v); }
+    });
   }
 
   function initServiceSelect(){

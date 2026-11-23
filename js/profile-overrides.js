@@ -44,14 +44,16 @@ function applyProfileToClinic(c, p, imagePaths){
 
 window.profilesReady = (function(){
   if(!PF.configured() || typeof getImportedClinics !== 'function') return Promise.resolve(false);
+  // nove ordinacije iz baze (objavljene) idu uporedo sa profilima; greška jednog ne kvari drugo
+  const newOnes = (typeof NEWC !== 'undefined') ? NEWC.loadPublished().catch(() => false) : Promise.resolve(false);
   const both = Promise.all([
     PF.withTimeout(s => PF.fetchProfiles(s), PROFILE_WAIT_MS, null),
     PF.withTimeout(s => PF.fetchImages(s), PROFILE_WAIT_MS, {})
   ]);
-  return both.then(([profiles, images]) => {
-    if(!profiles) return false;
+  return Promise.all([both, newOnes]).then(([[profiles, images], gotNew]) => {
+    if(!profiles) return !!gotNew;
     const byId = {};
-    getImportedClinics().forEach(c => { byId[c.id] = c; });
+    getImportedClinics().concat(typeof NEW_PUBLISHED !== 'undefined' ? NEW_PUBLISHED : []).forEach(c => { byId[c.id] = c; });
     Object.keys(profiles).forEach(id => { if(byId[id]) applyProfileToClinic(byId[id], profiles[id], images[id]); });
     return true;
   }).catch(() => false);

@@ -63,27 +63,31 @@
       <fieldset class="pkg-set">
         <legend>Izaberite paket</legend>
         <div class="pkg-grid">
-          <label class="pkg-card" for="pk-plus">
-            <input type="radio" name="paket" id="pk-plus" value="profil-plus" checked>
+          <div class="pkg-card">
+            <input type="radio" name="paket" id="pk-plus" value="profil-plus" checked aria-labelledby="pk-plus-t" aria-describedby="pk-plus-d">
+            <label for="pk-plus" class="sr-only">Paket</label>
+            <span class="pkg-radio" aria-hidden="true"></span>
             <span class="pkg-badge">Preporučeno</span>
-            <span class="pkg-name">Profil+</span>
-            <span class="pkg-price">6 meseci besplatno, zatim 500 RSD mesečno ili 5.000 RSD godišnje</span>
+            <span class="pkg-name" id="pk-plus-t">Profil+</span>
+            <span class="pkg-price" id="pk-plus-d">6 meseci besplatno, zatim 500 RSD mesečno ili 5.000 RSD godišnje</span>
             <ul class="pkg-list">
               <li>Ordinacija sama ispravlja podatke</li>
               <li>Dodajete radno vreme, usluge, opis i fotografije</li>
               <li>Oznaka „Potvrđen profil“ (provereno pozivom)</li>
             </ul>
-          </label>
-          <label class="pkg-card" for="pk-osn">
-            <input type="radio" name="paket" id="pk-osn" value="osnovni">
-            <span class="pkg-name">Osnovni</span>
-            <span class="pkg-price">Besplatno, uvek</span>
+          </div>
+          <div class="pkg-card">
+            <input type="radio" name="paket" id="pk-osn" value="osnovni" aria-labelledby="pk-osn-t" aria-describedby="pk-osn-d">
+            <label for="pk-osn" class="sr-only">Paket</label>
+            <span class="pkg-radio" aria-hidden="true"></span>
+            <span class="pkg-name" id="pk-osn-t">Osnovni</span>
+            <span class="pkg-price" id="pk-osn-d">Besplatno, uvek</span>
             <ul class="pkg-list">
               <li>Naziv, adresa i telefon</li>
               <li>Prikaz u pretrazi i na stranici grada</li>
               <li>Bez izmene podataka od strane ordinacije</li>
             </ul>
-          </label>
+          </div>
         </div>
       </fieldset>
 
@@ -169,6 +173,22 @@
       </div>
       <p class="skip-note">Polja označena zvezdicom su obavezna.</p>
     </form>
+
+    <section class="success-box add-result" id="addResult" hidden aria-live="polite" tabindex="-1">
+      <div class="icon-circle"><span data-icon="check"></span></div>
+      <h2>Hvala, primili smo zahtev.</h2>
+      <p>Podatke ćemo proveriti pozivom na broj telefona koji ste upisali i zatim dodati ordinaciju u imenik.</p>
+      <p id="resPlus" hidden>Kada ordinaciju dodamo, otvorite njenu stranicu, izaberite „Ovo je moja ordinacija“ i potvrdite profil. Tada dobijate 6 meseci Profila+ besplatno.</p>
+      <h3 class="res-h">Pregled vaše stranice</h3>
+      <p>Ovako će vaša stranica izgledati posle provere. Još nije objavljena i ne pojavljuje se u pretrazi.</p>
+      <a class="btn btn-primary" id="resOpen" href="#">Otvorite pregled</a>
+      <div class="res-copy">
+        <label for="resLink">Link za pregled</label>
+        <div class="res-copy-row"><input id="resLink" type="text" readonly><button type="button" class="btn btn-outline-navy" id="resCopy">Kopiraj link</button></div>
+        <p class="res-warn"><strong>Sačuvajte ovaj link.</strong> Ne šaljemo ga mejlom, a ovde ga vidite samo sada. Ko ga ima, može da vidi pregled.</p>
+      </div>
+      <a href="index.html" class="btn btn-outline-navy" style="margin-top:14px;">Nazad na početnu</a>
+    </section>
   </div>
 </div>
 </main>
@@ -228,6 +248,9 @@
     </div>
   </div>
 </footer>
+<script src="js/safe.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/new-clinics.js"></script>
 <script src="js/dodaj-ordinaciju.js" defer></script>
 <script src="js/icons.js"></script>
 <script src="js/main.js"></script>

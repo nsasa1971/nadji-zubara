@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
 function initClinicPage(){
   const params = new URLSearchParams(window.location.search);
   const id = params.get('id');
+  const token = params.get('pregled');
+  if(token && !id){ initPreview(token); return; }
   const clinic = id ? getClinicById(id) : null;
 
   if(!clinic){
@@ -23,6 +25,36 @@ function initClinicPage(){
   statePromise.then(st => applyClaimState(clinic, st)).catch(() => applyClaimState(clinic, 'none'));
 }
 
+
+// Pregled nove ordinacije pre objave (?pregled=<token>): radi bez prijave, ne indeksira se, nema radnji nad profilom.
+function initPreview(token){
+  const meta = document.createElement('meta'); meta.name = 'robots'; meta.content = 'noindex, nofollow';
+  document.head.appendChild(meta);
+  const done = c => {
+    if(!c){ document.getElementById('notFound').style.display = 'block'; return; }
+    const bar = document.getElementById('previewBar');
+    if(bar){
+      bar.textContent = '';
+      if(c.status === 'published'){
+        bar.appendChild(document.createTextNode('Ova ordinacija je objavljena. '));
+        bar.appendChild(el('a', {href:'ordinacija.html?id=' + encodeURIComponent(c.id)}, 'Otvorite javnu stranicu'));
+      } else {
+        bar.appendChild(el('strong', {}, 'Pregled — još nije objavljeno. '));
+        bar.appendChild(document.createTextNode('Ovako će stranica izgledati posle provere. Sačuvajte ovaj link; vide ga samo oni koji ga imaju.'));
+      }
+      bar.hidden = false;
+    }
+    document.getElementById('detailContent').style.display = 'block';
+    renderClinic(c);
+    bindTabs();
+    bindActions(c);
+    renderContactActionsCard(c);
+    ['claimLink','reportLink','removeLink'].forEach(i => { const n = document.getElementById(i); if(n) n.style.display = 'none'; });
+    const rw = document.getElementById('removeWrap'); if(rw) rw.style.display = 'none';
+  };
+  if(typeof NEWC === 'undefined') { done(null); return; }
+  NEWC.fetchPreview(token).then(done, () => done(null));
+}
 
 function renderClinic(c){
   const contactBase = '&clinic=' + encodeURIComponent(c.name) + '&city=' + encodeURIComponent(c.city) +
@@ -61,7 +93,7 @@ function renderClinic(c){
   const hoursKnown = !c.hoursUnknown;
   const open = hoursKnown ? openNowState(c.hours) : null;
   const statusHtml = !hoursKnown
-    ? `<span class="status-pill" style="color:var(--muted);">Radno vreme nepoznato</span>`
+    ? `<span class="status-pill" style="color:var(--muted);">${c.hoursText ? 'Pogledajte radno vreme' : 'Radno vreme nepoznato'}</span>`
     : (open === null
         ? `<span class="status-pill" style="color:var(--muted);">Pogledajte radno vreme</span>`
         : `<span class="status-pill ${open?'open':'closed'}">${open?'Otvoreno sada':'Zatvoreno'}</span>`);
@@ -104,7 +136,8 @@ function renderClinic(c){
   // Radno vreme
   const order = ['mon','tue','wed','thu','fri','sat','sun'];
   const today = todayKey();
-  document.getElementById('hoursTable').innerHTML = order.map(k=>`
+  document.getElementById('hoursTable').innerHTML = (c.hoursText && !hoursKnown) ? `
+    <tr class="today"><td>Radno vreme</td><td>${esc(c.hoursText)}</td></tr>` : order.map(k=>`
     <tr class="${k===today?'today':''}">
       <td>${DAY_LABELS[k]}</td>
       <td>${esc(!hoursKnown ? 'Pozovite ordinaciju' : (c.hours[k] ? c.hours[k] : (c.hoursFromProfile ? 'Nije navedeno' : 'Zatvoreno')))}</td>
@@ -172,6 +205,7 @@ function renderProfileExtras(c){
       if(soc.childNodes.length) soc.appendChild(document.createTextNode(' · '));
       soc.appendChild(el('a', {href:u, target:'_blank', rel:'noopener nofollow ugc'}, SOCIAL_LABELS[k]));
     });
+    if(!soc.childNodes.length && c.socialsText) soc.appendChild(document.createTextNode(c.socialsText));
     soc.style.display = soc.childNodes.length ? '' : 'none';
   }
   // tim (samo odobren, bez fotografija)

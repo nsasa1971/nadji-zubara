@@ -1362,7 +1362,7 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .adm-login .form-field{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;}
 .adm-login .form-field label{font-size:13.5px;font-weight:700;color:var(--navy);}
 /* donja traka */
-.adm-nav{position:fixed;left:0;right:0;bottom:0;z-index:300;display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(8,25,45,.06);}
+.adm-nav{position:fixed;left:0;right:0;bottom:0;z-index:300;display:grid;grid-template-columns:repeat(6,1fr);background:#fff;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(8,25,45,.06);}
 .adm-navbtn{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:60px;padding:8px 2px;border:0;background:none;color:var(--muted);font:700 11.5px 'Montserrat',sans-serif;cursor:pointer;}
 .adm-navbtn.active{color:var(--primary-dark);}
 .adm-navbtn.active::before{content:'';position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--primary-dark);}
@@ -1423,7 +1423,9 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .svc-set legend{font-size:13.5px;margin-bottom:8px}
 .pkg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .pkg-card{position:relative;display:flex;flex-direction:column;gap:6px;border:2px solid var(--border);border-radius:14px;padding:18px 16px 16px 48px;cursor:pointer;background:#fff}
-.pkg-card input{position:absolute;left:16px;top:20px;width:20px;height:20px;accent-color:var(--primary);margin:0}
+.pkg-card input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;z-index:2}
+.pkg-radio{position:absolute;left:16px;top:20px;width:20px;height:20px;border:2px solid #8aa0a6;border-radius:50%;background:#fff;box-sizing:border-box}
+.pkg-card:has(input:checked) .pkg-radio{border-color:var(--primary);background:radial-gradient(circle,var(--primary) 0 45%,#fff 50%)}
 .pkg-card:has(input:checked){border-color:var(--primary);background:#f3fbfa;box-shadow:0 0 0 3px rgba(18,163,155,.15)}
 .pkg-card:has(input:focus-visible){outline:3px solid var(--navy);outline-offset:2px}
 .pkg-name{font-size:18px;font-weight:800;color:var(--navy)}
@@ -1441,3 +1443,30 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .pkg-list{list-style:disc}
 .svc-grid .of-check{font-weight:500;font-size:14px}
 .svc-grid .of-check input{width:18px;height:18px;accent-color:var(--primary);flex-shrink:0}
+
+/* Pregled nove ordinacije pre objave */
+.preview-bar{background:#FFE9B8;color:#0B2545;border-bottom:2px solid #F2B84B;padding:12px 16px;text-align:center;font-size:14.5px;line-height:1.45}
+.preview-bar a{color:#0B2545;text-decoration:underline;font-weight:700}
+.preview-bar[hidden]{display:none}
+
+/* Dodajte ordinaciju: rezultat prijave */
+.add-result[hidden]{display:none}
+.add-result{text-align:center}
+.res-h{margin:22px 0 4px;color:var(--navy)}
+.res-copy{margin:18px auto 0;max-width:520px;text-align:left}
+.res-copy label{font-size:13.5px;font-weight:700;color:var(--navy)}
+.res-copy-row{display:flex;gap:10px;margin-top:6px;flex-wrap:wrap}
+.res-copy-row input{flex:1 1 240px;min-width:0;border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;background:#fbfdfd}
+.res-warn{font-size:13.5px;color:var(--text);margin:10px 0 0;background:#FFF4D6;border-radius:10px;padding:10px 12px}
+
+.nf-form[hidden]{display:none}
+/* Admin: nove ordinacije */
+.nc-details{margin:10px 0}
+.nc-kv{display:flex;flex-direction:column;margin:6px 0;font-size:14px;overflow-wrap:anywhere}
+.nc-kv span{font-size:12.5px;color:var(--muted)}
+.nc-kv b{font-weight:600;color:var(--navy);white-space:pre-wrap}
+.nc-edit{margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}
+.nc-edit[hidden]{display:none}
+.nc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin-bottom:10px}
+@media(max-width:560px){.nc-grid{grid-template-columns:1fr}}
+.success-box.add-result:not([hidden]){display:block}

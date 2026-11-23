@@ -23,6 +23,8 @@ const AVATAR_COLORS = ['#0EA5A3','#0B857F','#2563EB','#7C3AED','#DB2777','#D9770
 
 // Demo ordinacije su uklonjene. Pravi podaci dolaze iz js/imported-clinics.js (IMPORTED_CLINICS).
 const CLINICS = [];
+// Nove ordinacije objavljene u bazi (popunjava js/new-clinics.js pre prikaza; prazno ako baza nije dostupna).
+const NEW_PUBLISHED = [];
 
 // Izračunavanje broja ordinacija po gradu
 // Broj ordinacija po gradu računa se iz uvezenih ordinacija (lazy getter, jer se
@@ -30,7 +32,7 @@ const CLINICS = [];
 CITIES.forEach(c => {
   Object.defineProperty(c, 'count', {
     enumerable: true,
-    get(){ return getImportedClinics().filter(cl => cl.city === c.name).length; }
+    get(){ return getImportedClinics().concat(NEW_PUBLISHED).filter(cl => cl.city === c.name).length; }
   });
 });
 
@@ -151,7 +153,7 @@ function getImportedClinics(){
 }
 
 function getAllPublicListings(){
-  return CLINICS.concat(getImportedClinics());
+  return CLINICS.concat(getImportedClinics(), NEW_PUBLISHED);
 }
 
 // Broj ordinacija po usluzi (slug -> broj), iz svih javnih oglasa.
@@ -167,7 +169,7 @@ function getServiceCounts(){
 }
 
 function getClinicById(id){
-  return CLINICS.find(c => c.id === id) || getImportedClinics().find(c => c.id === id) || null;
+  return CLINICS.find(c => c.id === id) || getImportedClinics().find(c => c.id === id) || NEW_PUBLISHED.find(c => c.id === id) || null;
 }
 
 // Sve gradove (imenik + uvezene ordinacije) — koristi se za popunjavanje
