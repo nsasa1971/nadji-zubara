@@ -4,7 +4,7 @@
   if(!app) return;
   const STATUS = {
     pending:{label:'Na čekanju', cls:'chip-pending'},
-    verified:{label:'Verifikovano', cls:'chip-open'},
+    verified:{label:'Potvrđeno', cls:'chip-open'},
     rejected:{label:'Odbijeno', cls:'chip-closed'},
     revoked:{label:'Pristup ukinut', cls:'chip-closed'}
   };
@@ -35,7 +35,7 @@
       const paid = c.paid_until ? new Date(c.paid_until) : null;
       const exp = paid && paid > free ? paid : free;
       const expired = exp.getTime() <= Date.now();
-      kids.push(el('p', {style:'margin:12px 0 0;font-size:14px;'}, 'Verifikovano: ' + fmtDate(c.claimed_at) + '. ' +
+      kids.push(el('p', {style:'margin:12px 0 0;font-size:14px;'}, 'Potvrđeno: ' + fmtDate(c.claimed_at) + '. ' +
         (expired ? 'Rok je istekao ' + fmtDate(exp) + '.' : (paid && paid > free ? 'Plaćeno do ' + fmtDate(paid) + '.' : 'Besplatni period ističe ' + fmtDate(free) + '.'))));
       if(expired){
         kids.push(el('div', {style:'background:#FFFBEB;border:1px solid #F59E0B;border-radius:12px;padding:12px 14px;margin-top:12px;font-size:14px;'}, [

@@ -96,7 +96,8 @@ function renderClinic(c){
 
   // preuzet profil bez opisa: bez šablona "Ako ste vlasnik..."; nepreuzete ordinacije ostaju kao pre
   document.getElementById('clinicDescription').textContent =
-    (c.claimed && !c.description) ? 'Ordinacija još nije dodala opis.' : c.description;
+    (c.claimed && !c.description) ? 'Ordinacija još nije dodala opis.'
+    : (PLACEHOLDER_DESCRIPTION_RE.test(c.description || '') ? 'Opis ove ordinacije još nije dostupan. Ako ste vlasnik ove ordinacije, potvrdite i uredite profil.' : c.description);
 
   // Radno vreme
   const order = ['mon','tue','wed','thu','fri','sat','sun'];
