@@ -55,48 +55,115 @@
       <span>Prvo proverite da ordinacije nema u imeniku: <a href="pretraga.html">pretražite po nazivu ili gradu</a>. Ako je već tu, otvorite njenu stranicu i izaberite „Ovo je moja ordinacija“.</span>
     </div>
 
-    <form class="form-card" name="dodaj-ordinaciju" method="POST" action="/hvala-ordinacija.html" data-netlify="true" netlify-honeypot="bot-field">
+    <form class="form-card nf-form of-app" id="addForm" name="dodaj-ordinaciju" method="POST" action="/hvala-ordinacija.html" data-netlify="true" netlify-honeypot="bot-field" novalidate>
       <input type="hidden" name="form-name" value="dodaj-ordinaciju">
-      <input type="hidden" name="subject" id="f-subject" value="Nova ordinacija">
+      <input type="hidden" name="subject" id="f-subject" value="Nova ordinacija (Profil+)">
       <p hidden aria-hidden="true"><label>Ne popunjavajte ovo polje: <input type="text" name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+
+      <fieldset class="pkg-set">
+        <legend>Izaberite paket</legend>
+        <div class="pkg-grid">
+          <label class="pkg-card" for="pk-plus">
+            <input type="radio" name="paket" id="pk-plus" value="profil-plus" checked>
+            <span class="pkg-badge">Preporučeno</span>
+            <span class="pkg-name">Profil+</span>
+            <span class="pkg-price">6 meseci besplatno, zatim 500 RSD mesečno ili 5.000 RSD godišnje</span>
+            <ul class="pkg-list">
+              <li>Ordinacija sama ispravlja podatke</li>
+              <li>Dodajete radno vreme, usluge, opis i fotografije</li>
+              <li>Oznaka „Potvrđen profil“ (provereno pozivom)</li>
+            </ul>
+          </label>
+          <label class="pkg-card" for="pk-osn">
+            <input type="radio" name="paket" id="pk-osn" value="osnovni">
+            <span class="pkg-name">Osnovni</span>
+            <span class="pkg-price">Besplatno, uvek</span>
+            <ul class="pkg-list">
+              <li>Naziv, adresa i telefon</li>
+              <li>Prikaz u pretrazi i na stranici grada</li>
+              <li>Bez izmene podataka od strane ordinacije</li>
+            </ul>
+          </label>
+        </div>
+      </fieldset>
+
       <div class="form-grid">
         <div class="form-field full">
           <label for="f-naziv">Naziv ordinacije *</label>
-          <input id="f-naziv" type="text" name="naziv" required autocomplete="organization" placeholder="Npr. Dental Centar Petrović">
+          <input id="f-naziv" type="text" name="naziv" required maxlength="120" autocomplete="organization" placeholder="Npr. Dental Centar Petrović">
         </div>
         <div class="form-field">
           <label for="f-grad">Grad *</label>
-          <input id="f-grad" type="text" name="grad" required autocomplete="address-level2" placeholder="Npr. Novi Sad">
+          <input id="f-grad" type="text" name="grad" required maxlength="80" autocomplete="address-level2" placeholder="Npr. Novi Sad">
         </div>
         <div class="form-field">
           <label for="f-adresa">Adresa *</label>
-          <input id="f-adresa" type="text" name="adresa" required autocomplete="street-address" placeholder="Ulica i broj">
+          <input id="f-adresa" type="text" name="adresa" required maxlength="160" autocomplete="street-address" placeholder="Ulica i broj">
         </div>
         <div class="form-field">
-          <label for="f-telefon">Telefon ordinacije *</label>
-          <input id="f-telefon" type="tel" name="telefon" required autocomplete="tel" placeholder="Npr. 011 123 4567">
+          <label for="f-telefon">Javni telefon ordinacije *</label>
+          <input id="f-telefon" type="tel" name="telefon" required maxlength="40" autocomplete="tel" placeholder="Npr. 011 123 4567">
           <span class="hint">Na ovaj broj ćemo vas pozvati radi provere.</span>
         </div>
         <div class="form-field">
           <label for="f-email">E-adresa za kontakt *</label>
-          <input id="f-email" type="email" name="email" required autocomplete="email" placeholder="vas@email.com">
-        </div>
-        <div class="form-field">
-          <label for="f-osoba">Kontakt osoba</label>
-          <input id="f-osoba" type="text" name="kontakt_osoba" autocomplete="name" placeholder="Ime i prezime">
-        </div>
-        <div class="form-field">
-          <label for="f-sajt">Veb-sajt</label>
-          <input id="f-sajt" type="url" name="sajt" autocomplete="url" placeholder="https://">
+          <input id="f-email" type="email" name="email" required maxlength="160" autocomplete="email" placeholder="vas@email.com">
+          <span class="hint">Ne prikazuje se javno.</span>
         </div>
         <div class="form-field full">
-          <label for="f-napomena">Napomena</label>
-          <textarea id="f-napomena" name="napomena" placeholder="Bilo šta što nam može pomoći (opciono)"></textarea>
+          <label for="f-osoba">Osoba za kontakt *</label>
+          <input id="f-osoba" type="text" name="kontakt_osoba" required maxlength="100" autocomplete="name" placeholder="Ime i prezime">
         </div>
       </div>
+
+      <div class="plus-fields" id="plusFields">
+        <h2 class="plus-title">Podaci za Profil+</h2>
+        <div class="form-grid">
+          <div class="form-field full">
+            <label for="f-radno">Radno vreme</label>
+            <input id="f-radno" type="text" name="radno_vreme" maxlength="200" data-p="plus" placeholder="Npr. pon–pet 08–15, sub 08–12">
+          </div>
+          <div class="form-field full">
+            <label for="f-opis">Kratak opis</label>
+            <textarea id="f-opis" name="opis" maxlength="600" data-p="plus" placeholder="Nekoliko rečenica o ordinaciji (opciono)" aria-describedby="opisCount"></textarea>
+            <span class="hint"><span id="opisCount">0 / 600</span> · Bez veza (linkova) u opisu.</span>
+          </div>
+          <div class="form-field full">
+            <fieldset class="svc-set">
+              <legend>Usluge</legend>
+              <div class="svc-grid">
+            <label class="of-check"><input type="checkbox" name="usluge" value="dijagnostika-preventiva" data-p="plus"> <span>Dijagnostika i preventiva</span></label>
+            <label class="of-check"><input type="checkbox" name="usluge" value="bolesti-zuba-endodoncija" data-p="plus"> <span>Bolesti zuba i endodoncija</span></label>
+            <label class="of-check"><input type="checkbox" name="usluge" value="parodontologija" data-p="plus"> <span>Parodontologija</span></label>
+            <label class="of-check"><input type="checkbox" name="usluge" value="oralna-hirurgija" data-p="plus"> <span>Oralna hirurgija</span></label>
+            <label class="of-check"><input type="checkbox" name="usluge" value="implantologija" data-p="plus"> <span>Implantologija</span></label>
+            <label class="of-check"><input type="checkbox" name="usluge" value="stomatoloska-protetika" data-p="plus"> <span>Stomatološka protetika</span></label>
+            <label class="of-check"><input type="checkbox" name="usluge" value="ortodoncija" data-p="plus"> <span>Ortopedija vilica (ortodoncija)</span></label>
+            <label class="of-check"><input type="checkbox" name="usluge" value="estetska-stomatologija" data-p="plus"> <span>Estetska stomatologija</span></label>
+            <label class="of-check"><input type="checkbox" name="usluge" value="decija-stomatologija" data-p="plus"> <span>Dečija stomatologija</span></label>
+              </div>
+            </fieldset>
+          </div>
+          <div class="form-field full">
+            <label for="f-druge">Druge usluge</label>
+            <input id="f-druge" type="text" name="druge_usluge" maxlength="200" data-p="plus" placeholder="Opciono, odvojite zarezom">
+          </div>
+          <div class="form-field">
+            <label for="f-sajt">Sajt</label>
+            <input id="f-sajt" type="url" name="sajt" maxlength="200" data-p="plus" autocomplete="url" placeholder="https://">
+          </div>
+          <div class="form-field">
+            <label for="f-mreze">Društvene mreže</label>
+            <input id="f-mreze" type="text" name="drustvene_mreze" maxlength="200" data-p="plus" placeholder="Npr. instagram.com/vasa.ordinacija">
+          </div>
+        </div>
+        <p class="plus-note">Cenovnik i fotografije dodajete posle potvrde profila u odeljku <a href="moj-nalog.html">Moj nalog</a>.</p>
+      </div>
+
       <div style="margin-top:20px;">
         <label class="terms-checkbox"><input type="checkbox" name="saglasnost" value="da" required> <span>Saglasan/saglasna sam da Nađi Zubara koristi ove podatke da proveri i obradi zahtev, u skladu sa <a href="privatnost.html" target="_blank" rel="noopener">politikom privatnosti</a>. *</span></label>
       </div>
+      <p class="form-err" id="formErr" role="alert" hidden></p>
       <div style="margin-top:22px;">
         <button type="submit" class="btn btn-primary btn-block">Pošalji zahtev</button>
       </div>
@@ -161,11 +228,7 @@
     </div>
   </div>
 </footer>
-<script>
-// Naslov mejla obaveštenja: "Nova ordinacija: <naziv>" (Netlify koristi polje "subject"). Bez JS-a ostaje "Nova ordinacija".
-(function(){var n=document.getElementById('f-naziv'),s=document.getElementById('f-subject');
-if(!n||!s)return;n.addEventListener('input',function(){var v=n.value.trim().replace(/\s+/g,' ').slice(0,80);s.value=v?'Nova ordinacija: '+v:'Nova ordinacija';});})();
-</script>
+<script src="js/dodaj-ordinaciju.js" defer></script>
 <script src="js/icons.js"></script>
 <script src="js/main.js"></script>
 </body>
