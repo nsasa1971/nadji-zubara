@@ -3,6 +3,16 @@
 
 // Vraća samo omiljene koje i dalje postoje: stari id-jevi obrisanih (demo)
 // ordinacija iz localStorage-a se ignorišu, a pri sledećem upisu i brišu.
+// Pozadina inicijala ordinacije: ako bela slova na njoj imaju kontrast ispod 4.5:1, boja se zatamnjuje (isti ton).
+function avatarBg(hex){
+  const m = /^#([0-9a-f]{6})$/i.exec(hex || '');
+  if(!m) return hex || '#0B857F';
+  let rgb = [0, 2, 4].map(i => parseInt(m[1].slice(i, i + 2), 16));
+  const lum = c => { const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }; return .2126 * f(c[0]) + .7152 * f(c[1]) + .0722 * f(c[2]); };
+  for(let i = 0; i < 20 && 1.05 / (lum(rgb) + .05) < 4.5; i++) rgb = rgb.map(v => Math.round(v * .93));
+  return '#' + rgb.map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
 function getFavorites(){
   let ids;
   try{ ids = JSON.parse(localStorage.getItem('nz_favorites') || '[]'); }
@@ -52,7 +62,7 @@ function renderClinicCard(c, opts){
           ${isFav?ICONS.heartFilled:ICONS.heart}
         </button>
       </div>
-      <div class="avatar" style="background:${c.logoColor}">${c.logoImage ? `<img src="${c.logoImage}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : c.logoInitials}</div>
+      <div class="avatar" style="background:${avatarBg(c.logoColor)}">${c.logoImage ? `<img src="${c.logoImage}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : c.logoInitials}</div>
     </div>
     <div class="body">
       <div class="name-row">

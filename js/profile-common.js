@@ -123,6 +123,18 @@ const PF = (function(){
     return factory(ctl ? ctl.signal : undefined).then(v => { clearTimeout(timer); return v; }, () => { clearTimeout(timer); return fallback; });
   }
 
+  // Stanje potvrde profila: 'none' | 'active' | 'expired' (RPC clinic_claim_state; vraća samo jednu od te tri reči).
+  // Mreža/greška/neočekivan odgovor = 'none' (stranica radi kao za nepotvrđen profil, bez greške).
+  function claimState(clinicId){
+    if(!configured() || typeof clinicId !== 'string' || !clinicId) return Promise.resolve('none');
+    return withTimeout(signal => fetch(SUPABASE_URL + '/rest/v1/rpc/clinic_claim_state', {
+      method:'POST', signal,
+      headers:{apikey: SUPABASE_PUBLISHABLE_KEY, 'Content-Type':'application/json', Accept:'application/json'},
+      body: JSON.stringify({p_clinic_id: clinicId})
+    }).then(r => { if(!r.ok) throw new Error('http ' + r.status); return r.json(); }), 3000, 'none')
+      .then(v => (v === 'active' || v === 'expired') ? v : 'none');
+  }
+
   // Da li je prijavljeni posetilac verifikovan vlasnik ordinacije? Bez Supabase biblioteke: čita se sesija
   // iz localStorage (ista koju pravi prijava vlasnika) i jedan upit ka claims (RLS vraća samo posetiočeve
   // redove). Istekla/nepostojeća sesija = false (dugme "Izmeni profil" se tada ne prikazuje).
@@ -139,5 +151,5 @@ const PF = (function(){
     } catch(e){ return Promise.resolve(false); }
   }
 
-  return {configured, myVerifiedClaim, normalizePhone, cleanProfile, fetchProfiles, fetchImages, signUrls, withTimeout, HOURS_KEYS, SOCIAL_KEYS};
+  return {configured, claimState, myVerifiedClaim, normalizePhone, cleanProfile, fetchProfiles, fetchImages, signUrls, withTimeout, HOURS_KEYS, SOCIAL_KEYS};
 })();

@@ -49,6 +49,7 @@
     <a href="cenovnik.html" class="nav-cta nav-cta-m">Za ordinacije</a>
   </div>
 </header>
+<main id="main">
 
 <div id="notFound" style="display:none;">
   <div class="section" style="text-align:center;">
@@ -156,7 +157,8 @@
             <h3><span data-icon="phone"></span> Pozovite ordinaciju</h3>
             <a class="btn btn-primary btn-block" id="cardCallBtn" href="#" style="display:none;"><span data-icon="phone"></span> Pozovi</a>
             <p style="margin:14px 0 0;font-size:14px;"><a id="cardReportLink" href="kontakt.html?subject=netacan-podatak" style="color:var(--primary-dark);text-decoration:underline;text-underline-offset:3px;">Prijavi netačan podatak</a></p>
-            <a class="btn btn-outline-navy btn-block" id="claimLink" href="preuzmi.html" style="margin-top:14px;">Ovo je moja ordinacija</a>
+            <a class="btn btn-outline-navy btn-block" id="claimLink" href="preuzmi.html" style="margin-top:14px;display:none;">Ovo je moja ordinacija</a>
+            <p id="ownerHint" style="display:none;margin:12px 0 0;font-size:13.5px;"><a href="moj-nalog.html" style="color:var(--primary-dark);text-decoration:underline;text-underline-offset:3px;">Vlasnik ste? Prijavite se</a></p>
           </div>
 
           <div class="info-card">
@@ -168,7 +170,7 @@
             <h3><span data-icon="location"></span> Lokacija</h3>
             <p id="addressText" style="margin-bottom:14px;"></p>
             <div class="map-embed">
-              <iframe id="mapFrame" src="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              <iframe id="mapFrame" title="Mapa: lokacija ordinacije" src="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
             </div>
           </div>
           <div class="info-card">
@@ -191,6 +193,7 @@
     </div>
   </div>
 </div>
+</main>
 
 <footer class="site-footer">
   <div class="container">
@@ -202,7 +205,7 @@
         <p>Direktorijum zubarskih ordinacija u Srbiji. Pronađite pravu ordinaciju za vas i vašu porodicu.</p>
       </div>
       <div>
-        <h5>Linkovi</h5>
+        <h2>Linkovi</h2>
         <ul>
           <li><a href="index.html">Početna</a></li>
           <li><a href="pretraga.html">Pronađi ordinaciju</a></li>
@@ -211,7 +214,7 @@
         </ul>
       </div>
       <div>
-        <h5>Usluge</h5>
+        <h2>Usluge</h2>
         <ul>
           <li><a href="usluge/dijagnostika-preventiva/">Dijagnostika i preventiva</a></li>
           <li><a href="usluge/bolesti-zuba-endodoncija/">Bolesti zuba i endodoncija</a></li>
@@ -225,7 +228,7 @@
         </ul>
       </div>
       <div>
-        <h5>Gradovi</h5>
+        <h2>Gradovi</h2>
         <ul>
           <li><a href="pretraga.html?city=Beograd">Beograd</a></li>
           <li><a href="pretraga.html?city=Novi%20Sad">Novi Sad</a></li>
@@ -235,7 +238,7 @@
         </ul>
       </div>
       <div>
-        <h5>Kontakt</h5>
+        <h2>Kontakt</h2>
         <ul>
           <li><a href="mailto:info@nadjizubara.rs">info@nadjizubara.rs</a></li>
         </ul>
