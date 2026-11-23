@@ -53,6 +53,7 @@
     <a href="cenovnik.html" class="nav-cta nav-cta-m">Za ordinacije</a>
   </div>
 </header>
+<main id="main">
 
 <div class="page-hero">
   <div class="container">
@@ -142,12 +143,13 @@
     </aside>
 
     <div>
+      <h2 class="sr-only">Rezultati pretrage</h2>
       <div class="results-header">
         <div class="count">Prikazano <b id="resultsCount">0</b> ordinacija</div>
         <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
           <div class="sort-select">
             <span data-icon="filter"></span>
-            <select id="sortSelect">
+            <select id="sortSelect" aria-label="Sortiranje rezultata">
               <option value="recommended">Preporučeno</option>
               <option value="distance">Najbliže meni</option>
               <option value="rating">Najveća ocena</option>
@@ -202,6 +204,7 @@
     <span id="mobileViewFabIcon" data-icon="compass"></span> <span id="mobileViewFabLabel">Mapa</span>
   </button>
 </div>
+</main>
 
 <footer class="site-footer">
   <div class="container">
@@ -213,7 +216,7 @@
         <p>Direktorijum zubarskih ordinacija u Srbiji. Pronađite pravu ordinaciju za vas i vašu porodicu.</p>
       </div>
       <div>
-        <h5>Linkovi</h5>
+        <h2>Linkovi</h2>
         <ul>
           <li><a href="index.html">Početna</a></li>
           <li><a href="pretraga.html">Pronađi ordinaciju</a></li>
@@ -222,7 +225,7 @@
         </ul>
       </div>
       <div>
-        <h5>Usluge</h5>
+        <h2>Usluge</h2>
         <ul>
           <li><a href="usluge/dijagnostika-preventiva/">Dijagnostika i preventiva</a></li>
           <li><a href="usluge/bolesti-zuba-endodoncija/">Bolesti zuba i endodoncija</a></li>
@@ -236,7 +239,7 @@
         </ul>
       </div>
       <div>
-        <h5>Gradovi</h5>
+        <h2>Gradovi</h2>
         <ul>
           <li><a href="pretraga.html?city=Beograd">Beograd</a></li>
           <li><a href="pretraga.html?city=Novi%20Sad">Novi Sad</a></li>
@@ -246,7 +249,7 @@
         </ul>
       </div>
       <div>
-        <h5>Kontakt</h5>
+        <h2>Kontakt</h2>
         <ul>
           <li><a href="mailto:info@nadjizubara.rs">info@nadjizubara.rs</a></li>
         </ul>

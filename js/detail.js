@@ -19,6 +19,8 @@ function initClinicPage(){
   bindTabs();
   bindActions(clinic);
   renderContactActionsCard(clinic);
+  const statePromise = (typeof PF !== 'undefined' && PF.claimState) ? PF.claimState(clinic.id) : Promise.resolve('none');
+  statePromise.then(st => applyClaimState(clinic, st)).catch(() => applyClaimState(clinic, 'none'));
 }
 
 
@@ -41,7 +43,7 @@ function renderClinic(c){
 
   const avatarBox = document.getElementById('avatarBox');
   avatarBox.textContent = c.logoInitials;
-  avatarBox.style.background = c.logoColor;
+  avatarBox.style.background = avatarBg(c.logoColor);
 
   document.getElementById('clinicName').textContent = c.name;
   document.getElementById('verifiedBadge').style.display = c.verified ? 'inline-flex' : 'none';
@@ -97,7 +99,7 @@ function renderClinic(c){
   // preuzet profil bez opisa: bez šablona "Ako ste vlasnik..."; nepreuzete ordinacije ostaju kao pre
   document.getElementById('clinicDescription').textContent =
     (c.claimed && !c.description) ? 'Ordinacija još nije dodala opis.'
-    : (PLACEHOLDER_DESCRIPTION_RE.test(c.description || '') ? 'Opis ove ordinacije još nije dostupan. Ako ste vlasnik ove ordinacije, potvrdite i uredite profil.' : c.description);
+    : (PLACEHOLDER_DESCRIPTION_RE.test(c.description || '') ? 'Opis ove ordinacije još nije dostupan. Ako ste vlasnik ove ordinacije, potvrdite profil i dopunite ga.' : c.description);
 
   // Radno vreme
   const order = ['mon','tue','wed','thu','fri','sat','sun'];
@@ -304,22 +306,42 @@ function renderContactActionsCard(c){
   }
   const reportLink = document.getElementById('reportLink');
   document.getElementById('cardReportLink').href = reportLink ? reportLink.getAttribute('href') : 'kontakt.html?subject=netacan-podatak';
-  const claimLink = document.getElementById('claimLink');
-  claimLink.href = 'preuzmi.html?id=' + encodeURIComponent(c.id);
-  claimLink.textContent = 'Ovo je moja ordinacija';
-  if(c.claimed){
-    // preuzeta ordinacija: nema poziva na preuzimanje; verifikovanom vlasniku se nudi "Izmeni profil"
-    claimLink.style.display = 'none';
-    if(typeof PF !== 'undefined' && PF.myVerifiedClaim){
-      PF.myVerifiedClaim(c.id).then(ok => {
-        if(!ok) return;
-        claimLink.textContent = 'Izmeni profil';
-        claimLink.href = 'izmena-profila.html?id=' + encodeURIComponent(c.id);
-        claimLink.style.display = '';
-      });
-    }
-  } else {
-    claimLink.style.display = '';
-  }
+  // dugme "Ovo je moja ordinacija" je skriveno dok ne stigne stanje potvrde (applyClaimState), pa nema treperenja
   card.style.display = '';
+}
+
+// Stanje potvrde profila: none = nepotvrđen (dugme "Ovo je moja ordinacija"), active = potvrđen (značka, bez dugmeta;
+// verifikovanom vlasniku "Izmeni profil"), expired = osnovni prikaz bez dugmeta i bez napomene o isteku (samo sitan link za vlasnika).
+function applyClaimState(c, state){
+  if(state === 'none' && c.claimed) state = 'active';   // profil se već prikazuje kao potvrđen (npr. greška RPC-a)
+  const claimLink = document.getElementById('claimLink');
+  const ownerHint = document.getElementById('ownerHint');
+  if(claimLink) claimLink.style.display = 'none';
+  if(ownerHint) ownerHint.style.display = 'none';
+  if(state === 'none'){
+    if(claimLink){ claimLink.href = 'preuzmi.html?id=' + encodeURIComponent(c.id); claimLink.textContent = 'Ovo je moja ordinacija'; claimLink.style.display = ''; }
+    return;
+  }
+  if(state === 'expired'){
+    if(ownerHint) ownerHint.style.display = '';
+    // osnovni prikaz: kratak neutralan tekst, bez poziva na potvrdu i bez napomene o isteku
+    const ed = document.getElementById('clinicDescription');
+    if(ed && (!c.description || (typeof PLACEHOLDER_DESCRIPTION_RE !== 'undefined' && PLACEHOLDER_DESCRIPTION_RE.test(c.description)))) ed.textContent = 'Opis ove ordinacije još nije dostupan.';
+    return;
+  }
+  // active
+  const badge = document.getElementById('verifiedBadge');
+  if(badge) badge.style.display = 'inline-flex';
+  const removeWrap = document.getElementById('removeWrap');
+  if(removeWrap) removeWrap.style.display = 'none';
+  const desc = document.getElementById('clinicDescription');
+  if(desc && (!c.description || (typeof PLACEHOLDER_DESCRIPTION_RE !== 'undefined' && PLACEHOLDER_DESCRIPTION_RE.test(c.description)))) desc.textContent = 'Ordinacija još nije dodala opis.';
+  if(claimLink && typeof PF !== 'undefined' && PF.myVerifiedClaim){
+    PF.myVerifiedClaim(c.id).then(ok => {
+      if(!ok) return;
+      claimLink.textContent = 'Izmeni profil';
+      claimLink.href = 'izmena-profila.html?id=' + encodeURIComponent(c.id);
+      claimLink.style.display = '';
+    });
+  }
 }
