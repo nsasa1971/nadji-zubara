@@ -328,7 +328,14 @@ function applyClaimState(c, state){
   if(claimLink) claimLink.style.display = 'none';
   if(ownerHint) ownerHint.style.display = 'none';
   if(state === 'none'){
-    if(claimLink){ claimLink.href = 'preuzmi.html?id=' + encodeURIComponent(c.id); claimLink.textContent = 'Ovo je moja ordinacija'; claimLink.style.display = ''; }
+    if(claimLink){
+      claimLink.href = 'preuzmi.html?id=' + encodeURIComponent(c.id); claimLink.textContent = 'Ovo je moja ordinacija'; claimLink.style.display = '';
+      // prozor na istoj stranici (e-adresa -> kod -> zahtev); bez JS-a ili uz grešku radi običan link na preuzmi.html
+      if(!claimLink.dataset.cm){
+        claimLink.dataset.cm = '1';
+        claimLink.addEventListener('click', e => { if(typeof openClaimModal === 'function'){ e.preventDefault(); openClaimModal(c); } });
+      }
+    }
     return;
   }
   if(state === 'expired'){
