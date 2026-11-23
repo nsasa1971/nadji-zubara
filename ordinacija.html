@@ -25,7 +25,6 @@
     </nav>
     <div class="header-actions">
       <a href="cenovnik.html" class="nav-cta">Za ordinacije</a>
-      <div id="authArea"></div>
       <button class="icon-btn burger" id="burgerBtn" aria-label="Meni"><span data-icon="menu"></span></button>
     </div>
   </div>
@@ -33,7 +32,6 @@
     <a href="index.html">Početna</a>
     <a href="pretraga.html">Pronađi ordinaciju</a>
     <a href="kontakt.html">Kontakt</a>
-    <div id="mobileAuthArea"></div>
     <a href="cenovnik.html" class="nav-cta nav-cta-m">Za ordinacije</a>
   </div>
 </header>
@@ -83,7 +81,6 @@
         <a class="action-chip" id="websiteChip" href="#" target="_blank" rel="noopener"><span data-icon="globe"></span> Sajt ordinacije</a>
         <button class="action-chip" id="bookmarkChip"><span data-icon="heart"></span> Sačuvaj</button>
         <button class="action-chip" id="shareChip"><span data-icon="share"></span> Podeli</button>
-        <a class="action-chip" href="#recenzije" id="reviewChip"><span data-icon="chat"></span> Ostavi recenziju</a>
         <button class="action-chip"><span data-icon="flag"></span> Prijavi</button>
       </div>
     </div>
@@ -129,42 +126,6 @@
               <div id="reviewsList"></div>
             </div>
 
-            <div class="info-card" id="recenzije">
-              <h3><span data-icon="chat"></span> Ostavite recenziju</h3>
-
-              <div class="login-prompt-box" id="reviewLoginPrompt" style="display:none;">
-                <span data-icon="user"></span>
-                <p>Prijavite se da biste ostavili recenziju. Ovo pomaže da recenzije budu autentične i omogućava vam da ih kasnije izmenite.</p>
-                <a href="#" id="reviewLoginBtn" class="btn btn-primary btn-sm">Prijavi se / Registruj se</a>
-              </div>
-
-              <div id="reviewFormWrap" style="display:none;">
-                <p class="skip-note" style="text-align:left;margin:0 0 14px;">Recenziju ostavljate kao <b id="reviewAsName" style="color:var(--navy);"></b></p>
-                <form id="reviewForm">
-                  <input type="hidden" name="editId" value="">
-                  <div class="form-grid">
-                    <div class="form-field">
-                      <label>Ocena</label>
-                      <select name="rating" required>
-                        <option value="5">5 — Odlično</option>
-                        <option value="4">4 — Vrlo dobro</option>
-                        <option value="3">3 — Dobro</option>
-                        <option value="2">2 — Osrednje</option>
-                        <option value="1">1 — Loše</option>
-                      </select>
-                    </div>
-                    <div class="form-field full">
-                      <label>Komentar</label>
-                      <textarea name="text" required placeholder="Podelite svoje iskustvo sa ovom ordinacijom..."></textarea>
-                    </div>
-                  </div>
-                  <div style="margin-top:16px;display:flex;gap:10px;">
-                    <button type="submit" class="btn btn-primary" id="reviewSubmitBtn">Objavi recenziju</button>
-                    <button type="button" class="btn btn-outline-navy" id="reviewCancelEditBtn" style="display:none;">Otkaži izmenu</button>
-                  </div>
-                </form>
-              </div>
-            </div>
           </div>
 
           <div class="tab-panel" id="tab-usluge">
@@ -182,44 +143,6 @@
             <a class="btn btn-primary btn-block" id="cardCallBtn" href="#" style="display:none;"><span data-icon="phone"></span> Pozovi</a>
             <p style="margin:14px 0 0;font-size:14px;"><a id="cardReportLink" href="kontakt.html?subject=netacan-podatak" style="color:var(--primary-dark);text-decoration:underline;text-underline-offset:3px;">Prijavi netačan podatak</a></p>
             <a class="btn btn-outline-navy btn-block" id="claimLink" href="preuzmi.html" style="margin-top:14px;">Ovo je moja ordinacija</a>
-          </div>
-
-          <div class="info-card" id="bookingCard" style="display:none;">
-            <h3><span data-icon="calendar"></span> Online zakazivanje <span class="premium-badge-inline"><span data-icon="sparkle"></span> Premium</span></h3>
-
-            <div class="login-prompt-box" id="bookingLoginPrompt" style="display:none;">
-              <span data-icon="calendar"></span>
-              <p>Prijavite se da biste zakazali termin online.</p>
-              <a href="#" id="bookingLoginBtn" class="btn btn-primary btn-sm">Prijavi se / Registruj se</a>
-            </div>
-
-            <form id="bookingForm" style="display:none;">
-              <div class="form-field" style="margin-bottom:14px;">
-                <label>Usluga</label>
-                <select name="service" id="bookingServiceSelect" required></select>
-              </div>
-              <div class="form-field" style="margin-bottom:14px;">
-                <label>Datum</label>
-                <input type="date" name="date" id="bookingDateInput" required>
-              </div>
-              <div class="form-field" style="margin-bottom:6px;">
-                <label>Vreme</label>
-              </div>
-              <div class="time-slots" id="bookingTimeSlots"></div>
-              <div class="form-field" style="margin-bottom:16px;">
-                <label>Napomena (opciono)</label>
-                <textarea name="note" placeholder="Npr. razlog posete..." style="min-height:70px;"></textarea>
-              </div>
-              <button type="submit" class="btn btn-primary btn-block" id="bookingSubmitBtn" disabled>Potvrdi termin</button>
-            </form>
-
-            <div id="bookingSuccess" style="display:none;">
-              <div class="location-banner" style="margin:0;">
-                <span data-icon="checkCircle"></span>
-                <span class="grow">Online zakazivanje je uskoro. Vaš zahtev se za sada ne šalje ordinaciji — pozovite ordinaciju telefonom.</span>
-              </div>
-              <a href="nalog.html#termini" class="btn btn-outline-navy btn-block" style="margin-top:14px;">Pogledaj moje termine</a>
-            </div>
           </div>
 
           <div class="info-card">
@@ -312,8 +235,6 @@
 </footer>
 
 <script src="js/icons.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/header-auth.js"></script>
 <script src="js/services.js"></script>
 <script src="js/data.js"></script>
 <script src="js/imported-clinics.js"></script>

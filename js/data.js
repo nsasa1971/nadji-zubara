@@ -99,68 +99,6 @@ function clinicImageUrl(seed, w=800, h=600){
   return 'img/ordinacija-cover.webp';
 }
 
-/* Recenzije koje posetioci ostavljaju preko sajta (van seed podataka) —
-   deljene funkcije, dostupne na svim stranicama (ne samo ordinacija.html). */
-function extraReviewsKey(id){ return 'nz_reviews_' + id; }
-function getExtraReviews(id){
-  try{ return JSON.parse(localStorage.getItem(extraReviewsKey(id)) || '[]'); }
-  catch(e){ return []; }
-}
-function setExtraReviews(id, list){
-  localStorage.setItem(extraReviewsKey(id), JSON.stringify(list));
-}
-function saveExtraReview(id, review){
-  const list = getExtraReviews(id);
-  list.unshift(review);
-  setExtraReviews(id, list);
-}
-function updateExtraReview(clinicId, reviewId, fields){
-  const list = getExtraReviews(clinicId);
-  const item = list.find(r => r.id === reviewId);
-  if(item) Object.assign(item, fields);
-  setExtraReviews(clinicId, list);
-}
-function deleteExtraReview(clinicId, reviewId){
-  const list = getExtraReviews(clinicId).filter(r => r.id !== reviewId);
-  setExtraReviews(clinicId, list);
-}
-
-/* =========================================================
-   Oglasi koje su dodali vlasnici ordinacija (js/auth.js, "Moji
-   oglasi") se čuvaju odvojeno od glavnog imenika, ali se ovde
-   pretvaraju u isti oblik da bi se stvarno pojavili u pretrazi,
-   na mapi i na sopstvenoj strani — sve unutar istog pretraživača.
-   ========================================================= */
-function normalizeMyListing(l){
-  const extra = (typeof getExtraReviews === 'function') ? getExtraReviews(l.id) : [];
-  return {
-    id: l.id,
-    name: l.name,
-    city: l.city,
-    address: l.address || (l.city ? `${l.city}` : ''),
-    phone: l.phone || '',
-    website: l.website || '#',
-    priceRange: l.priceRange || 2,
-    rating: extra.length ? (extra.reduce((a,r)=>a+r.rating,0)/extra.length) : 0,
-    reviewCount: extra.length,
-    verified: false,
-    ownerListing: true,
-    plan: l.plan || 'besplatno',
-    featured: l.plan === 'premium',
-    services: knownServices(l.services),
-    short: l.description ? (l.description.length > 90 ? l.description.slice(0,90)+'…' : l.description) : 'Novododata ordinacija.',
-    description: l.description || 'Vlasnik ove ordinacije još nije dodao detaljan opis.',
-    hours: l.hours || {mon:'08:00-20:00',tue:'08:00-20:00',wed:'08:00-20:00',thu:'08:00-20:00',fri:'08:00-20:00',sat:'09:00-14:00',sun:null},
-    images: [`my-listing-${l.id}-1`, `my-listing-${l.id}-2`, `my-listing-${l.id}-3`],
-    logoInitials: l.logoImage ? '' : (l.name||'O').charAt(0).toUpperCase(),
-    logoColor: l.logoColor || '#0EA5A3',
-    logoImage: l.logoImage || null,
-    reviews: [],
-    coordsVerified: false, // koordinate ispod su procenjene oko centra grada
-    ...assignCoordsForCity(l.city, (Math.abs(hashCode(l.id)) % 5) + 1)
-  };
-}
-
 // Normalizacija za pretragu: mala slova, bez dijakritika (š→s, č/ć→c, ž→z, đ→dj),
 // tako da "nis" nalazi "Niš", a "djordje" nalazi "Đorđe".
 function normalizeText(str){
@@ -176,8 +114,7 @@ function hashCode(str){
   return h;
 }
 
-// Svi javno vidljivi oglasi: glavni imenik + oglasi dodati kroz "Dodaj ordinaciju"
-// (u okviru ovog pretraživača).
+// Svi javno vidljivi oglasi: glavni imenik + uvezene ordinacije.
 // Uvezene ordinacije: koordinate iz js/imported-coords.js (geokodirane preko OpenStreetMap-a,
 // preciznost "kuca" ili "ulica") se spajaju jednom, pri prvom pozivu. Samo ordinacije sa takvom
 // koordinatom dobijaju coordsVerified = true (pin, udaljenost, "Blizu mene"); za ostale se
@@ -214,8 +151,7 @@ function getImportedClinics(){
 }
 
 function getAllPublicListings(){
-  const mine = (typeof getMyListings === 'function') ? getMyListings() : [];
-  return CLINICS.concat(getImportedClinics()).concat(mine.map(normalizeMyListing));
+  return CLINICS.concat(getImportedClinics());
 }
 
 // Broj ordinacija po usluzi (slug -> broj), iz svih javnih oglasa.
@@ -231,13 +167,7 @@ function getServiceCounts(){
 }
 
 function getClinicById(id){
-  const found = CLINICS.find(c => c.id === id) || getImportedClinics().find(c => c.id === id);
-  if(found) return found;
-  if(typeof getMyListingById === 'function'){
-    const mine = getMyListingById(id);
-    if(mine) return normalizeMyListing(mine);
-  }
-  return null;
+  return CLINICS.find(c => c.id === id) || getImportedClinics().find(c => c.id === id) || null;
 }
 
 // Sve gradove (imenik + uvezene ordinacije) — koristi se za popunjavanje

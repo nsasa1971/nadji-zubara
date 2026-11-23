@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Podnožje ručno pisanih stranica = podnožje iz index.html (jedan izvor).
 Pokretanje: python3 tools/sync_footer.py. Generisane stranice već dobijaju isto podnožje iz build_pages.py.
-Stranice bez <footer class="site-footer"> (npr. prijava.html) se ne diraju; generisane (sa oznakom) se preskaču.
+Stranice bez <footer class="site-footer"> se ne diraju; generisane (sa oznakom) se preskaču.
 Ako stranica ima rečenicu o OpenStreetMap atribuciji (pretraga.html, zbog mape), ona se zadržava."""
 import pathlib, re, sys
 
