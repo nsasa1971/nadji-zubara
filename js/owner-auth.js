@@ -95,11 +95,13 @@ function ownerLoginFlow(container, opts){
     const m2 = el('p', {class:'hint', role:'status', style:'margin:12px 0 0;font-size:14px;'});
     const f2 = el('form', {novalidate:''}, [
       el('p', {style:'margin:0 0 12px;'}, ['Poslali smo kod na ', el('strong', {}, email), '. Unesite ga ovde (važi kratko). Ako vam je lakše, možete umesto toga da otvorite link iz iste poruke.']),
-      el('div', {class:'form-field'}, [el('label', {for:'ownerCode'}, 'Kod iz e-pošte'), codeIn]),
+      el('div', {class:'form-field'}, [el('label', {for:'ownerCode'}, 'Kod iz e-pošte (6 cifara)'), codeIn]),
       el('div', {style:'display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;'}, [okBtn, resend]),
       m2, el('div', {style:'margin-top:6px;'}, [change])
     ]);
     container.appendChild(f2);
+    // samo cifre (i nalepljen kod sa razmacima); dužina koda se podešava u Supabase panelu: prihvata se 6 do 8 cifara, očekuje se 6
+    codeIn.addEventListener('input', () => { const v = codeIn.value.replace(/\D/g, '').slice(0, 8); if(v !== codeIn.value) codeIn.value = v; });
     codeIn.focus();
     const badM = t => { m2.style.color = 'var(--closed)'; m2.textContent = t; };
 
@@ -129,7 +131,7 @@ function ownerLoginFlow(container, opts){
       e.preventDefault();
       m2.style.color = '';
       const code = codeIn.value.replace(/\s+/g, '');
-      if(!/^[0-9]{6,8}$/.test(code)){ badM('Unesite kod od 6 cifara iz poruke.'); return; }
+      if(!/^[0-9]{6,8}$/.test(code)){ badM('Unesite kod iz poruke (samo cifre, obično 6).'); return; }
       if(wrong >= OTP_MAX_WRONG){ badM(otpVerifyErrorText(null, wrong)); return; }
       okBtn.disabled = true;
       const { data, error } = await sb.auth.verifyOtp({email, token: code, type:'email'});
