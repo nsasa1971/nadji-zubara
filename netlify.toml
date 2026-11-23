@@ -85,9 +85,9 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "no-referrer"
 
-# Keš (brzina): fontovi se nikad ne menjaju pod istim imenom (immutable, godinu dana); slike 7 dana; CSS/JS nemaju
-# heš u imenu, pa kratko (1 h, uz osvežavanje u pozadini), da izmene stignu brzo. HTML ostaje na podrazumevanom
-# Netlify ponašanju (uvek provera sveže verzije). Netlify sam uključuje gzip/brotli za html, css, js, json, svg.
+# Keš (brzina): fontovi se nikad ne menjaju pod istim imenom (immutable, godinu dana); slike 7 dana.
+# CSS i JS nemaju heš u imenu, pa se UVEK proveravaju (ETag, odgovor 304 ako nema izmena): inače posetioci posle objave
+# neko vreme vide staru verziju. HTML ostaje na podrazumevanom Netlify ponašanju. Netlify sam uključuje gzip/brotli.
 [[headers]]
   for = "/fonts/*"
   [headers.values]
@@ -101,9 +101,9 @@
 [[headers]]
   for = "/css/*"
   [headers.values]
-    Cache-Control = "public, max-age=3600, stale-while-revalidate=86400"
+    Cache-Control = "public, max-age=0, must-revalidate"
 
 [[headers]]
   for = "/js/*"
   [headers.values]
-    Cache-Control = "public, max-age=3600, stale-while-revalidate=86400"
+    Cache-Control = "public, max-age=0, must-revalidate"
