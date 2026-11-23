@@ -186,17 +186,22 @@
   // Objavljene nove ordinacije iz baze dodaju se na statične brojeve (ukupno, gradovi, pločice gradova).
   function addNewClinicsToNumbers(){
     if(typeof NEW_PUBLISHED === 'undefined' || !NEW_PUBLISHED.length) return;
+    // ordinacije koje su već upisane u statične brojeve (build ih je uračunao) se ne dodaju ponovo
+    const bakedEl = $('homeBaked');
+    const baked = new Set(((bakedEl && bakedEl.textContent) || '').split(/\s+/).filter(Boolean));
+    const fresh = NEW_PUBLISHED.filter(c => !baked.has(c.id));
+    if(!fresh.length) return;
     const num = e => parseInt(e.textContent.replace(/\D/g, ''), 10) || 0;
     const plural = n => (n % 10 === 1 && n % 100 !== 11) ? 'ordinacija' : ((n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? 'ordinacije' : 'ordinacija');
     const total = $('statOrdinacije'), cities = $('statGradovi');
-    if(total){ const v = (parseInt(total.dataset.target, 10) || num(total)) + NEW_PUBLISHED.length; total.dataset.target = v; total.textContent = fmt(v); }
+    if(total){ const v = (parseInt(total.dataset.target, 10) || num(total)) + fresh.length; total.dataset.target = v; total.textContent = fmt(v); }
     if(cities){
-      const known = new Set(getImportedClinics().map(c => c.city));
-      const fresh = new Set(NEW_PUBLISHED.map(c => c.city).filter(g => g && g !== 'Nepoznato' && !known.has(g)));
-      if(fresh.size){ const v = (parseInt(cities.dataset.target, 10) || num(cities)) + fresh.size; cities.dataset.target = v; cities.textContent = fmt(v); }
+      const known = new Set(getImportedClinics().concat(NEW_PUBLISHED.filter(c => baked.has(c.id))).map(c => c.city));
+      const newCities = new Set(fresh.map(c => c.city).filter(g => g && g !== 'Nepoznato' && !known.has(g)));
+      if(newCities.size){ const v = (parseInt(cities.dataset.target, 10) || num(cities)) + newCities.size; cities.dataset.target = v; cities.textContent = fmt(v); }
     }
     document.querySelectorAll('.home-tile-count[data-city]').forEach(n => {
-      const extra = NEW_PUBLISHED.filter(c => c.city === n.getAttribute('data-city')).length;
+      const extra = fresh.filter(c => c.city === n.getAttribute('data-city')).length;
       if(extra){ const v = num(n) + extra; n.textContent = fmt(v) + ' ' + plural(v); }
     });
   }
