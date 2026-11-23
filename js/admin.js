@@ -6,6 +6,10 @@
   const app = document.getElementById('adminApp');
   if(!app) return;
   const BUCKET = 'clinic-images';
+  // link za oporavak lozinke: hash ima type=recovery (Supabase ga čisti sam, zato se čita odmah pri učitavanju)
+  let recovery = window.NZ_RECOVERY === true || /(^#|&)type=recovery(&|$)/.test(location.hash);
+  const linkExpired = window.NZ_LINK_EXPIRED === true || /(^#|&)error_code=otp_expired(&|$)/.test(location.hash);
+  if(linkExpired) { try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){} }
 
   const ERRORS = {
     not_admin:'Nemate administratorski pristup.',
@@ -658,6 +662,21 @@
     ]);
     box.appendChild(form);
     box.appendChild(el('div', {style:'margin-top:12px;'}, [alt]));
+    const forgot = el('button', {type:'button', class:'adm-linkbtn'}, 'Zaboravili ste lozinku?');
+    box.appendChild(el('div', {style:'margin-top:12px;text-align:center;'}, [forgot]));
+    if(linkExpired){ msg.style.color = 'var(--closed)'; msg.textContent = 'Link je istekao ili je već iskorišćen. Zatražite novi: upišite e-adresu i izaberite „Zaboravili ste lozinku?“.'; }
+    forgot.addEventListener('click', async () => {
+      msg.style.color = 'var(--closed)';
+      const em = email.value.trim();
+      if(!isValidEmailFormat(em)){ msg.textContent = 'Upišite e-adresu u polje iznad, pa ponovo izaberite „Zaboravili ste lozinku?“.'; email.focus(); return; }
+      forgot.disabled = true;
+      const { error } = await sb.auth.resetPasswordForEmail(em, {redirectTo: location.origin + '/admin.html'});
+      forgot.disabled = false;
+      if(error && (error.status === 429 || /rate|limit|too many/i.test(error.message || ''))){ msg.textContent = 'Previše pokušaja. Sačekajte malo pa pokušajte ponovo.'; return; }
+      if(error && !error.status){ msg.textContent = 'Nema veze sa serverom. Pokušajte ponovo.'; return; }
+      // isti odgovor bez obzira da li nalog postoji
+      msg.style.color = 'var(--open)'; msg.textContent = 'Poslali smo link na vašu e-adresu.';
+    });
     alt.addEventListener('click', () => ownerLoginFlow(box, {redirectPath:'admin.html', intro:'Poslaćemo vam kod (i link) na e-adresu administratora.'}));
     form.addEventListener('submit', async e => {
       e.preventDefault();
@@ -679,6 +698,48 @@
     });
   }
 
+
+  /* ------------------------------------------------- nova lozinka (link za oporavak) */
+  function renderSetPassword(){
+    app.textContent = '';
+    const pw1 = el('input', {type:'password', id:'newPw', autocomplete:'new-password', maxlength:'200', required:'', 'aria-describedby':'newPwRules'});
+    const pw2 = el('input', {type:'password', id:'newPw2', autocomplete:'new-password', maxlength:'200', required:''});
+    const msg = el('p', {class:'adm-hint', role:'alert', style:'margin:12px 0 0;color:var(--closed);'});
+    const btn = el('button', {type:'submit', class:'btn btn-primary adm-wide'}, 'Postavi lozinku');
+    const form = el('form', {novalidate:''}, [
+      el('div', {class:'form-field'}, [el('label', {for:'newPw'}, 'Nova lozinka'), pw1]),
+      el('div', {class:'form-field'}, [el('label', {for:'newPw2'}, 'Ponovite lozinku'), pw2]),
+      el('p', {class:'adm-hint', id:'newPwRules'}, 'Najmanje 10 znakova, sa slovima i brojevima.'),
+      el('div', {style:'margin-top:14px;'}, [btn]), msg
+    ]);
+    app.appendChild(el('div', {class:'info-card adm-login'}, [el('h3', {}, 'Postavite novu lozinku'), form]));
+    pw1.focus();
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+      msg.style.color = 'var(--closed)'; msg.textContent = '';
+      const a = pw1.value, b = pw2.value;
+      if(a.length < 10){ msg.textContent = 'Lozinka mora imati najmanje 10 znakova.'; pw1.focus(); return; }
+      if(!/\p{L}/u.test(a) || !/\d/.test(a)){ msg.textContent = 'Lozinka mora sadržati i slova i brojeve.'; pw1.focus(); return; }
+      if(a !== b){ msg.textContent = 'Lozinke se ne poklapaju.'; pw2.focus(); return; }
+      btn.disabled = true;
+      const { error } = await sb.auth.updateUser({password: a});
+      btn.disabled = false;
+      if(error){
+        const m = (error.message || '') + ' ' + (error.code || '');
+        msg.textContent = /same_password|different from the old/i.test(m) ? 'Nova lozinka mora biti različita od stare.'
+          : /weak|pwned|short|characters/i.test(m) ? 'Lozinka je preslaba. Izaberite dužu i manje uobičajenu lozinku.'
+          : /session|jwt|not authenticated|expired/i.test(m) ? 'Link je istekao. Zatražite novi na ekranu za prijavu („Zaboravili ste lozinku?“).'
+          : (error.status === 429 ? 'Previše pokušaja. Sačekajte malo pa pokušajte ponovo.' : 'Lozinka nije postavljena. Pokušajte ponovo.');
+        return;
+      }
+      pw1.value = ''; pw2.value = '';
+      recovery = false;
+      try{ history.replaceState(null, '', location.pathname + location.search); }catch(e){}   // briše token iz adrese
+      flash = {text:'Lozinka je postavljena.', ok:true};
+      render();   // nastavlja normalno, uz is_admin proveru
+    });
+  }
+
   /* ------------------------------------------------------------------ okvir */
   // render() se može pozvati istovremeno više puta (odmah i ponovo na SIGNED_IN pri povratku sa magic linka):
   // stariji pozivi se posle svakog čekanja odbacuju, pa se prikaz ne duplira.
@@ -689,6 +750,8 @@
     if(!sb){ app.appendChild(el('div', {class:'info-card'}, 'Nedostupno.')); return; }
     const user = await getOwnerUser();
     if(seq !== renderSeq) return;
+    if(recovery && user){ adminShown = false; renderSetPassword(); return; }
+    if(recovery && !user){ recovery = false; }   // link nije važio (istekao ili već iskorišćen)
     if(!user){
       adminShown = false;
       const box = el('div', {class:'info-card adm-login'}, [el('h3', {}, 'Prijava administratora'), el('div', {id:'loginBox'})]);
@@ -737,7 +800,10 @@
   }
 
   // SIGNED_IN stiže i pri povratku u karticu; ako je admin već prikazan, ne crta se ponovo (čuva se stanje ekrana)
-  if(sb) sb.auth.onAuthStateChange(evt => { if(evt === 'SIGNED_IN' && !adminShown) setTimeout(render, 0); });
+  if(sb) sb.auth.onAuthStateChange(evt => {
+    if(evt === 'PASSWORD_RECOVERY'){ recovery = true; adminShown = false; setTimeout(render, 0); return; }
+    if(evt === 'SIGNED_IN' && !adminShown && !recovery) setTimeout(render, 0);
+  });
 
   // service worker samo za instalaciju i keš statičkih fajlova (ne dira Supabase pozive)
   if('serviceWorker' in navigator){ window.addEventListener('load', () => { navigator.serviceWorker.register('/admin-sw.js', {scope:'/admin.html'}).catch(() => {}); }); }
