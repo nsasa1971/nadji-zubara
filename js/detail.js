@@ -222,7 +222,12 @@ function renderProfileExtras(c){
   const photosCard = document.getElementById('photosCard');
   if(photosCard){
     const paths = c.approvedImages || [];
-    if(paths.length >= 2 && typeof PF !== 'undefined'){
+    if(Array.isArray(c.demoImages) && c.demoImages.length >= 2){   // samo primer-ordinacija (js/demo-clinic.js): slike iz img/demo/
+      const grid = document.getElementById('photosGrid');
+      grid.textContent = '';
+      c.demoImages.forEach(u => { const im = el('img', {alt: c.name + ' (fiktivna fotografija)', loading:'lazy'}); im.src = u; grid.appendChild(im); });
+      photosCard.style.display = '';
+    } else if(paths.length >= 2 && typeof PF !== 'undefined'){
       PF.signUrls(paths).then(urls => {
         const grid = document.getElementById('photosGrid');
         grid.textContent = '';
