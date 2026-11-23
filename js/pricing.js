@@ -1,6 +1,6 @@
 /* Cenovnik (cenovnik.html).
    Prikazuje se samo paket "Besplatno" i ono što zaista postoji. Plaćeni paketi i cene biće
-   objavljeni kasnije; prijava i preuzimanje profila su "uskoro", pa izbor paketa još nije moguć. */
+   objavljeni kasnije. Preuzimanje profila već radi: dugme vodi na pretragu. */
 
 const PLANS = [
   {
@@ -20,7 +20,7 @@ function renderPricingGrid(){
       <h3>${plan.name}</h3>
       <p class="plan-desc">${plan.desc}</p>
       <ul>${plan.features.map(f => `<li>${ICONS.check} ${f}</li>`).join('')}</ul>
-      <span class="btn btn-outline-navy btn-block is-soon" aria-disabled="true">Uskoro dostupno</span>
+      <a class="btn btn-primary btn-block" href="pretraga.html">Pronađite svoju ordinaciju</a>
     </div>
   `).join('');
 }
