@@ -76,6 +76,7 @@ function renderClinic(c){
   const avatarBox = document.getElementById('avatarBox');
   avatarBox.textContent = c.logoInitials;
   avatarBox.style.background = avatarBg(c.logoColor);
+  if(c.logoPath){ avatarBox.setAttribute('data-logo-id', c.id); avatarBox.setAttribute('data-logo-size', '102'); avatarBox.setAttribute('data-logo-eager', ''); }   // odobren logo (potpisani URL kroz hydrateCovers)
 
   document.getElementById('clinicName').textContent = c.name;
   document.getElementById('verifiedBadge').style.display = c.verified ? 'inline-flex' : 'none';
