@@ -1234,7 +1234,7 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 
 /* hero na tabletu i desktopu: preko celog ekrana pri otvaranju (visina ekrana minus zaglavlje od 77 px), sadržaj vertikalno centriran */
 @media(min-width:641px){
-  .home-hero{min-height:calc(100vh - 77px);min-height:calc(100svh - 77px);display:flex;flex-direction:column;justify-content:center;}
+  .home-hero{min-height:calc(100vh - 77px - 60px);min-height:calc(100svh - 77px - 60px);display:flex;flex-direction:column;justify-content:center;}   /* minus zaglavlje (77) i traka sa brojevima (60), da se traka vidi odmah */
   .home-hero > .container{width:100%;}
 }
 
