@@ -30,7 +30,18 @@
       kids.push(el('p', {style:'margin:12px 0 0;font-size:14px;'}, 'Zvaćemo vas na broj iz imenika' + (clinic && safePhone(clinic.phone) ? ' (' + safePhone(clinic.phone) + ')' : '') + '.'));
     }
     if(c.status === 'verified' && c.claimed_at){
-      kids.push(el('p', {style:'margin:12px 0 0;font-size:14px;'}, 'Verifikovano: ' + fmtDate(c.claimed_at) + '. Besplatno do ' + fmtDate(addMonths(c.claimed_at, 6)) + '.'));
+      // rok: kraj besplatnog perioda (valid_until) ili plaćeno do (paid_until), što je kasnije; bez kolona (stara baza) = 6 meseci od verifikacije
+      const free = c.valid_until ? new Date(c.valid_until) : addMonths(c.claimed_at, 6);
+      const paid = c.paid_until ? new Date(c.paid_until) : null;
+      const exp = paid && paid > free ? paid : free;
+      const expired = exp.getTime() <= Date.now();
+      kids.push(el('p', {style:'margin:12px 0 0;font-size:14px;'}, 'Verifikovano: ' + fmtDate(c.claimed_at) + '. ' +
+        (expired ? 'Rok je istekao ' + fmtDate(exp) + '.' : (paid && paid > free ? 'Plaćeno do ' + fmtDate(paid) + '.' : 'Besplatni period ističe ' + fmtDate(free) + '.'))));
+      if(expired){
+        kids.push(el('div', {style:'background:#FFFBEB;border:1px solid #F59E0B;border-radius:12px;padding:12px 14px;margin-top:12px;font-size:14px;'}, [
+          'Profil je vraćen na osnovni prikaz. Javite nam se za nastavak. ',
+          el('a', {href:'kontakt.html'}, 'Kontakt')]));
+      }
       kids.push(el('p', {style:'margin:12px 0 0;'}, [el('a', {class:'btn btn-primary btn-sm', href:'izmena-profila.html?id=' + encodeURIComponent(c.clinic_id)}, 'Izmeni profil')]));
     }
     if(c.status === 'rejected'){
@@ -71,7 +82,7 @@
       el('div', {}, ['Prijavljeni ste kao ', el('strong', {}, user.email || '')]), logout
     ]));
     const { data, error } = await sb.from('claims')
-      .select('id, clinic_id, status, requested_at, claimed_at, decided_at, notes, admin_note, verification_code')
+      .select('*')   // vlasnik čita samo svoje redove; kolone valid_until/paid_until postoje tek posle migracije 10
       .order('requested_at', {ascending:false});
     if(seq !== renderSeq) return;
     if(error){ out.appendChild(el('div', {class:'info-card'}, 'Podaci trenutno nisu dostupni. Pokušajte ponovo kasnije.')); commit(); return; }

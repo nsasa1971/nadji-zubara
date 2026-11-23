@@ -518,8 +518,8 @@ svg{display:block;}
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
 
-.detail-layout{display:grid;grid-template-columns:1fr 320px;gap:40px;align-items:start;}
-@media(max-width:900px){.detail-layout{grid-template-columns:1fr;}}
+.detail-layout{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:40px;align-items:start;}
+@media(max-width:900px){.detail-layout{grid-template-columns:minmax(0,1fr);}}
 
 .info-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:22px;margin-bottom:22px;}
 .info-card h3{font-size:16.5px;display:flex;align-items:center;gap:8px;margin-bottom:16px;}
@@ -1185,3 +1185,17 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .pricing-card .plan-desc{flex:none;min-height:0;}
 .pricing-note{margin:0;font-size:14px;font-weight:600;color:var(--primary-dark);}
 @media(max-width:900px){.pricing-grid.two{grid-template-columns:1fr;}}
+
+/* cenovnik: istaknute cene, dugme u kartici, sitan red */
+.price-lines{margin:0 0 20px;display:flex;flex-direction:column;gap:6px;}
+.price-big{font-size:28px;font-weight:800;color:var(--navy);line-height:1.15;}
+.price-big span{font-size:15px;font-weight:600;color:var(--muted);}
+.pricing-card .pricing-card-cta{margin-top:6px;white-space:normal;text-align:center;line-height:1.3;min-height:52px;padding:12px 22px;color:#0B2545;text-wrap:balance;}
+.pricing-fine{margin:14px 0 0;text-align:center;font-size:12.5px;color:var(--muted);}
+@media(max-width:900px){.pricing-card ul{margin-bottom:0;flex:none;}.pricing-card{padding:28px 24px;}.pricing-card .pricing-card-cta{margin-top:22px;}}
+@media(max-width:480px){.price-big{font-size:24px;}}
+
+/* stranica ordinacije: dugačka reč/adresa/link ne sme da razvuče kolonu preko ekrana */
+.detail-layout > *{min-width:0;}
+.detail-layout .info-card,.detail-title-block{overflow-wrap:anywhere;}
+.tabs-nav{max-width:100%;}
