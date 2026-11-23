@@ -1479,3 +1479,17 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .adm-upd .adm-upd-btn{min-height:46px;min-width:120px;color:#0B2545}
 .adm-version{text-align:center;font-size:12.5px;color:var(--muted)}
 body:has(.adm-upd) .site-header{top:var(--adm-upd-h,0)}
+
+/* Logo ordinacije: u istom okviru kao inicijali (kartica 44px, zaglavlje 112px); inicijali ostaju rezerva */
+.clinic-card .avatar .logo-img,.detail-avatar .logo-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;border-radius:inherit;background:#fff}
+.detail-avatar{position:relative}
+.clinic-card .avatar.has-logo,.detail-avatar.has-logo{background:#fff !important;color:transparent;overflow:hidden}
+/* Moj nalog: odeljak "Logo ordinacije" */
+.logo-row{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:8px 0 12px}
+.logo-frame{width:96px;height:96px;border:1px solid var(--border);border-radius:16px;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;color:var(--muted);font-size:12px;text-align:center}
+.logo-frame.sm{width:44px;height:44px;border-radius:12px;border:3px solid #fff;box-shadow:var(--shadow-sm)}
+.logo-frame img{width:100%;height:100%;object-fit:contain;display:block}
+.logo-meta{display:flex;flex-direction:column;gap:6px;min-width:0}
+.logo-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
+.logo-actions .btn{min-height:46px}
+.logo-actions input[type=file]{display:none}

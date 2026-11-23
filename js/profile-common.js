@@ -109,9 +109,10 @@ const PF = (function(){
     });
   }
 
-  // Odobrene slike: {clinic_id: [putanje po redosledu]}
+  // Odobrene fotografije: {clinic_id: [putanje po redosledu]} (logo se ne računa; kind kolona postoji posle migracije 70)
   function fetchImages(signal){
-    return get('/rest/v1/clinic_images?select=clinic_id,storage_path&status=eq.approved&order=position.asc,created_at.asc&limit=1000', signal).then(rows => {
+    const base = '/rest/v1/clinic_images?select=clinic_id,storage_path&status=eq.approved&order=position.asc,created_at.asc&limit=1000';
+    return get(base + '&kind=eq.photo', signal).catch(() => get(base, signal)).then(rows => {
       const map = {};
       (Array.isArray(rows) ? rows : []).forEach(r => {
         if(typeof r.clinic_id === 'string' && typeof r.storage_path === 'string' &&
@@ -121,6 +122,18 @@ const PF = (function(){
       });
       return map;
     });
+  }
+
+  // Odobreni logoi: {clinic_id: putanja}. RLS vraća samo aktivne profile. Bez kolone kind (pre migracije 70) = nema logoa.
+  function fetchLogos(signal){
+    return get('/rest/v1/clinic_images?select=clinic_id,storage_path&kind=eq.logo&status=eq.approved&limit=2000', signal).then(rows => {
+      const map = {};
+      (Array.isArray(rows) ? rows : []).forEach(r => {
+        if(typeof r.clinic_id === 'string' && typeof r.storage_path === 'string' &&
+           /^[A-Za-z0-9._-]+\/logo-[A-Za-z0-9._-]+\.(jpe?g|png|webp)$/.test(r.storage_path)) map[r.clinic_id] = r.storage_path;
+      });
+      return map;
+    }).catch(() => ({}));
   }
 
   // Potpisani URL-ovi (privatan bucket); keš u memoriji dok ne isteknu.
@@ -178,5 +191,5 @@ const PF = (function(){
     } catch(e){ return Promise.resolve(false); }
   }
 
-  return {PRICE_CATEGORIES, configured, claimState, myVerifiedClaim, normalizePhone, cleanProfile, fetchProfiles, fetchImages, signUrls, withTimeout, HOURS_KEYS, SOCIAL_KEYS};
+  return {PRICE_CATEGORIES, configured, claimState, myVerifiedClaim, normalizePhone, cleanProfile, fetchProfiles, fetchImages, fetchLogos, signUrls, withTimeout, HOURS_KEYS, SOCIAL_KEYS};
 })();

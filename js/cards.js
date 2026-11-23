@@ -62,7 +62,7 @@ function renderClinicCard(c, opts){
           ${isFav?ICONS.heartFilled:ICONS.heart}
         </button>
       </div>
-      <div class="avatar" style="background:${avatarBg(c.logoColor)}">${c.logoImage ? `<img src="${c.logoImage}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : c.logoInitials}</div>
+      <div class="avatar"${c.logoPath ? ' data-logo-id="' + esc(c.id) + '" data-logo-size="38"' : ''} style="background:${avatarBg(c.logoColor)}">${c.logoImage ? `<img src="${c.logoImage}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">` : c.logoInitials}</div>
     </div>
     <div class="body">
       <div class="name-row">

@@ -11,13 +11,15 @@
   const MAX_IMAGES = 8, MAX_BYTES = 5 * 1024 * 1024;
   const DAYS = [['mon','Ponedeljak'],['tue','Utorak'],['wed','Sreda'],['thu','Četvrtak'],['fri','Petak'],['sat','Subota'],['sun','Nedelja']];
   const SOCIALS = [['facebook','Facebook'],['instagram','Instagram'],['linkedin','LinkedIn'],['tiktok','TikTok'],['youtube','YouTube']];
-  const FIELD_LABEL = {name:'Naziv', address:'Adresa', team:'Tim', images:'Slike'};
+  const FIELD_LABEL = {name:'Naziv', address:'Adresa', team:'Tim', images:'Slike', logo:'Logo'};
   const STATUS_LABEL = {pending:['Čeka odobrenje','chip-pending'], approved:['Odobreno','chip-open'], rejected:['Odbijeno','chip-closed']};
   const IMG_TYPES = {'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp'};
 
   const ERRORS = {
     image_limit:'Najviše 8 slika po ordinaciji (računaju se i one koje čekaju odobrenje).',
-    change_limit_24h:'Poslali ste previše izmena u poslednja 24 sata. Pokušajte kasnije.'
+    change_limit_24h:'Poslali ste previše izmena u poslednja 24 sata. Pokušajte kasnije.',
+    clinic_images_one_pending_logo:'Logo već čeka odobrenje. Uklonite ga ili sačekajte odluku.',
+    not_owner:'Nemate pravo na ovu ordinaciju.'
   };
   function errorText(error){
     const m = (error && error.message) || '';
@@ -39,6 +41,14 @@
   const URL_RE = /^https?:\/\/[^\s]+$/;
   function validUrl(u){ return u.length <= 300 && URL_RE.test(u) && !!safeUrl(u); }
   const PHONE_RE = /^[0-9+()\/ -]{6,20}$/;
+
+  // tip slike po prvim bajtovima (ne veruje se nazivu ni tipu koji javi pregledač)
+  function imageKind(bytes){
+    if(bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) return 'image/jpeg';
+    if(bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) return 'image/png';
+    if(bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return 'image/webp';
+    return null;
+  }
 
   // ---- cenovnik: ista pravila kao u bazi (migracija 30) ----
   const PRICE_CATS = (typeof PF !== 'undefined' && PF.PRICE_CATEGORIES) ? PF.PRICE_CATEGORIES : ['Opšta stomatologija','Dečja stomatologija','Ortodoncija','Protetika','Hirurgija','Implantologija','Parodontologija','Endodoncija','Estetska stomatologija','Preventiva i higijena','Ostalo'];
@@ -88,18 +98,29 @@
   }
 
   let hashDone = false;
-  let state = {profile:null, changes:[], images:[], urls:{}};
+  let state = {profile:null, changes:[], images:[], logos:[], urls:{}, profileState:'active'};
 
   async function loadAll(){
-    const [p, ch, im] = await Promise.all([
+    let imgQuery = sb.from('clinic_images').select('id, storage_path, status, created_at, kind').eq('clinic_id', clinicId).order('created_at', {ascending:true});
+    const [p, ch, im0, st] = await Promise.all([
       sb.from('profile_overrides').select('clinic_id, phones, hours, services, description, website, socials, name, address, team_public, updated_at, price_list, custom_services, price_list_updated_at').eq('clinic_id', clinicId).maybeSingle(),
       sb.from('pending_changes').select('id, field, new_value, status, created_at, reviewed_at, review_note').eq('clinic_id', clinicId).order('created_at', {ascending:false}).limit(40),
-      sb.from('clinic_images').select('id, storage_path, status, created_at').eq('clinic_id', clinicId).order('created_at', {ascending:true})
+      imgQuery,
+      (typeof PF !== 'undefined' && PF.claimState) ? PF.claimState(clinicId) : Promise.resolve('active')
     ]);
+    let im = im0;
+    if(im.error){   // pre migracije 70 kolona kind ne postoji: sve su fotografije
+      im = await sb.from('clinic_images').select('id, storage_path, status, created_at').eq('clinic_id', clinicId).order('created_at', {ascending:true});
+    }
     if(p.error || ch.error || im.error) throw new Error('load');
-    state.profile = p.data; state.changes = ch.data || []; state.images = im.data || [];
+    state.profile = p.data; state.changes = ch.data || [];
+    const all = im.data || [];
+    state.images = all.filter(i => i.kind !== 'logo');
+    state.logos = all.filter(i => i.kind === 'logo');
+    state.profileState = st;   // 'active' | 'expired' | 'none'
     state.urls = {};
-    const paths = state.images.filter(i => i.status !== 'rejected').map(i => i.storage_path);
+    const paths = state.images.filter(i => i.status !== 'rejected').map(i => i.storage_path)
+      .concat(state.logos.filter(i => i.status === 'pending' || i.status === 'approved').map(i => i.storage_path));
     if(paths.length){
       const { data } = await sb.storage.from(BUCKET).createSignedUrls(paths, 3600);
       (data || []).forEach(d => { if(d && d.signedUrl) state.urls[d.path] = d.signedUrl; });
@@ -404,6 +425,7 @@
   function summarize(c){
     if(c.field === 'team') return (c.new_value || []).map(m => m.name + (m.role ? ' (' + m.role + ')' : '')).join(', ');
     if(c.field === 'images') return ((c.new_value && c.new_value.paths) || []).length + ' slika';
+    if(c.field === 'logo') return 'novi logo';
     return String(c.new_value);
   }
 
@@ -517,6 +539,156 @@
     ]);
   }
 
+
+  /* ------------------------------------------------------------- logo */
+  const LOGO_MAX_PX = 512, LOGO_TARGET_BYTES = 100 * 1024;
+  // PNG/JPG/WebP -> najviše 512x512 (bez rastezanja), WebP ~85% (ili JPEG ako pregledač ne zna WebP); pokušava manji kvalitet dok je > 100 KB
+  async function prepareLogo(file){
+    if(file.size > MAX_BYTES) throw new Error('Fajl je veći od 5 MB. Izaberite manju sliku.');
+    const kind = imageKind(new Uint8Array(await file.slice(0, 16).arrayBuffer()));
+    if(!kind || !IMG_TYPES[kind]) throw new Error('Logo mora biti PNG, JPG ili WebP slika.');
+    let bmp;
+    try{ bmp = await createImageBitmap(file); }
+    catch(e){
+      const du = await toDataUrl(file);
+      bmp = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error('Slika se ne može otvoriti. Izaberite drugu.')); im.src = du; });
+    }
+    const w0 = bmp.width || bmp.naturalWidth, h0 = bmp.height || bmp.naturalHeight;
+    if(!w0 || !h0) throw new Error('Slika se ne može otvoriti. Izaberite drugu.');
+    const k = Math.min(1, LOGO_MAX_PX / Math.max(w0, h0));
+    const w = Math.max(1, Math.round(w0 * k)), h = Math.max(1, Math.round(h0 * k));
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const ctx = cv.getContext('2d');
+    const toBlob = (type, q) => new Promise(res => cv.toBlob(res, type, q));
+    ctx.clearRect(0, 0, w, h); ctx.drawImage(bmp, 0, 0, w, h);
+    let blob = null, type = 'image/webp';
+    for(const q of [0.85, 0.75, 0.62, 0.5]){
+      blob = await toBlob('image/webp', q);
+      if(blob && blob.type !== 'image/webp') blob = null;     // pregledač ne zna WebP
+      if(!blob) break;
+      if(blob.size <= LOGO_TARGET_BYTES) break;
+    }
+    if(!blob){   // JPEG nema providnost: beli podloga
+      type = 'image/jpeg';
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(bmp, 0, 0, w, h);
+      for(const q of [0.85, 0.75, 0.62, 0.5]){ blob = await toBlob('image/jpeg', q); if(blob && blob.size <= LOGO_TARGET_BYTES) break; }
+    }
+    if(!blob || blob.size > MAX_BYTES) throw new Error('Slika se ne može obraditi. Izaberite drugu.');
+    return {blob, type, w, h};
+  }
+
+  // CSP ove stranice dozvoljava slike sa data:, ne i sa blob:, pa se pregled pravi kao data URL
+  function toDataUrl(blob){
+    return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error('Pregled nije dostupan.')); r.readAsDataURL(blob); });
+  }
+
+  function logoFrame(url, cls){
+    const f = el('div', {class:'logo-frame' + (cls ? ' ' + cls : '')});
+    if(url){ const im = el('img', {alt:'Pregled logoa', width:cls === 'sm' ? '44' : '96', height:cls === 'sm' ? '44' : '96'}); im.src = url; f.appendChild(im); }
+    else f.textContent = 'Nema logoa';
+    return f;
+  }
+
+  function buildLogo(){
+    if(state.profileState === 'expired'){
+      return card('Logo ordinacije', [
+        el('p', {class:'of-note'}, 'Logo je deo paketa Profil+. Vaš Profil+ je istekao, pa se logo ne prikazuje javno.'),
+        el('a', {class:'btn btn-primary', href:'cenovnik.html'}, 'Pogledajte paket Profil+')
+      ]);
+    }
+    const approved = state.logos.find(l => l.status === 'approved');
+    const pending = state.logos.find(l => l.status === 'pending');
+    const lastRej = state.changes.find(c => c.field === 'logo' && c.status === 'rejected');
+    const showRej = !pending && lastRej && (!approved || new Date(lastRej.created_at) > new Date(approved.created_at));
+    const shown = pending || approved;
+    const msg = el('p', {role:'status', class:'of-msg'});
+    if(state.flash && state.flash.logo){ showMsg(msg, state.flash.text, state.flash.ok); state.flash = null; }
+    const file = el('input', {type:'file', accept:'image/png,image/jpeg,image/webp', 'aria-label':'Izaberite logo', tabindex:'-1'});
+    const pick = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, shown ? 'Zameni logo' : 'Otpremi logo');
+    pick.addEventListener('click', () => file.click());
+    const previewBox = el('div', {class:'logo-row', hidden:''});
+    const actions = el('div', {class:'logo-actions'}, [pick, file]);
+    let prepared = null;
+
+    file.addEventListener('change', async () => {
+      const f = file.files && file.files[0]; file.value = '';
+      if(!f) return;
+      showMsg(msg, 'Obrada slike…', true);
+      try{ prepared = await prepareLogo(f); }
+      catch(e){ prepared = null; previewBox.hidden = true; showMsg(msg, e.message || 'Slika se ne može obraditi.', false); return; }
+      let url;
+      try{ url = await toDataUrl(prepared.blob); } catch(e){ showMsg(msg, 'Pregled nije dostupan. Pokušajte ponovo.', false); return; }
+      previewBox.textContent = '';
+      const send = el('button', {type:'button', class:'btn btn-primary btn-sm'}, 'Pošalji na odobrenje');
+      const cancel = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Otkaži');
+      cancel.addEventListener('click', () => { prepared = null; previewBox.hidden = true; showMsg(msg, '', true); });
+      send.addEventListener('click', async () => {
+        send.disabled = true; cancel.disabled = true; showMsg(msg, 'Slanje…', true);
+        const err = await submitLogo(prepared);
+        if(err){ send.disabled = false; cancel.disabled = false; showMsg(msg, err, false); return; }
+        state.flash = {text:'Logo je poslat na odobrenje.', ok:true, logo:true};
+        refresh();
+      });
+      previewBox.appendChild(logoFrame(url));
+      previewBox.appendChild(el('div', {class:'logo-meta'}, [
+        el('strong', {}, 'Pregled pre slanja'),
+        el('span', {class:'hint'}, prepared.w + '×' + prepared.h + ' px, ' + Math.max(1, Math.round(prepared.blob.size / 1024)) + ' KB'),
+        el('span', {class:'hint'}, 'Ovako izgleda na kartici:'), logoFrame(url, 'sm'),
+        el('div', {class:'logo-actions'}, [send, cancel])
+      ]));
+      previewBox.hidden = false;
+      showMsg(msg, '', true);
+    });
+
+    const kids = [
+      el('p', {class:'of-note'}, 'PNG, JPG ili WebP, do 5 MB. Slika se smanjuje na najviše 512×512 px. Logo se objavljuje tek posle odobrenja, a do tada se javno vidi prethodno stanje (inicijali ili raniji logo).')
+    ];
+    const [lbl, cls] = pending ? STATUS_LABEL.pending : (approved ? STATUS_LABEL.approved : (showRej ? STATUS_LABEL.rejected : [null, null]));
+    kids.push(el('div', {class:'logo-row'}, [
+      logoFrame(shown ? state.urls[shown.storage_path] : null),
+      el('div', {class:'logo-meta'}, (lbl ? [el('span', {class:'chip ' + cls}, lbl)] : [])
+        .concat(pending && approved ? [el('span', {class:'hint'}, 'Javno je i dalje vidljiv raniji (odobreni) logo.')] : [])
+        .concat(showRej && lastRej.review_note ? [el('span', {class:'hint'}, 'Razlog: ' + lastRej.review_note)] : []))
+    ]));
+    if(shown){
+      const rm = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Ukloni logo');
+      rm.addEventListener('click', async () => {
+        if(!window.confirm('Ukloniti logo? Sajt će ponovo prikazivati inicijale.')) return;
+        rm.disabled = true;
+        const { data, error } = await sb.rpc('owner_remove_logo', {p_clinic_id: clinicId});
+        if(error){ rm.disabled = false; showMsg(msg, errorText(error), false); return; }
+        if(Array.isArray(data) && data.length) await sb.storage.from(BUCKET).remove(data);
+        state.flash = {text:'Logo je uklonjen.', ok:true, logo:true};
+        refresh();
+      });
+      actions.appendChild(rm);
+    }
+    kids.push(actions, previewBox, msg);
+    return card('Logo ordinacije', kids);
+  }
+
+  // 1) obriši raniji logo na čekanju, 2) red u clinic_images, 3) fajl u bucket, 4) zahtev za odobrenje; greška = vraća nazad
+  async function submitLogo(prep){
+    const pending = state.logos.find(l => l.status === 'pending');
+    if(pending){
+      await sb.storage.from(BUCKET).remove([pending.storage_path]);
+      const d = await sb.from('clinic_images').delete().eq('id', pending.id);
+      if(d.error) return errorText(d.error);
+    }
+    const path = clinicId + '/logo-' + crypto.randomUUID() + IMG_TYPES[prep.type];
+    const ins = await sb.from('clinic_images').insert({clinic_id: clinicId, storage_path: path, kind: 'logo'});
+    if(ins.error) return errorText(ins.error);
+    const up = await sb.storage.from(BUCKET).upload(path, prep.blob, {contentType: prep.type, upsert:false});
+    if(up.error){ await sb.from('clinic_images').delete().eq('storage_path', path); return 'Otpremanje logoa nije uspelo. Pokušajte ponovo.'; }
+    const ch = await sb.from('pending_changes').insert({clinic_id: clinicId, field:'logo', new_value:{path}});
+    if(ch.error){
+      await sb.storage.from(BUCKET).remove([path]);
+      await sb.from('clinic_images').delete().eq('storage_path', path);
+      return errorText(ch.error);
+    }
+    return null;
+  }
+
   function buildHistory(){
     if(!state.changes.length) return null;
     return card('Vaše izmene na odobrenje', state.changes.map(c => {
@@ -552,6 +724,7 @@
     app.appendChild(buildTextChange('name', 'Naziv', curName, 150, 2));
     app.appendChild(buildTextChange('address', 'Adresa', curAddr, 200, 3));
     app.appendChild(buildTeam());
+    app.appendChild(buildLogo());
     app.appendChild(buildImages());
     const h = buildHistory(); if(h) app.appendChild(h);
     if(!hashDone && location.hash === '#cenovnik'){ hashDone = true; const pc = document.getElementById('cenovnik'); if(pc) pc.scrollIntoView(); }

@@ -48,13 +48,16 @@ window.profilesReady = (function(){
   const newOnes = (typeof NEWC !== 'undefined') ? NEWC.loadPublished().catch(() => false) : Promise.resolve(false);
   const both = Promise.all([
     PF.withTimeout(s => PF.fetchProfiles(s), PROFILE_WAIT_MS, null),
-    PF.withTimeout(s => PF.fetchImages(s), PROFILE_WAIT_MS, {})
+    PF.withTimeout(s => PF.fetchImages(s), PROFILE_WAIT_MS, {}),
+    PF.withTimeout(s => PF.fetchLogos(s), PROFILE_WAIT_MS, {})
   ]);
-  return Promise.all([both, newOnes]).then(([[profiles, images], gotNew]) => {
+  return Promise.all([both, newOnes]).then(([[profiles, images, logos], gotNew]) => {
     if(!profiles) return !!gotNew;
     const byId = {};
     getImportedClinics().concat(typeof NEW_PUBLISHED !== 'undefined' ? NEW_PUBLISHED : []).forEach(c => { byId[c.id] = c; });
     Object.keys(profiles).forEach(id => { if(byId[id]) applyProfileToClinic(byId[id], profiles[id], images[id]); });
+    // odobren logo (samo aktivni profili; RLS) zamenjuje inicijale; potpisani URL se traži tek pri prikazu (hydrateCovers)
+    Object.keys(logos || {}).forEach(id => { if(byId[id]) byId[id].logoPath = logos[id]; });
     return true;
   }).catch(() => false);
 })();
@@ -62,14 +65,33 @@ window.profilesReady = (function(){
 // Naslovne slike: za svaku <img data-cover-id="<id ordinacije>"> koja ima odobrenu sliku
 // postavlja potpisani URL (bucket je privatan). Bez slike ili uz grešku ostaje opšta fotografija.
 window.hydrateCovers = function(root){
-  const imgs = Array.from((root || document).querySelectorAll('img[data-cover-id]'));
-  const pairs = [];
-  imgs.forEach(img => {
+  const scope = root || document;
+  const pairs = [], logos = [];
+  Array.from(scope.querySelectorAll('img[data-cover-id]')).forEach(img => {
     const c = getClinicById(img.getAttribute('data-cover-id'));
     if(c && c.approvedImages && c.approvedImages.length) pairs.push([img, c.approvedImages[0]]);
   });
-  if(!pairs.length) return;
-  PF.signUrls(pairs.map(p => p[1])).then(urls => {
+  // logo ordinacije: u okviru gde su inicijali (isti okvir, ista veličina); inicijali ostaju dok slika ne stigne i kao rezerva
+  Array.from(scope.querySelectorAll('[data-logo-id]')).forEach(node => {
+    if(node.dataset.logoDone) return;
+    const c = getClinicById(node.getAttribute('data-logo-id'));
+    if(c && c.logoPath){ node.dataset.logoDone = '1'; logos.push([node, c]); }
+  });
+  if(!pairs.length && !logos.length) return;
+  // jedan zahtev za sve potpisane URL-ove na stranici (naslovne slike i logoi zajedno)
+  PF.signUrls(pairs.map(p => p[1]).concat(logos.map(l => l[1].logoPath))).then(urls => {
     pairs.forEach(([img, path]) => { if(urls[path]) img.src = urls[path]; });
+    logos.forEach(([node, c]) => {
+      const u = urls[c.logoPath];
+      if(!u) return;   // bez URL-a ostaju inicijali
+      const size = parseInt(node.getAttribute('data-logo-size'), 10) || 44;
+      const im = document.createElement('img');
+      im.className = 'logo-img'; im.width = size; im.height = size; im.alt = 'Logo: ' + c.name;
+      im.decoding = 'async'; im.loading = node.hasAttribute('data-logo-eager') ? 'eager' : 'lazy';
+      im.addEventListener('load', () => node.classList.add('has-logo'));
+      im.addEventListener('error', () => im.remove());   // greška: bez polomljene slike, inicijali ostaju
+      im.src = u;
+      node.appendChild(im);
+    });
   });
 };
