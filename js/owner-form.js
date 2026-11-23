@@ -368,7 +368,7 @@
     const { data, error } = await sb.from('claims').select('id').eq('clinic_id', clinicId).eq('status', 'verified').limit(1);
     if(error || !data || !data.length){
       app.appendChild(el('div', {class:'info-card'}, [
-        el('p', {style:'margin:0 0 12px;'}, 'Izmena profila je dostupna tek kad je vaš zahtev za ovu ordinaciju verifikovan.'),
+        el('p', {style:'margin:0 0 12px;'}, 'Izmena profila je dostupna tek kad je vaš zahtev za ovu ordinaciju potvrđen.'),
         el('a', {class:'btn btn-primary', href:'moj-nalog.html'}, 'Moj nalog')]));
       return;
     }

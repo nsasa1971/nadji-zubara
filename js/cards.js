@@ -57,7 +57,7 @@ function renderClinicCard(c, opts){
     <div class="body">
       <div class="name-row">
         <h3><a href="ordinacija.html?id=${c.id}">${esc(c.name)}</a></h3>
-        ${c.verified ? `<span class="badge-verified-inline" title="Preuzet profil">${ICONS.checkCircle} Preuzet profil</span>` : ''}
+        ${c.verified ? `<span class="badge-verified-inline" title="Potvrđen profil">${ICONS.checkCircle} Potvrđen profil</span>` : ''}
         ${c.featured ? `<span class="premium-badge-inline" title="Premium ordinacija">${ICONS.sparkle} Premium</span>` : ''}
       </div>
       <p class="muted-line">${esc(c.address)}</p>

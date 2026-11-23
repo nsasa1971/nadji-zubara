@@ -4,14 +4,14 @@
 
 :root{
   --primary:#0EA5A3;
-  --primary-dark:#0B857F;
+  --primary-dark:#0A7C77;
   --primary-light:#E3F7F6;
   --accent:#FF6F59;
   --accent-dark:#E5573F;
   --navy:#0B2545;
   --navy-light:#13345F;
   --text:#1F2A37;
-  --muted:#6B7686;
+  --muted:#5B6676;
   --border:#E6EBF0;
   --bg:#F5F9FA;
   --white:#FFFFFF;
@@ -1199,3 +1199,10 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .detail-layout > *{min-width:0;}
 .detail-layout .info-card,.detail-title-block{overflow-wrap:anywhere;}
 .tabs-nav{max-width:100%;}
+.pricing-sub{margin:12px 0 0;font-size:13.5px;text-align:center;color:var(--muted);}
+.pricing-sub a{color:var(--primary-dark);text-decoration:underline;text-underline-offset:3px;}
+
+/* pristupačnost: kontrast i podvučeni linkovi u SEO stranicama */
+.seo-page .breadcrumbs,.seo-page .breadcrumbs span{color:var(--muted);}
+.seo-page .breadcrumbs a{color:var(--primary-dark);text-decoration:underline;text-underline-offset:2px;}
+.section-head .eyebrow{color:var(--primary-dark);}
