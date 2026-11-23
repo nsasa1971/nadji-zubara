@@ -28,7 +28,8 @@
     outreach_note:'Beleška je predugačka (najviše 1000 znakova).',
     invalid_input:'Neki podatak nije prihvaćen (naziv, adresa i opis ne smeju sadržati linkove, e-adrese ni brojeve telefona; proverite i dužine i koordinate).',
     not_found:'Ordinacija ne postoji (osvežite listu).',
-    use_admin_review_logo:'Logo se odobrava preko posebne radnje (osvežite listu).'
+    use_admin_review_logo:'Logo se odobrava preko posebne radnje (osvežite listu).',
+    use_admin_review_cover:'Naslovna slika se odobrava preko posebne radnje (osvežite listu).'
   };
   function errText(error){
     const m = (error && error.message) || '';
@@ -37,7 +38,7 @@
   }
   function fmtDate(d){ return d ? new Date(d).toLocaleString('sr-Latn-RS', {day:'numeric', month:'numeric', year:'numeric', hour:'2-digit', minute:'2-digit'}) : ''; }
   function fmtDay(d){ return d ? new Date(d).toLocaleDateString('sr-Latn-RS', {day:'numeric', month:'numeric', year:'numeric'}) : ''; }
-  const FIELD = {name:'Naziv', address:'Adresa', team:'Tim', images:'Slike', logo:'Logo'};
+  const FIELD = {name:'Naziv', address:'Adresa', team:'Tim', images:'Slike', logo:'Logo', cover:'Naslovna slika'};
   const CLAIM_STATUS = {pending:['Na čekanju','chip-pending'], verified:['Verifikovano','chip-open'], rejected:['Odbijeno','chip-closed'], revoked:['Opozvano','chip-closed']};
 
   let tab = 'overview';
@@ -156,11 +157,13 @@
   /* ----------------------------------------------------------------- Izmene */
   // Logo: odobri/odbij; baza vraća putanje fajlova koje treba obrisati iz bucket-a (stari zamenjeni logo, odnosno odbijeni fajl)
   async function reviewLogo(c, info, approve, note){
-    const { data, error } = await sb.rpc('admin_review_logo', {p_id:c.id, p_approve:approve, p_note:note});
+    const what = c.field === 'cover' ? 'Naslovna slika' : 'Logo';
+    const { data, error } = await sb.rpc(c.field === 'cover' ? 'admin_review_cover' : 'admin_review_logo', {p_id:c.id, p_approve:approve, p_note:note});
     if(error){ flash = {text: errText(error), ok:false}; return render(); }
     let delFailed = false;
     if(Array.isArray(data) && data.length){ const del = await sb.storage.from(BUCKET).remove(data); delFailed = !!del.error; }
-    flash = {text: (approve ? 'Logo je odobren (' : 'Logo je odbijen (') + info.name + ').' + (delFailed ? ' Brisanje starog fajla iz skladišta nije uspelo (obriši ga ručno u Storage-u).' : ''), ok: !delFailed};
+    const f = c.field === 'cover';
+    flash = {text: what + (approve ? (f ? ' je odobrena (' : ' je odobren (') : (f ? ' je odbijena (' : ' je odbijen (')) + info.name + ').' + (delFailed ? ' Brisanje starog fajla iz skladišta nije uspelo (obriši ga ručno u Storage-u).' : ''), ok: !delFailed};
     await render();
   }
 
@@ -173,7 +176,7 @@
     // potpisani URL-ovi za sve slike na čekanju (admin ima SELECT politiku nad bucketom)
     const paths = [];
     data.forEach(c => { if(c.field === 'images' && c.new_value && Array.isArray(c.new_value.paths)) c.new_value.paths.forEach(p => paths.push(p)); });
-    data.forEach(c => { if(c.field === 'logo' && c.new_value && typeof c.new_value.path === 'string') paths.push(c.new_value.path); });
+    data.forEach(c => { if((c.field === 'logo' || c.field === 'cover') && c.new_value && typeof c.new_value.path === 'string') paths.push(c.new_value.path); });
     const urls = {};
     if(paths.length){
       const { data: signed } = await sb.storage.from(BUCKET).createSignedUrls(paths, 3600);
@@ -203,19 +206,22 @@
         }));
         kids.push(row('Slike na čekanju (' + ps.length + ')', ''), grid);
       }
-      if(c.field === 'logo'){
+      if(c.field === 'logo' || c.field === 'cover'){
         const u = c.new_value && urls[c.new_value.path];
-        const frame = (cls, size) => { const f = el('div', {class:'logo-frame' + (cls ? ' ' + cls : '')}); if(u){ const im = el('img', {alt:'Logo na čekanju: ' + info.name, width:String(size), height:String(size)}); im.src = u; f.appendChild(im); } else f.textContent = 'Nedostupan'; return f; };
-        kids.push(row('Logo na čekanju', ''), el('div', {class:'logo-row'}, [frame('', 96), el('div', {class:'logo-meta'}, [el('span', {class:'hint'}, 'Ovako izgleda na kartici:'), frame('sm', 44), el('strong', {}, info.name)])]));
+        const cover = c.field === 'cover';
+        const frame = (cls, size) => { const f = el('div', {class:(cover ? 'cover-frame' : 'logo-frame') + (cls ? ' ' + cls : '')}); if(u){ const im = el('img', {alt:(cover ? 'Naslovna slika' : 'Logo') + ' na čekanju: ' + info.name, width:String(cover ? 300 : size), height:String(cover ? 110 : size)}); im.src = u; f.appendChild(im); } else f.textContent = 'Nedostupna'; return f; };
+        kids.push(row((cover ? 'Naslovna slika' : 'Logo') + ' na čekanju', ''));
+        if(cover) kids.push(el('div', {class:'logo-meta'}, [el('span', {class:'hint'}, 'Ovako izgleda na kartici:'), frame('card'), el('span', {class:'hint'}, 'Ovako izgleda u zaglavlju stranice:'), frame('head'), el('strong', {}, info.name)]));
+        else kids.push(el('div', {class:'logo-row'}, [frame('', 96), el('div', {class:'logo-meta'}, [el('span', {class:'hint'}, 'Ovako izgleda na kartici:'), frame('sm', 44), el('strong', {}, info.name)])]));
       }
       kids.push(el('div', {style:'display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;'}, [
         actionBtn('Odobri', 'btn-primary', async () => {
-          if(c.field === 'logo') return reviewLogo(c, info, true, null);
+          if(c.field === 'logo' || c.field === 'cover') return reviewLogo(c, info, true, null);
           await run(() => sb.rpc('admin_review_change', {p_id:c.id, p_approve:true, p_note:null}), 'Izmena je odobrena (' + (FIELD[c.field] || c.field) + ' — ' + info.name + ').');
         }),
         actionBtn('Odbij', 'btn-outline-navy', async () => {
-          const isLogo = c.field === 'logo';
-          const r = await confirmDialog({title: isLogo ? 'Odbiti logo?' : 'Odbiti izmenu?', text:(FIELD[c.field] || c.field) + ' za „' + info.name + '“ se ne objavljuje. Vlasnik vidi napomenu kao razlog.', noteMode: isLogo ? 'optional' : 'required', confirmLabel:'Odbij', notePlaceholder:'Razlog (vlasnik ga vidi)'});
+          const isLogo = c.field === 'logo' || c.field === 'cover';
+          const r = await confirmDialog({title: isLogo ? 'Odbiti sliku?' : 'Odbiti izmenu?', text:(FIELD[c.field] || c.field) + ' za „' + info.name + '“ se ne objavljuje. Vlasnik vidi napomenu kao razlog.', noteMode: isLogo ? 'optional' : 'required', confirmLabel:'Odbij', notePlaceholder:'Razlog (vlasnik ga vidi)'});
           if(!r.ok) return;
           if(isLogo) return reviewLogo(c, info, false, r.note);
           await run(() => sb.rpc('admin_review_change', {p_id:c.id, p_approve:false, p_note:r.note}), 'Izmena je odbijena.');
@@ -233,10 +239,11 @@
     if(error) ({ data, error } = await sb.from('clinic_images').select('storage_path, position, created_at').eq('clinic_id', clinicId).eq('status', 'approved').order('position', {ascending:true}).order('created_at', {ascending:true}));   // pre migracije 70
     if(error) return el('p', {}, 'Slike nisu dostupne.');
     const logo = data.find(i => i.kind === 'logo');
-    const photos = data.filter(i => i.kind !== 'logo');
+    const cover = data.find(i => i.kind === 'cover');
+    const photos = data.filter(i => i.kind !== 'logo' && i.kind !== 'cover');
     if(!data.length) return el('p', {style:'font-size:14px;color:var(--muted);'}, 'Nema odobrenih slika.');
     const ps = photos.map(i => i.storage_path);
-    const { data: signed } = await sb.storage.from(BUCKET).createSignedUrls(ps.concat(logo ? [logo.storage_path] : []), 3600);
+    const { data: signed } = await sb.storage.from(BUCKET).createSignedUrls(ps.concat(logo ? [logo.storage_path] : [], cover ? [cover.storage_path] : []), 3600);
     const urls = {}; (signed || []).forEach(s => { if(s && s.signedUrl) urls[s.path] = s.signedUrl; });
     const removeImage = (path, what) => actionBtn('Ukloni', 'btn-outline-navy', async () => {
       const r = await confirmDialog({title:'Ukloniti ' + what + '?', text:what.charAt(0).toUpperCase() + what.slice(1) + ' se skida sa javnog prikaza ordinacije „' + info.name + '“, a fajl se briše iz skladišta.', noteMode:'none', confirmLabel:'Ukloni'});
@@ -252,6 +259,11 @@
       const f = el('div', {class:'logo-frame'});
       if(urls[logo.storage_path]){ const im = el('img', {alt:'Logo: ' + info.name, width:'96', height:'96'}); im.src = urls[logo.storage_path]; f.appendChild(im); } else f.textContent = 'Nedostupan';
       out.push(el('div', {class:'logo-row'}, [f, el('div', {class:'logo-meta'}, [el('strong', {}, 'Logo'), removeImage(logo.storage_path, 'logo')])]));
+    }
+    if(cover){
+      const f = el('div', {class:'cover-frame card'});
+      if(urls[cover.storage_path]){ const im = el('img', {alt:'Naslovna slika: ' + info.name, width:'300', height:'110'}); im.src = urls[cover.storage_path]; f.appendChild(im); } else f.textContent = 'Nedostupna';
+      out.push(el('div', {class:'logo-row'}, [f, el('div', {class:'logo-meta'}, [el('strong', {}, 'Naslovna slika'), removeImage(cover.storage_path, 'naslovnu sliku')])]));
     }
     if(ps.length){
       out.push(el('div', {class:'owner-thumbs'}, ps.map(p => {
