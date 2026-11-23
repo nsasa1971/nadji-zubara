@@ -4,8 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cenovnik — Nađi Zubara</title>
-<meta name="description" content="Besplatan profil zubarske ordinacije na Nađi Zubara. Plaćeni paketi biće objavljeni kasnije; ordinacije koje preuzmu profil imaju prvih 6 meseci besplatno.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230EA5A3'/%3E%3Cpath d='M12 5c-1.8 0-2.6.9-3.6.9-1.1 0-2.2-.9-3.1.1-1 1-.4 3 .1 4.9.4 1.7.7 4 1.5 6.1.3 1 .8 1.6 1.6 1.6 1.1 0 1-2.2 1.6-4.3.3-1 .6-1.7 1.4-1.7s1.1.7 1.4 1.7c.6 2.1.5 4.3 1.6 4.3.8 0 1.3-.6 1.6-1.6.7-2.1 1-4.4 1.5-6.1.5-1.9 1.1-3.9.1-4.9-.9-1-2 0-3.1-.1-1-.9-1.8-.9-2-.9Z' fill='white'/%3E%3C/svg%3E">
+<meta name="description" content="Osnovni prikaz ordinacije na Nađi Zubara je besplatan. Profil+: prvih 6 meseci besplatno od dana preuzimanja, zatim 500 RSD mesečno ili 5.000 RSD godišnje.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nađi Zubara">
+<meta property="og:title" content="Cenovnik — Nađi Zubara">
+<meta property="og:description" content="Osnovni prikaz ordinacije na Nađi Zubara je besplatan. Profil+: prvih 6 meseci besplatno od dana preuzimanja, zatim 500 RSD mesečno ili 5.000 RSD godišnje.">
+<meta property="og:url" content="https://nadjizubara.rs/cenovnik">
+<meta property="og:image" content="https://nadjizubara.rs/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Nađi Zubara: pin sa zubom u zubarskoj ordinaciji">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://nadjizubara.rs/og-image.jpg">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B2545">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -55,15 +70,37 @@
 <div class="section">
   <div class="container">
     <div class="section-head" style="justify-content:center;text-align:center;flex-direction:column;align-items:center;">
-      <h2>Besplatan profil ordinacije</h2>
-      <p>Ordinacije mogu da preuzmu svoj profil. Prvih 6 meseci je besplatno.</p>
+      <h2>Osnovni prikaz i Profil+</h2>
+      <p>Cene su u dinarima.</p>
     </div>
 
-    <div class="pricing-grid single" id="pricingGrid"></div>
+    <div class="pricing-grid two">
+      <div class="pricing-card">
+        <h3>Osnovni</h3>
+        <div class="price">Besplatno</div>
+        <p class="plan-desc">Uvek besplatan.</p>
+        <ul>
+          <li><span data-icon="check"></span> Naziv, adresa i telefon</li>
+          <li><span data-icon="check"></span> Prikaz u pretrazi i na stranici grada</li>
+          <li class="disabled"><span data-icon="close"></span> Bez izmene podataka od strane ordinacije</li>
+        </ul>
+      </div>
+      <div class="pricing-card featured">
+        <h3>Profil+</h3>
+        <div class="price">Prvih 6 meseci besplatno</div>
+        <p class="plan-desc">Od dana preuzimanja profila. Zatim <b>500 RSD mesečno</b> ili <b>5.000 RSD godišnje</b>.</p>
+        <ul>
+          <li><span data-icon="check"></span> Ordinacija sama ispravlja podatke</li>
+          <li><span data-icon="check"></span> Dodajete radno vreme, usluge, opis i fotografije</li>
+          <li><span data-icon="check"></span> Oznaka „Preuzet profil“ (provereno pozivom)</li>
+        </ul>
+        <p class="pricing-note">Godišnje plaćanje je jeftinije za 1.000 RSD (dva meseca besplatno).</p>
+      </div>
+    </div>
 
     <div class="form-note" style="margin:28px auto 0;max-width:640px;">
       <span data-icon="info"></span>
-      <span>Plaćeni paketi biće objavljeni kasnije. Ordinacije koje preuzmu profil imaju prvih 6 meseci besplatno od dana preuzimanja.</span>
+      <span>Pre isteka 6 meseci javićemo vam se e-poštom sa načinom uplate. Plaćanje nije automatsko i nema zaduživanja kartice.</span>
     </div>
 
     <div class="section-head" style="margin-top:64px;justify-content:center;text-align:center;flex-direction:column;align-items:center;">
@@ -76,8 +113,20 @@
         <p style="color:var(--muted);margin:0;">Pronađite svoju ordinaciju u <a href="pretraga.html">pretrazi</a>, otvorite njenu stranicu i kliknite „Ovo je moja ordinacija“. Prijavite se linkom koji stiže na vašu e-adresu i pošaljite zahtev; zatim vas pozivamo na broj iz imenika radi provere. Ako podatak o vašoj ordinaciji nije tačan ili želite da se profil ukloni, <a href="kontakt.html">javite nam se</a>.</p>
       </div>
       <div class="info-card">
-        <h3><span data-icon="info"></span> Šta znači „prvih 6 meseci besplatno“?</h3>
-        <p style="color:var(--muted);margin:0;">Ordinacije koje preuzmu profil imaju prvih 6 meseci besplatno od dana preuzimanja. Plaćeni paketi biće objavljeni kasnije.</p>
+        <h3><span data-icon="info"></span> Šta dobijam preuzimanjem profila?</h3>
+        <p style="color:var(--muted);margin:0;">Profil+: sami ispravljate podatke, dodajete radno vreme, usluge, opis i fotografije, a ordinacija dobija oznaku „Preuzet profil“. Prvih 6 meseci je besplatno od dana preuzimanja.</p>
+      </div>
+      <div class="info-card">
+        <h3><span data-icon="info"></span> Šta se dešava posle 6 meseci?</h3>
+        <p style="color:var(--muted);margin:0;">Ako ne želite da nastavite, profil se vraća na osnovni prikaz: naziv, adresa i telefon. Dodati opis, radno vreme, usluge i fotografije se više ne prikazuju. Pre isteka obaveštavamo vas e-poštom.</p>
+      </div>
+      <div class="info-card">
+        <h3><span data-icon="info"></span> Moram li da plaćam da bih bio u imeniku?</h3>
+        <p style="color:var(--muted);margin:0;">Ne. Osnovni prikaz je besplatan.</p>
+      </div>
+      <div class="info-card">
+        <h3><span data-icon="info"></span> Kako se plaća?</h3>
+        <p style="color:var(--muted);margin:0;">Pre isteka 6 meseci javljamo se sa uputstvom za uplatu. Plaćanje je opcija, nema automatskog zaduživanja.</p>
       </div>
     </div>
   </div>
@@ -141,6 +190,5 @@
 
 <script src="js/icons.js"></script>
 <script src="js/main.js"></script>
-<script src="js/pricing.js"></script>
 </body>
 </html>

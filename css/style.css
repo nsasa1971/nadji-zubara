@@ -1177,3 +1177,11 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .home-owners-add{margin:16px 0 0 !important;}
 .home-owners-add a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:4px;display:inline-block;padding:8px 0;}
 .home-owners-add a:hover{color:#ffd9d2;}
+
+/* cenovnik: dve kartice (Osnovni, Profil+) */
+.pricing-grid.two{grid-template-columns:repeat(2,minmax(0,1fr));max-width:860px;margin:0 auto;}
+.pricing-card .price{font-size:30px;}
+.pricing-card.featured .price{font-size:24px;line-height:1.2;}
+.pricing-card .plan-desc{flex:none;min-height:0;}
+.pricing-note{margin:0;font-size:14px;font-weight:600;color:var(--primary-dark);}
+@media(max-width:900px){.pricing-grid.two{grid-template-columns:1fr;}}

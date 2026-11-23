@@ -221,6 +221,19 @@ def chrome():
     return _CHROME
 
 
+ICON_LINKS = """<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#0B2545">"""
+OG_IMAGE_META = """<meta property="og:image" content="https://nadjizubara.rs/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Nađi Zubara: pin sa zubom u zubarskoj ordinaciji">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://nadjizubara.rs/og-image.jpg">"""
+
+
 def page(title, description, canonical_path, body, jsonld=None, prev_path=None, next_path=None):
     canonical = url(canonical_path)
     ld = ''
@@ -248,7 +261,8 @@ def page(title, description, canonical_path, body, jsonld=None, prev_path=None, 
 <meta property="og:title" content="{esc(title)}">
 <meta property="og:description" content="{esc(description)}">
 <meta property="og:url" content="{esc(canonical)}">
-<link rel="icon" href="/img/logo.webp">
+{OG_IMAGE_META}
+{ICON_LINKS}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
