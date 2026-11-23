@@ -644,6 +644,7 @@
       card(counts.expiring, 'Profili koji ističu u 30 dana', 'profiles', counts.expired ? 'Istekla: ' + counts.expired : 'Podsetite vlasnike')
     ])];
     out.push(el('p', {class:'adm-hint'}, 'Brojevi se sami osvežavaju na svakih 60 sekundi dok je aplikacija otvorena, i čim se vratite u nju.'));
+    out.push(el('p', {class:'adm-hint adm-version', id:'admVersion'}));
     return out;
   }
 
@@ -795,6 +796,7 @@
     if(seq !== renderSeq) return;
     content.textContent = '';
     nodes.forEach(n => content.appendChild(n));
+    if(window.admShowVersion) window.admShowVersion();
     if(tab !== 'overview') loadCounts();
     window.scrollTo(0, 0);
   }
@@ -805,7 +807,79 @@
     if(evt === 'SIGNED_IN' && !adminShown && !recovery) setTimeout(render, 0);
   });
 
-  // service worker samo za instalaciju i keš statičkih fajlova (ne dira Supabase pozive)
-  if('serviceWorker' in navigator){ window.addEventListener('load', () => { navigator.serviceWorker.register('/admin-sw.js', {scope:'/admin.html'}).catch(() => {}); }); }
+  /* ------------------------------------------- service worker i obaveštenje o novoj verziji */
+  // Worker samo kešira statične fajlove (ne dira Supabase pozive). Aplikacija na telefonu se često samo vraća u prvi
+  // plan bez novog učitavanja, pa se provera nove verzije radi pri učitavanju i pri svakom povratku u prvi plan
+  // (najviše jednom u 5 minuta). Nova verzija se nikad ne primenjuje sama: prikaže se traka, a osvežavanje je na klik.
+  const UPDATE_MIN_MS = 5 * 60 * 1000;
+  let swReg = null, lastUpdateCheck = 0, updateBarShown = false, userClickedRefresh = false, reloaded = false;
+  const hadController = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+
+  function reloadOnce(){ if(reloaded) return; reloaded = true; location.reload(); }
+  function showUpdateBar(){
+    if(updateBarShown) return;
+    updateBarShown = true;
+    const btn = el('button', {type:'button', class:'btn btn-primary adm-upd-btn'}, 'Osveži');
+    btn.addEventListener('click', () => {
+      btn.disabled = true; userClickedRefresh = true;
+      const waiting = swReg && swReg.waiting;
+      if(waiting){ waiting.postMessage({type:'SKIP_WAITING'}); setTimeout(reloadOnce, 1500); }   // controllerchange učitava; rezerva ako ne stigne
+      else reloadOnce();                                                                          // nova verzija je već aktivna
+    });
+    const bar = el('div', {class:'adm-upd', role:'status'}, [el('span', {}, 'Dostupna je nova verzija.'), btn]);
+    document.body.insertBefore(bar, document.body.firstChild);
+    const sync = () => document.documentElement.style.setProperty('--adm-upd-h', bar.offsetHeight + 'px');   // zaglavlje sajta se spušta ispod trake
+    sync(); window.addEventListener('resize', sync);
+  }
+  function checkForUpdate(force){
+    if(!swReg) return;
+    const now = Date.now();
+    if(!force && now - lastUpdateCheck < UPDATE_MIN_MS) return;
+    lastUpdateCheck = now;
+    swReg.update().catch(() => {});
+  }
+  function watchWorker(w){
+    if(!w) return;
+    w.addEventListener('statechange', () => { if(w.state === 'installed' && navigator.serviceWorker.controller) showUpdateBar(); });
+  }
+  let appVersion = '';
+  function paintVersion(){
+    const node = document.getElementById('admVersion');
+    if(node) node.textContent = appVersion ? 'Verzija aplikacije: ' + appVersion : '';
+  }
+  function showAppVersion(){
+    paintVersion();
+    if(appVersion) return;
+    const set = c => { const m = /^nz-admin-(v\d+)$/.exec(c || ''); if(m){ appVersion = m[1]; paintVersion(); } };
+    // verzija = naziv keša aktivnog workera (jedno mesto: CACHE u admin-sw.js); ako worker ne odgovori, čita se iz keševa
+    const fromCaches = () => { if(!appVersion && window.caches) caches.keys().then(keys => set(keys.filter(k => /^nz-admin-v\d+$/.test(k)).sort().pop())).catch(() => {}); };
+    if(navigator.serviceWorker && navigator.serviceWorker.controller){
+      const onMsg = e => { if(e.data && e.data.type === 'VERSION'){ navigator.serviceWorker.removeEventListener('message', onMsg); set(e.data.cache); } };
+      navigator.serviceWorker.addEventListener('message', onMsg);
+      navigator.serviceWorker.controller.postMessage({type:'GET_VERSION'});
+      setTimeout(fromCaches, 800);
+    } else fromCaches();
+  }
+  window.admShowVersion = showAppVersion;
+
+  if('serviceWorker' in navigator){
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/admin-sw.js', {scope:'/admin.html', updateViaCache:'none'}).then(reg => {
+        swReg = reg;
+        lastUpdateCheck = Date.now();
+        reg.update().catch(() => {});
+        if(reg.waiting && navigator.serviceWorker.controller) showUpdateBar();
+        watchWorker(reg.installing);
+        reg.addEventListener('updatefound', () => watchWorker(reg.installing));
+        showAppVersion();
+      }).catch(() => {});
+    });
+    // novi worker preuzima kontrolu: na klik na "Osveži" učitaj novu verziju; inače samo prikaži traku (stranica ostaje kakva jeste)
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if(userClickedRefresh) reloadOnce();
+      else if(hadController) showUpdateBar();
+    });
+    document.addEventListener('visibilitychange', () => { if(document.visibilityState === 'visible') checkForUpdate(false); });
+  }
   render();
 })();
