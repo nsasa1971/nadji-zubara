@@ -19,17 +19,10 @@
   function initSearchForm(){
     const form = $('heroSearchForm');
     if(!form) return;
+    // gradovi su ugrađeni u HTML pri build-u; polje "Usluga" se popunjava kad se učitaju podaci (enhanceFromData)
     const citySel = form.querySelector('[name="city"]');
-    citySel.innerHTML = '<option value="">Svi gradovi</option>' +
-      getAllCityNames().map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join('');
     const svcSel = form.querySelector('[name="service"]');
-    const counts = getServiceCounts();
-    const available = SERVICES.filter(s => counts[s.slug] > 0);
-    svcSel.innerHTML = '<option value="">Sve usluge</option>' +
-      available.map(s => `<option value="${esc(s.slug)}">${esc(s.name)} (${fmt(counts[s.slug])})</option>`).join('');
-    // polje "Usluga" tek kad ima šta da se bira (pravilo od ranije: više od jedne usluge)
-    $('heroServiceField').hidden = !(available.length > 1);
-    if(available.length <= 1) svcSel.disabled = true;
+    svcSel.disabled = true;
 
     form.addEventListener('submit', e => {
       e.preventDefault();
@@ -58,14 +51,15 @@
     });
   }
 
-  function initNumbers(all, cityNames){
+  // brojevi su ugrađeni u HTML pri build-u (tools/build_pages.py); ovde se samo animiraju pri prvom pojavljivanju
+  function initNumbers(){
     const line = $('homeCount');
-    if(!line || !cityNames.length) return;
-    $('statOrdinacije').textContent = fmt(all.length);
-    $('statGradovi').textContent = fmt(cityNames.length);
-    line.hidden = false;
-    countUp($('statOrdinacije'), all.length, line);
-    countUp($('statGradovi'), cityNames.length, line);
+    if(!line) return;
+    [$('statOrdinacije'), $('statGradovi')].forEach(el => {
+      if(!el) return;
+      const n = parseInt(el.textContent.replace(/\D/g, ''), 10);
+      if(n > 0) countUp(el, n, line);
+    });
   }
 
   // brojevi se brzo "dobroje" kad traka prvi put uđe u vidno polje; bez animacije ostaje krajnja vrednost
@@ -125,19 +119,9 @@
     });
   }
 
-  function initCities(all, cityNames){
-    const byCity = {};
-    all.forEach(c => { byCity[c.city] = (byCity[c.city] || 0) + 1; });
-    document.querySelectorAll('.home-tile-count[data-city]').forEach(n => {
-      const k = byCity[n.getAttribute('data-city')];
-      if(k){ n.textContent = fmt(k) + ' ' + ordWord(k); n.hidden = false; }
-    });
-    const list = $('allCitiesList'), box = $('homeAllCities'), btn = $('allCitiesBtn');
-    if(!list || !btn || !cityNames.length) return;
-    const sorted = cityNames.slice().sort((a, b) => a.localeCompare(b, 'sr'));
-    list.innerHTML = sorted.map(n => `<li><a href="${esc(citySlug(n))}/">${esc(n)}</a> <span>(${fmt(byCity[n] || 0)})</span></li>`).join('');
-    $('allCitiesN').textContent = fmt(sorted.length);
-    btn.hidden = false;
+  function initCities(){
+    const box = $('homeAllCities'), btn = $('allCitiesBtn');
+    if(!btn || !box) return;
     btn.addEventListener('click', () => {
       const open = box.hidden;
       box.hidden = !open;
@@ -176,19 +160,61 @@
     if(shown) sec.hidden = false;
   }
 
-  function init(){
+  // Podaci o ordinacijama (js/imported-clinics.js, ~1,8 MB) se ne učitavaju za prvi prikaz: tek kad korisnik
+  // skroluje blizu odeljka sa potvrđenim profilima, ili krene da koristi formu pretrage.
+  const DATA_SCRIPTS = ['js/data.js', 'js/imported-clinics.js', 'js/imported-coords.js', 'js/imported-services.js',
+                        'js/profile-common.js', 'js/profile-overrides.js', 'js/cards.js'];
+  let dataPromise = null;
+  function loadData(){
+    if(dataPromise) return dataPromise;
+    dataPromise = DATA_SCRIPTS.reduce((p, src) => p.then(() => new Promise((res, rej) => {
+      const sc = document.createElement('script');
+      sc.src = src; sc.async = false; sc.onload = res; sc.onerror = rej;
+      document.head.appendChild(sc);
+    })), Promise.resolve()).then(() => (window.profilesReady || Promise.resolve())).then(enhanceFromData);
+    dataPromise.catch(() => {});   // stranica ostaje upotrebljiva i bez dinamičkog dela
+    return dataPromise;
+  }
+
+  function enhanceFromData(){
     try{
       const all = getAllPublicListings();
-      const cityNames = getAllCityNames();
-      initSearchForm();
-      initNumbers(all, cityNames);
-      initCities(all, cityNames);
-      initServices();
+      initServiceSelect();
       initClaimed(all);
-    } catch(e){ /* stranica ostaje upotrebljiva i bez dinamičkog dela */ }
+    } catch(e){ /* bez dinamičkog dela */ }
+  }
+
+  function initServiceSelect(){
+    const svcSel = document.querySelector('#heroSearchForm [name="service"]');
+    if(!svcSel) return;
+    const counts = getServiceCounts();
+    const available = SERVICES.filter(s => counts[s.slug] > 0);
+    svcSel.innerHTML = '<option value="">Sve usluge</option>' +
+      available.map(s => `<option value="${esc(s.slug)}">${esc(s.name)} (${fmt(counts[s.slug])})</option>`).join('');
+    if(available.length > 1){ svcSel.disabled = false; $('heroServiceField').hidden = false; }
+  }
+
+  function init(){
+    try{
+      initSearchForm();
+      initNumbers();
+      initCities();
+      initServices();
+    } catch(e){ /* stranica ostaje upotrebljiva */ }
+    document.querySelectorAll('[data-icon]').forEach(n => { const k = n.getAttribute('data-icon'); if(typeof ICONS !== 'undefined' && ICONS[k] && !n.innerHTML) n.innerHTML = ICONS[k]; });
     initFaq();
     initReveal();
-    document.querySelectorAll('[data-icon]').forEach(n => { const k = n.getAttribute('data-icon'); if(typeof ICONS !== 'undefined' && ICONS[k] && !n.innerHTML) n.innerHTML = ICONS[k]; });
+    // lazy učitavanje podataka
+    const trigger = () => { loadData(); };
+    const sentinel = $('dataSentinel');
+    if(sentinel && 'IntersectionObserver' in window){
+      const io = new IntersectionObserver(es => { if(es.some(e => e.isIntersecting)){ io.disconnect(); trigger(); } }, {rootMargin:'300px 0px'});
+      io.observe(sentinel);
+    } else {
+      setTimeout(trigger, 3000);
+    }
+    const form = $('heroSearchForm');
+    if(form) form.addEventListener('focusin', trigger, {once:true});
   }
-  document.addEventListener('DOMContentLoaded', () => (window.profilesReady || Promise.resolve()).then(init));
+  document.addEventListener('DOMContentLoaded', init);
 })();

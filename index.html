@@ -21,10 +21,9 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/site.webmanifest">
 <meta name="theme-color" content="#0B2545">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="preload" as="image" href="img/hero-mobile.webp" media="(max-width: 640px)" fetchpriority="high">
+<link rel="preload" href="/fonts/montserrat-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/montserrat-latin-ext.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" as="image" href="img/hero-mobile-800.webp" media="(max-width: 640px)" fetchpriority="high">
   <link rel="preload" as="image" href="img/ordinacija-cover.webp" media="(min-width: 641px)" fetchpriority="high">
 <link rel="stylesheet" href="css/style.css">
 <script>/* efekti pri skrolu: samo ako ih pregledač podržava i korisnik ih nije isključio; ako JS ne završi, sadržaj ostaje vidljiv */
@@ -67,7 +66,7 @@
 
     <form class="home-search" id="heroSearchForm" action="pretraga.html" method="get">
       <label class="home-field"><span class="home-lbl">Grad</span>
-        <span class="home-control"><select name="city"><option value="">Svi gradovi</option></select></span></label>
+        <span class="home-control"><select name="city"><option value="">Svi gradovi</option><!--home:cityopts--><option value="Ada">Ada</option><option value="Aleksandrovac">Aleksandrovac</option><option value="Aleksinac">Aleksinac</option><option value="Alibunar">Alibunar</option><option value="Apatin">Apatin</option><option value="Aranđelovac">Aranđelovac</option><option value="Arilje">Arilje</option><option value="Babušnica">Babušnica</option><option value="Bač">Bač</option><option value="Bačka Palanka">Bačka Palanka</option><option value="Bačka Topola">Bačka Topola</option><option value="Bački Petrovac">Bački Petrovac</option><option value="Bajina Bašta">Bajina Bašta</option><option value="Banatski Karlovac">Banatski Karlovac</option><option value="Banatsko Karađorđevo">Banatsko Karađorđevo</option><option value="Batočina">Batočina</option><option value="Bečej">Bečej</option><option value="Bela Crkva">Bela Crkva</option><option value="Bela Palanka">Bela Palanka</option><option value="Beočin">Beočin</option><option value="Beograd">Beograd</option><option value="Blace">Blace</option><option value="Bogatić">Bogatić</option><option value="Bojnik">Bojnik</option><option value="Bor">Bor</option><option value="Brus">Brus</option><option value="Bujanovac">Bujanovac</option><option value="Čačak">Čačak</option><option value="Čajetina">Čajetina</option><option value="Ćićevac">Ćićevac</option><option value="Ćuprija">Ćuprija</option><option value="Despotovac">Despotovac</option><option value="Doljevac">Doljevac</option><option value="Donji Milanovac">Donji Milanovac</option><option value="Futog">Futog</option><option value="Golubac">Golubac</option><option value="Gornji Milanovac">Gornji Milanovac</option><option value="Grdelica">Grdelica</option><option value="Inđija">Inđija</option><option value="Ivanjica">Ivanjica</option><option value="Jagodina">Jagodina</option><option value="Kanjiža">Kanjiža</option><option value="Kikinda">Kikinda</option><option value="Kladovo">Kladovo</option><option value="Knjaževac">Knjaževac</option><option value="Koceljeva">Koceljeva</option><option value="Kosjerić">Kosjerić</option><option value="Kostolac">Kostolac</option><option value="Kovačica">Kovačica</option><option value="Kovin">Kovin</option><option value="Kragujevac">Kragujevac</option><option value="Kraljevo">Kraljevo</option><option value="Krupanj">Krupanj</option><option value="Kruševac">Kruševac</option><option value="Kula">Kula</option><option value="Kuršumlija">Kuršumlija</option><option value="Lajkovac">Lajkovac</option><option value="Lapovo">Lapovo</option><option value="Lebane">Lebane</option><option value="Leskovac">Leskovac</option><option value="Ljubovija">Ljubovija</option><option value="Loznica">Loznica</option><option value="Lučani">Lučani</option><option value="Male Pijace">Male Pijace</option><option value="Mali Iđoš">Mali Iđoš</option><option value="Mol">Mol</option><option value="Negotin">Negotin</option><option value="Niš">Niš</option><option value="Nova Crnja">Nova Crnja</option><option value="Nova Pazova">Nova Pazova</option><option value="Nova Varoš">Nova Varoš</option><option value="Novi Banovci">Novi Banovci</option><option value="Novi Bečej">Novi Bečej</option><option value="Novi Kneževac">Novi Kneževac</option><option value="Novi Pazar">Novi Pazar</option><option value="Novi Sad">Novi Sad</option><option value="Odžaci">Odžaci</option><option value="Opovo">Opovo</option><option value="Pančevo">Pančevo</option><option value="Paraćin">Paraćin</option><option value="Petrovac">Petrovac</option><option value="Pirot">Pirot</option><option value="Plandište">Plandište</option><option value="Porodin">Porodin</option><option value="Požarevac">Požarevac</option><option value="Požega">Požega</option><option value="Priboj">Priboj</option><option value="Prijepolje">Prijepolje</option><option value="Prnjavor">Prnjavor</option><option value="Prokuplje">Prokuplje</option><option value="Raška">Raška</option><option value="Ruma">Ruma</option><option value="Ruski Krstur">Ruski Krstur</option><option value="Sečanj">Sečanj</option><option value="Senta">Senta</option><option value="Sevojno">Sevojno</option><option value="Smederevo">Smederevo</option><option value="Smederevska Palanka">Smederevska Palanka</option><option value="Sokobanja">Sokobanja</option><option value="Sombor">Sombor</option><option value="Sremska Kamenica">Sremska Kamenica</option><option value="Sremska Mitrovica">Sremska Mitrovica</option><option value="Sremski Karlovci">Sremski Karlovci</option><option value="Stara Pazova">Stara Pazova</option><option value="Subotica">Subotica</option><option value="Šabac">Šabac</option><option value="Šid">Šid</option><option value="Temerin">Temerin</option><option value="Topola">Topola</option><option value="Trstenik">Trstenik</option><option value="Ub">Ub</option><option value="Užice">Užice</option><option value="Valjevo">Valjevo</option><option value="Varvarin">Varvarin</option><option value="Velika Plana">Velika Plana</option><option value="Veliko Gradište">Veliko Gradište</option><option value="Vladičin Han">Vladičin Han</option><option value="Vlasotince">Vlasotince</option><option value="Vranje">Vranje</option><option value="Vrbas">Vrbas</option><option value="Vrnjačka Banja">Vrnjačka Banja</option><option value="Vršac">Vršac</option><option value="Zaječar">Zaječar</option><option value="Zrenjanin">Zrenjanin</option><option value="Zubin Potok">Zubin Potok</option><option value="Žabalj">Žabalj</option><option value="Žiča">Žiča</option><!--/home:cityopts--></select></span></label>
       <label class="home-field" id="heroServiceField" hidden><span class="home-lbl">Usluga</span>
         <span class="home-control"><select name="service"><option value="">Sve usluge</option></select></span></label>
       <label class="home-field home-field-name"><span class="home-lbl">Ime ordinacije</span>
@@ -79,8 +78,8 @@
   </div>
 </section>
 
-<section class="home-strip" id="homeCount" hidden>
-  <div class="container"><p>Do sada smo upisali <b id="statOrdinacije"></b> ordinacija u <b id="statGradovi"></b> gradova.</p></div>
+<section class="home-strip" id="homeCount">
+  <div class="container"><p>Do sada smo upisali <b id="statOrdinacije"><!--home:n-->2.560<!--/home:n--></b> ordinacija u <b id="statGradovi"><!--home:c-->127<!--/home:c--></b> gradova.</p></div>
 </section>
 
 <section class="home-block" id="gradovi">
@@ -92,43 +91,45 @@
     <div class="home-mosaic">
       <a data-reveal class="home-tile home-tile-big" href="beograd/">
         <img src="img/city-beograd-800.webp" srcset="img/city-beograd-400.webp 400w, img/city-beograd-560.webp 560w, img/city-beograd-800.webp 800w" sizes="(max-width: 640px) 100vw, 540px" alt="Fotografija grada Beograd" width="800" height="600" loading="lazy" decoding="async">
-        <span class="home-tile-text"><strong>Beograd</strong><span class="home-tile-count" data-city="Beograd" hidden></span></span>
+        <span class="home-tile-text"><strong>Beograd</strong><span class="home-tile-count" data-city="Beograd">1.409 ordinacija</span></span>
       </a>
       <a data-reveal class="home-tile" href="novi-sad/">
         <img src="img/city-novi-sad-800.webp" srcset="img/city-novi-sad-400.webp 400w, img/city-novi-sad-560.webp 560w, img/city-novi-sad-800.webp 800w" sizes="(max-width: 640px) 50vw, 270px" alt="Fotografija grada Novi Sad" width="800" height="600" loading="lazy" decoding="async">
-        <span class="home-tile-text"><strong>Novi Sad</strong><span class="home-tile-count" data-city="Novi Sad" hidden></span></span>
+        <span class="home-tile-text"><strong>Novi Sad</strong><span class="home-tile-count" data-city="Novi Sad">143 ordinacije</span></span>
       </a>
       <a data-reveal class="home-tile" href="nis/">
         <img src="img/city-nis-800.webp" srcset="img/city-nis-400.webp 400w, img/city-nis-560.webp 560w, img/city-nis-800.webp 800w" sizes="(max-width: 640px) 50vw, 270px" alt="Fotografija grada Niš" width="800" height="600" loading="lazy" decoding="async">
-        <span class="home-tile-text"><strong>Niš</strong><span class="home-tile-count" data-city="Niš" hidden></span></span>
+        <span class="home-tile-text"><strong>Niš</strong><span class="home-tile-count" data-city="Niš">54 ordinacije</span></span>
       </a>
       <a data-reveal class="home-tile" href="kragujevac/">
         <img src="img/city-kragujevac-800.webp" srcset="img/city-kragujevac-400.webp 400w, img/city-kragujevac-560.webp 560w, img/city-kragujevac-800.webp 800w" sizes="(max-width: 640px) 50vw, 270px" alt="Fotografija grada Kragujevac" width="800" height="600" loading="lazy" decoding="async">
-        <span class="home-tile-text"><strong>Kragujevac</strong><span class="home-tile-count" data-city="Kragujevac" hidden></span></span>
+        <span class="home-tile-text"><strong>Kragujevac</strong><span class="home-tile-count" data-city="Kragujevac">52 ordinacije</span></span>
       </a>
       <a data-reveal class="home-tile" href="pancevo/">
         <img src="img/city-pancevo-800.webp" srcset="img/city-pancevo-400.webp 400w, img/city-pancevo-560.webp 560w, img/city-pancevo-800.webp 800w" sizes="(max-width: 640px) 50vw, 270px" alt="Fotografija grada Pančevo" width="800" height="600" loading="lazy" decoding="async">
-        <span class="home-tile-text"><strong>Pančevo</strong><span class="home-tile-count" data-city="Pančevo" hidden></span></span>
+        <span class="home-tile-text"><strong>Pančevo</strong><span class="home-tile-count" data-city="Pančevo">48 ordinacija</span></span>
       </a>
       <a data-reveal class="home-tile" href="kraljevo/">
         <img src="img/city-kraljevo-800.webp" srcset="img/city-kraljevo-400.webp 400w, img/city-kraljevo-560.webp 560w, img/city-kraljevo-800.webp 800w" sizes="(max-width: 640px) 50vw, 270px" alt="Fotografija grada Kraljevo" width="800" height="600" loading="lazy" decoding="async">
-        <span class="home-tile-text"><strong>Kraljevo</strong><span class="home-tile-count" data-city="Kraljevo" hidden></span></span>
+        <span class="home-tile-text"><strong>Kraljevo</strong><span class="home-tile-count" data-city="Kraljevo">42 ordinacije</span></span>
       </a>
       <a data-reveal class="home-tile" href="subotica/">
         <img src="img/city-subotica-800.webp" srcset="img/city-subotica-400.webp 400w, img/city-subotica-560.webp 560w, img/city-subotica-800.webp 800w" sizes="(max-width: 640px) 50vw, 270px" alt="Fotografija grada Subotica" width="800" height="600" loading="lazy" decoding="async">
-        <span class="home-tile-text"><strong>Subotica</strong><span class="home-tile-count" data-city="Subotica" hidden></span></span>
+        <span class="home-tile-text"><strong>Subotica</strong><span class="home-tile-count" data-city="Subotica">42 ordinacije</span></span>
       </a>
       <a data-reveal class="home-tile" href="zrenjanin/">
         <img src="img/city-zrenjanin-800.webp" srcset="img/city-zrenjanin-400.webp 400w, img/city-zrenjanin-560.webp 560w, img/city-zrenjanin-800.webp 800w" sizes="(max-width: 640px) 50vw, 270px" alt="Fotografija grada Zrenjanin" width="800" height="600" loading="lazy" decoding="async">
-        <span class="home-tile-text"><strong>Zrenjanin</strong><span class="home-tile-count" data-city="Zrenjanin" hidden></span></span>
+        <span class="home-tile-text"><strong>Zrenjanin</strong><span class="home-tile-count" data-city="Zrenjanin">41 ordinacija</span></span>
       </a>
-      <button type="button" data-reveal class="home-tile home-tile-all" id="allCitiesBtn" aria-expanded="false" aria-controls="homeAllCities" hidden><span>Svi gradovi</span><b id="allCitiesN"></b></button>
+      <button type="button" data-reveal class="home-tile home-tile-all" id="allCitiesBtn" aria-expanded="false" aria-controls="homeAllCities"><span>Svi gradovi</span><b id="allCitiesN"><!--home:c2-->127<!--/home:c2--></b></button>
     </div>
     <div class="home-allcities" id="homeAllCities" hidden>
-      <ul id="allCitiesList"></ul>
+      <ul id="allCitiesList"><!--home:citylist--><li><a href="ada/">Ada</a> <span>(6)</span></li><li><a href="aleksandrovac/">Aleksandrovac</a> <span>(7)</span></li><li><a href="aleksinac/">Aleksinac</a> <span>(3)</span></li><li><a href="alibunar/">Alibunar</a> <span>(2)</span></li><li><a href="apatin/">Apatin</a> <span>(4)</span></li><li><a href="arandjelovac/">Aranđelovac</a> <span>(7)</span></li><li><a href="arilje/">Arilje</a> <span>(4)</span></li><li><a href="babusnica/">Babušnica</a> <span>(2)</span></li><li><a href="bac/">Bač</a> <span>(2)</span></li><li><a href="backa-palanka/">Bačka Palanka</a> <span>(6)</span></li><li><a href="backa-topola/">Bačka Topola</a> <span>(3)</span></li><li><a href="backi-petrovac/">Bački Petrovac</a> <span>(3)</span></li><li><a href="bajina-basta/">Bajina Bašta</a> <span>(4)</span></li><li><a href="banatski-karlovac/">Banatski Karlovac</a> <span>(1)</span></li><li><a href="banatsko-karadjordjevo/">Banatsko Karađorđevo</a> <span>(1)</span></li><li><a href="batocina/">Batočina</a> <span>(2)</span></li><li><a href="becej/">Bečej</a> <span>(7)</span></li><li><a href="bela-crkva/">Bela Crkva</a> <span>(3)</span></li><li><a href="bela-palanka/">Bela Palanka</a> <span>(2)</span></li><li><a href="beocin/">Beočin</a> <span>(2)</span></li><li><a href="beograd/">Beograd</a> <span>(1.409)</span></li><li><a href="blace/">Blace</a> <span>(2)</span></li><li><a href="bogatic/">Bogatić</a> <span>(4)</span></li><li><a href="bojnik/">Bojnik</a> <span>(1)</span></li><li><a href="bor/">Bor</a> <span>(8)</span></li><li><a href="brus/">Brus</a> <span>(1)</span></li><li><a href="bujanovac/">Bujanovac</a> <span>(11)</span></li><li><a href="cacak/">Čačak</a> <span>(21)</span></li><li><a href="cajetina/">Čajetina</a> <span>(2)</span></li><li><a href="cicevac/">Ćićevac</a> <span>(3)</span></li><li><a href="cuprija/">Ćuprija</a> <span>(11)</span></li><li><a href="despotovac/">Despotovac</a> <span>(7)</span></li><li><a href="doljevac/">Doljevac</a> <span>(1)</span></li><li><a href="donji-milanovac/">Donji Milanovac</a> <span>(1)</span></li><li><a href="futog/">Futog</a> <span>(4)</span></li><li><a href="golubac/">Golubac</a> <span>(1)</span></li><li><a href="gornji-milanovac/">Gornji Milanovac</a> <span>(7)</span></li><li><a href="grdelica/">Grdelica</a> <span>(3)</span></li><li><a href="indjija/">Inđija</a> <span>(8)</span></li><li><a href="ivanjica/">Ivanjica</a> <span>(7)</span></li><li><a href="jagodina/">Jagodina</a> <span>(24)</span></li><li><a href="kanjiza/">Kanjiža</a> <span>(5)</span></li><li><a href="kikinda/">Kikinda</a> <span>(13)</span></li><li><a href="kladovo/">Kladovo</a> <span>(10)</span></li><li><a href="knjazevac/">Knjaževac</a> <span>(5)</span></li><li><a href="koceljeva/">Koceljeva</a> <span>(1)</span></li><li><a href="kosjeric/">Kosjerić</a> <span>(3)</span></li><li><a href="kostolac/">Kostolac</a> <span>(1)</span></li><li><a href="kovacica/">Kovačica</a> <span>(3)</span></li><li><a href="kovin/">Kovin</a> <span>(5)</span></li><li><a href="kragujevac/">Kragujevac</a> <span>(52)</span></li><li><a href="kraljevo/">Kraljevo</a> <span>(42)</span></li><li><a href="krupanj/">Krupanj</a> <span>(2)</span></li><li><a href="krusevac/">Kruševac</a> <span>(40)</span></li><li><a href="kula/">Kula</a> <span>(6)</span></li><li><a href="kursumlija/">Kuršumlija</a> <span>(2)</span></li><li><a href="lajkovac/">Lajkovac</a> <span>(1)</span></li><li><a href="lapovo/">Lapovo</a> <span>(1)</span></li><li><a href="lebane/">Lebane</a> <span>(2)</span></li><li><a href="leskovac/">Leskovac</a> <span>(18)</span></li><li><a href="ljubovija/">Ljubovija</a> <span>(1)</span></li><li><a href="loznica/">Loznica</a> <span>(33)</span></li><li><a href="lucani/">Lučani</a> <span>(2)</span></li><li><a href="male-pijace/">Male Pijace</a> <span>(1)</span></li><li><a href="mali-idjos/">Mali Iđoš</a> <span>(1)</span></li><li><a href="mol/">Mol</a> <span>(1)</span></li><li><a href="negotin/">Negotin</a> <span>(16)</span></li><li><a href="nis/">Niš</a> <span>(54)</span></li><li><a href="nova-crnja/">Nova Crnja</a> <span>(1)</span></li><li><a href="nova-pazova/">Nova Pazova</a> <span>(4)</span></li><li><a href="nova-varos/">Nova Varoš</a> <span>(1)</span></li><li><a href="novi-banovci/">Novi Banovci</a> <span>(1)</span></li><li><a href="novi-becej/">Novi Bečej</a> <span>(3)</span></li><li><a href="novi-knezevac/">Novi Kneževac</a> <span>(1)</span></li><li><a href="novi-pazar/">Novi Pazar</a> <span>(11)</span></li><li><a href="novi-sad/">Novi Sad</a> <span>(143)</span></li><li><a href="odzaci/">Odžaci</a> <span>(5)</span></li><li><a href="opovo/">Opovo</a> <span>(1)</span></li><li><a href="pancevo/">Pančevo</a> <span>(48)</span></li><li><a href="paracin/">Paraćin</a> <span>(12)</span></li><li><a href="petrovac/">Petrovac</a> <span>(2)</span></li><li><a href="pirot/">Pirot</a> <span>(9)</span></li><li><a href="plandiste/">Plandište</a> <span>(1)</span></li><li><a href="porodin/">Porodin</a> <span>(1)</span></li><li><a href="pozarevac/">Požarevac</a> <span>(13)</span></li><li><a href="pozega/">Požega</a> <span>(4)</span></li><li><a href="priboj/">Priboj</a> <span>(4)</span></li><li><a href="prijepolje/">Prijepolje</a> <span>(5)</span></li><li><a href="prnjavor/">Prnjavor</a> <span>(2)</span></li><li><a href="prokuplje/">Prokuplje</a> <span>(11)</span></li><li><a href="raska/">Raška</a> <span>(1)</span></li><li><a href="ruma/">Ruma</a> <span>(3)</span></li><li><a href="ruski-krstur/">Ruski Krstur</a> <span>(1)</span></li><li><a href="secanj/">Sečanj</a> <span>(1)</span></li><li><a href="senta/">Senta</a> <span>(7)</span></li><li><a href="sevojno/">Sevojno</a> <span>(1)</span></li><li><a href="smederevo/">Smederevo</a> <span>(17)</span></li><li><a href="smederevska-palanka/">Smederevska Palanka</a> <span>(6)</span></li><li><a href="sokobanja/">Sokobanja</a> <span>(2)</span></li><li><a href="sombor/">Sombor</a> <span>(20)</span></li><li><a href="sremska-kamenica/">Sremska Kamenica</a> <span>(3)</span></li><li><a href="sremska-mitrovica/">Sremska Mitrovica</a> <span>(20)</span></li><li><a href="sremski-karlovci/">Sremski Karlovci</a> <span>(2)</span></li><li><a href="stara-pazova/">Stara Pazova</a> <span>(2)</span></li><li><a href="subotica/">Subotica</a> <span>(42)</span></li><li><a href="sabac/">Šabac</a> <span>(37)</span></li><li><a href="sid/">Šid</a> <span>(4)</span></li><li><a href="temerin/">Temerin</a> <span>(7)</span></li><li><a href="topola/">Topola</a> <span>(3)</span></li><li><a href="trstenik/">Trstenik</a> <span>(4)</span></li><li><a href="ub/">Ub</a> <span>(3)</span></li><li><a href="uzice/">Užice</a> <span>(13)</span></li><li><a href="valjevo/">Valjevo</a> <span>(27)</span></li><li><a href="varvarin/">Varvarin</a> <span>(2)</span></li><li><a href="velika-plana/">Velika Plana</a> <span>(4)</span></li><li><a href="veliko-gradiste/">Veliko Gradište</a> <span>(4)</span></li><li><a href="vladicin-han/">Vladičin Han</a> <span>(2)</span></li><li><a href="vlasotince/">Vlasotince</a> <span>(3)</span></li><li><a href="vranje/">Vranje</a> <span>(13)</span></li><li><a href="vrbas/">Vrbas</a> <span>(12)</span></li><li><a href="vrnjacka-banja/">Vrnjačka Banja</a> <span>(3)</span></li><li><a href="vrsac/">Vršac</a> <span>(22)</span></li><li><a href="zajecar/">Zaječar</a> <span>(13)</span></li><li><a href="zrenjanin/">Zrenjanin</a> <span>(41)</span></li><li><a href="zubin-potok/">Zubin Potok</a> <span>(1)</span></li><li><a href="zabalj/">Žabalj</a> <span>(1)</span></li><li><a href="zica/">Žiča</a> <span>(1)</span></li><!--/home:citylist--></ul>
     </div>
   </div>
 </section>
+
+<div id="dataSentinel" aria-hidden="true"></div>
 
 <section class="home-block" id="preuzeti" hidden>
   <div class="container">
@@ -293,18 +294,11 @@
   </div>
 </footer>
 
-<script src="js/icons.js"></script>
-<script src="js/services.js"></script>
-<script src="js/data.js"></script>
-<script src="js/imported-clinics.js"></script>
-<script src="js/imported-coords.js"></script>
-<script src="js/imported-services.js"></script>
-<script src="js/safe.js"></script>
-<script src="js/supabase-config.js"></script>
-<script src="js/profile-common.js"></script>
-<script src="js/profile-overrides.js"></script>
-<script src="js/cards.js"></script>
-<script src="js/main.js"></script>
-<script src="js/home.js"></script>
+<script src="js/icons.js" defer></script>
+<script src="js/services.js" defer></script>
+<script src="js/safe.js" defer></script>
+<script src="js/supabase-config.js" defer></script>
+<script src="js/main.js" defer></script>
+<script src="js/home.js" defer></script>
 </body>
 </html>
