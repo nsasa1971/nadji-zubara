@@ -115,8 +115,9 @@ function renderClinic(c){
 
   // Usluge: sekcija (tab) se prikazuje samo kad ordinacija ima bar jednu uslugu iz kataloga
   const serviceKeys = knownServices(c.services);
+  const customServices = Array.isArray(c.customServices) ? c.customServices : [];
   const servicesTab = document.querySelector('.tab-btn[data-tab="usluge"]');
-  if(servicesTab) servicesTab.style.display = serviceKeys.length ? '' : 'none';
+  if(servicesTab) servicesTab.style.display = (serviceKeys.length || customServices.length) ? '' : 'none';
   // Izvor usluga (sajt ordinacije), ako postoji: "Usluge prema sajtu ordinacije" + link
   const srcNote = document.getElementById('servicesSourceNote');
   if(srcNote){
@@ -133,8 +134,16 @@ function renderClinic(c){
     <li>
       <span class="s-name"><span class="icon-wrap" style="background:var(--primary-light);color:var(--primary-dark);">${serviceIcon(slug)}</span> <a class="s-link" href="pretraga.html?service=${encodeURIComponent(slug)}" title="Sve ordinacije: ${serviceName(slug)}">${serviceName(slug)}</a></span>
     </li>`).join('');
+  // sopstvene usluge vlasnika (običan tekst; ne ulaze u /usluge/ ni u filtere)
+  const svcList = document.getElementById('servicesList');
+  customServices.forEach(name => {
+    const wrap = el('span', {class:'icon-wrap', style:'background:var(--primary-light);color:var(--primary-dark);'});
+    wrap.innerHTML = ICONS.tooth;   // statična ikona iz icons.js, bez korisničkog teksta
+    svcList.appendChild(el('li', {}, [el('span', {class:'s-name'}, [wrap, document.createTextNode(' ' + name)])]));
+  });
 
   renderProfileExtras(c);
+  renderPriceList(c);
   renderReviews(c);
   renderSimilar(c);
   if(typeof hydrateCovers === 'function') hydrateCovers(document);
@@ -344,4 +353,37 @@ function applyClaimState(c, state){
       claimLink.style.display = '';
     });
   }
+}
+
+// Cenovnik (Profil+): tabela po kategorijama; prva kategorija otvorena (na većim ekranima sve), sav tekst preko textContent.
+function formatPrice(it){
+  if(it.cena === null || it.cena === undefined) return 'Na upit';
+  return (it.od ? 'od ' : '') + it.cena.toLocaleString('sr-RS') + ' RSD';
+}
+function renderPriceList(c){
+  const card = document.getElementById('priceCard');
+  if(!card) return;
+  const items = Array.isArray(c.priceList) ? c.priceList : [];
+  if(!items.length){ card.style.display = 'none'; return; }
+  const box = document.getElementById('priceList');
+  box.textContent = '';
+  const cats = (typeof PF !== 'undefined' && PF.PRICE_CATEGORIES) ? PF.PRICE_CATEGORIES : [];
+  const order = cats.filter(k => items.some(i => i.kategorija === k));
+  const wide = window.matchMedia && window.matchMedia('(min-width: 768px)').matches;
+  order.forEach((kat, idx) => {
+    const rows = items.filter(i => i.kategorija === kat);
+    const det = el('details', {class:'price-cat'}, [
+      el('summary', {}, [document.createTextNode(kat + ' '), el('span', {class:'price-count'}, '(' + rows.length + ')')]),
+      el('table', {class:'price-table'}, [el('tbody', {}, rows.map(it => el('tr', {}, [el('td', {class:'pn'}, it.naziv), el('td', {class:'pp'}, formatPrice(it))])))])
+    ]);
+    if(idx === 0 || wide) det.setAttribute('open', '');
+    box.appendChild(det);
+  });
+  const upd = document.getElementById('priceUpdated');
+  if(upd){
+    upd.textContent = c.priceListUpdated ? 'Cenovnik ažuriran: ' + new Date(c.priceListUpdated).toLocaleDateString('sr-Latn-RS', {day:'numeric', month:'long', year:'numeric'}).replace(/\.$/, '') + '.' : '';
+  }
+  const rep = document.getElementById('reportLink'), rl = document.getElementById('priceReportLink');
+  if(rl && rep) rl.href = rep.getAttribute('href');
+  card.style.display = '';
 }
