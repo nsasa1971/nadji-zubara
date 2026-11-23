@@ -6,7 +6,9 @@
 const PF = (function(){
   const HOURS_KEYS = ['mon','tue','wed','thu','fri','sat','sun'];
   const SOCIAL_KEYS = ['facebook','instagram','linkedin','tiktok','youtube'];
-  const PROFILE_COLS = 'clinic_id,phones,hours,services,description,website,socials,name,address,team_public,updated_at';
+  const PROFILE_COLS = 'clinic_id,phones,hours,services,description,website,socials,name,address,team_public,updated_at,price_list,custom_services,price_list_updated_at';
+  // fiksna lista kategorija cenovnika (ista kao u bazi i u formi vlasnika)
+  const PRICE_CATEGORIES = ['Opšta stomatologija','Dečja stomatologija','Ortodoncija','Protetika','Hirurgija','Implantologija','Parodontologija','Endodoncija','Estetska stomatologija','Preventiva i higijena','Ostalo'];
   const SIGN_TTL_S = 3600;
 
   function configured(){ return typeof SUPABASE_URL !== 'undefined' && typeof SUPABASE_PUBLISHABLE_KEY !== 'undefined'; }
@@ -64,6 +66,31 @@ const PF = (function(){
         t.push(role ? {name: nm, role} : {name: nm});
       });
       if(t.length) o.team = t;
+    }
+    // cenovnik: do 100 stavki {kategorija, naziv, cena (ceo broj ili null), od}; neispravne stavke se odbacuju
+    if(Array.isArray(r.price_list)){
+      const pl = [];
+      r.price_list.slice(0, 100).forEach(it => {
+        if(!it || typeof it !== 'object') return;
+        const kat = PRICE_CATEGORIES.indexOf(it.kategorija) >= 0 ? it.kategorija : '';
+        const naziv = text(it.naziv, 1, 80);
+        if(!kat || !naziv) return;
+        let cena = null;
+        if(it.cena !== null && it.cena !== undefined){
+          if(typeof it.cena !== 'number' || !Number.isInteger(it.cena) || it.cena < 0 || it.cena > 10000000) return;
+          cena = it.cena;
+        }
+        pl.push({kategorija: kat, naziv, cena, od: it.od === true});
+      });
+      if(pl.length){
+        o.priceList = pl;
+        const d = r.price_list_updated_at ? new Date(r.price_list_updated_at) : null;
+        if(d && !isNaN(d.getTime())) o.priceListUpdated = d.toISOString();
+      }
+    }
+    if(Array.isArray(r.custom_services)){
+      const cs = r.custom_services.filter(x => typeof x === 'string').map(x => x.trim()).filter(x => x.length >= 1 && x.length <= 60).slice(0, 10);
+      if(cs.length) o.customServices = cs;
     }
     return o;
   }
@@ -151,5 +178,5 @@ const PF = (function(){
     } catch(e){ return Promise.resolve(false); }
   }
 
-  return {configured, claimState, myVerifiedClaim, normalizePhone, cleanProfile, fetchProfiles, fetchImages, signUrls, withTimeout, HOURS_KEYS, SOCIAL_KEYS};
+  return {PRICE_CATEGORIES, configured, claimState, myVerifiedClaim, normalizePhone, cleanProfile, fetchProfiles, fetchImages, signUrls, withTimeout, HOURS_KEYS, SOCIAL_KEYS};
 })();

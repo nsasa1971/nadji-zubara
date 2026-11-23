@@ -37,6 +37,8 @@ function applyProfileToClinic(c, p, imagePaths){
   if(p.website) c.website = p.website;
   if(p.socials) c.socials = p.socials;
   if(p.team) c.team = p.team;
+  if(p.priceList){ c.priceList = p.priceList; c.priceListUpdated = p.priceListUpdated || null; }
+  if(p.customServices) c.customServices = p.customServices;
   if(imagePaths && imagePaths.length) c.approvedImages = imagePaths;
 }
 

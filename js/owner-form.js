@@ -22,6 +22,9 @@
   function errorText(error){
     const m = (error && error.message) || '';
     for(const k in ERRORS) if(m.indexOf(k) >= 0) return ERRORS[k];
+    if(/profile_price_list_valid/.test(m)) return 'Cenovnik nije sačuvan: svaki naziv sme imati najviše 80 znakova i ne sme sadržati web adresu, e-adresu ni broj telefona, a cena mora biti ceo broj od 0 do 10.000.000 (ili prazno za „na upit“). Najviše 100 stavki.';
+    if(/profile_custom_services_valid/.test(m)) return 'Druge usluge nisu sačuvane: najviše 10 usluga, svaka do 60 znakova, bez web adresa, e-adresa i brojeva telefona.';
+    if(/cannot cast|invalid input syntax|jsonb/i.test(m)) return 'Cena mora biti ceo broj od 0 do 10.000.000 (ili ostavite prazno za „na upit“).';
     if(/check constraint|violates/i.test(m)) return 'Neka vrednost je predugačka ili nije u ispravnom obliku.';
     return 'Čuvanje nije uspelo. Pokušajte ponovo kasnije.';
   }
@@ -37,18 +40,58 @@
   function validUrl(u){ return u.length <= 300 && URL_RE.test(u) && !!safeUrl(u); }
   const PHONE_RE = /^[0-9+()\/ -]{6,20}$/;
 
-  function imageKind(bytes){
-    if(bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) return 'image/jpeg';
-    if(bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) return 'image/png';
-    if(bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return 'image/webp';
-    return null;
+  // ---- cenovnik: ista pravila kao u bazi (migracija 30) ----
+  const PRICE_CATS = (typeof PF !== 'undefined' && PF.PRICE_CATEGORIES) ? PF.PRICE_CATEGORIES : ['Opšta stomatologija','Dečja stomatologija','Ortodoncija','Protetika','Hirurgija','Implantologija','Parodontologija','Endodoncija','Estetska stomatologija','Preventiva i higijena','Ostalo'];
+  const MAX_PRICE_ITEMS = 100, MAX_CUSTOM = 10;
+  const CONTACT_RE = /https?:|www\.|\.(com|rs|net|org|info|biz|eu|co|me|io|app|shop|online|site)(\b|\/)/i;
+  function cleanText(t){ return !CONTACT_RE.test(t) && t.indexOf('@') < 0 && t.replace(/\D/g, '').length < 6; }
+  // "3.000", "3000", "3 000 din", "3.000,00" -> 3000; prazno -> null (na upit); sve ostalo je neispravno
+  function parsePrice(raw){
+    let t = String(raw == null ? '' : raw).trim().toLowerCase().replace(/ /g, ' ');
+    t = t.replace(/(rsd|dinara|dinar|din\.?)\s*$/, '').trim();
+    if(t === '') return {ok:true, value:null};
+    t = t.replace(/\s+/g, '');
+    let m = /^(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{1,2}))?$/.exec(t) || /^(\d{1,3}(?:,\d{3})+)(?:\.(\d{1,2}))?$/.exec(t);
+    if(!m || (m[2] && /[1-9]/.test(m[2]))) return {ok:false};
+    const n = parseInt(m[1].replace(/[.,]/g, ''), 10);
+    if(!Number.isFinite(n) || n < 0 || n > 10000000) return {ok:false};
+    return {ok:true, value:n};
+  }
+  // proverava jednu stavku; vraća {ok, item} ili {ok:false, reason}
+  function checkItem(kat, naziv, cenaText, od){
+    const name = String(naziv || '').replace(/\s+/g, ' ').trim();
+    if(PRICE_CATS.indexOf(kat) < 0) return {ok:false, reason:'Izaberite kategoriju.'};
+    if(!name) return {ok:false, reason:'Naziv ne sme biti prazan.'};
+    if(name.length > 80) return {ok:false, reason:'Naziv ima više od 80 znakova.'};
+    if(!cleanText(name)) return {ok:false, reason:'Naziv ne sme sadržati web adresu, e-adresu ni broj telefona.'};
+    const pr = parsePrice(cenaText);
+    if(!pr.ok) return {ok:false, reason:'Cena mora biti ceo broj od 0 do 10.000.000 (ili prazno za „na upit“).'};
+    return {ok:true, item:{kategorija:kat, naziv:name, cena:pr.value, od: !!od && pr.value !== null}};
+  }
+  // jedan nalepljen red -> {naziv, cenaText, od} (bez cene: cenaText ''), ili null za prazan red.
+  // Razdvajač naziva i cene: tab, " – ", " — ", " - ", ";", ":" ili zarez. Bez razdvajača cena se prepoznaje samo uz
+  // oznaku valute (din/rsd) ili sa 3+ cifre, da "Konsultacija 15" ne postane cena 15.
+  const PRICE_PAT = '(od\\s+)?(\\d{1,3}(?:[. ]\\d{3})+(?:,\\d{1,2})?|\\d+(?:,\\d{1,2})?)\\s*(din\\.?|dinara|rsd)?';
+  const RE_TAB = new RegExp('^(.*)\\t\\s*' + PRICE_PAT + '\\s*$', 'i');
+  const RE_SEP = new RegExp('^(.+?)(?:\\s+[–—-]\\s+|\\s*[;:]\\s*|\\s*,\\s+)' + PRICE_PAT + '\\s*$', 'i');
+  const RE_SEP_GREEDY = new RegExp('^(.+)(?:\\s+[–—-]\\s+|\\s*[;:]\\s*|\\s*,\\s+)' + PRICE_PAT + '\\s*$', 'i');
+  const RE_PLAIN = new RegExp('^(.+?)\\s+' + PRICE_PAT + '\\s*$', 'i');
+  function trimName(n){ return n.replace(/[\s\t–—:;,-]+$/, '').replace(/^[\s\t]+/, '').replace(/\s+/g, ' '); }
+  function parsePasteLine(line){
+    const t = line.replace(/ /g, ' ').replace(/\r/g, '');
+    if(!t.trim()) return null;
+    let m = RE_TAB.exec(t) || RE_SEP_GREEDY.exec(t);
+    if(m && trimName(m[1])) return {naziv: trimName(m[1]), cenaText: m[3], od: !!m[2]};
+    m = RE_PLAIN.exec(t.trim());
+    if(m && (m[4] || m[2] || m[3].replace(/\D/g, '').length >= 3) && trimName(m[1])) return {naziv: trimName(m[1]), cenaText: m[3], od: !!m[2]};
+    return {naziv: trimName(t), cenaText: '', od: false};
   }
 
   let state = {profile:null, changes:[], images:[], urls:{}};
 
   async function loadAll(){
     const [p, ch, im] = await Promise.all([
-      sb.from('profile_overrides').select('clinic_id, phones, hours, services, description, website, socials, name, address, team_public, updated_at').eq('clinic_id', clinicId).maybeSingle(),
+      sb.from('profile_overrides').select('clinic_id, phones, hours, services, description, website, socials, name, address, team_public, updated_at, price_list, custom_services, price_list_updated_at').eq('clinic_id', clinicId).maybeSingle(),
       sb.from('pending_changes').select('id, field, new_value, status, created_at, reviewed_at, review_note').eq('clinic_id', clinicId).order('created_at', {ascending:false}).limit(40),
       sb.from('clinic_images').select('id, storage_path, status, created_at').eq('clinic_id', clinicId).order('created_at', {ascending:true})
     ]);
@@ -63,6 +106,19 @@
   }
 
   function pendingOf(fieldName){ return state.changes.find(c => c.field === fieldName && c.status === 'pending'); }
+
+  // jedan put upisa u profile_overrides (bez upsert-a: on conflict bi menjao i clinic_id, na koji klijent nema UPDATE pravo)
+  async function writeProfile(payload){
+    let error;
+    if(state.profile){
+      ({ error } = await sb.from('profile_overrides').update(payload).eq('clinic_id', clinicId));
+    } else {
+      ({ error } = await sb.from('profile_overrides').insert(Object.assign({clinic_id: clinicId}, payload)));
+      if(error && /duplicate key/i.test(error.message || '')) ({ error } = await sb.from('profile_overrides').update(payload).eq('clinic_id', clinicId));
+    }
+    if(!error) state.profile = Object.assign({}, state.profile || {clinic_id: clinicId}, payload);
+    return error;
+  }
 
   /* ---------------------------------------------------- direktne izmene */
   function buildDirect(){
@@ -109,6 +165,21 @@
       ].concat(subs));
     }));
 
+    // druge usluge (do 10, do 60 znakova; prikazuju se uz ostale usluge, ne ulaze u filtere)
+    const customBox = el('div', {});
+    const addCustomBtn = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Dodaj uslugu');
+    function addCustom(v){
+      const input = el('input', {type:'text', maxlength:'60', placeholder:'npr. Izbeljivanje zuba', 'aria-label':'Druga usluga'});
+      input.value = v || '';
+      const rm = el('button', {type:'button', class:'btn btn-outline-navy btn-sm', 'aria-label':'Ukloni uslugu'}, '×');
+      const row = el('div', {style:'display:flex;gap:8px;margin-bottom:8px;'}, [input, rm]);
+      rm.addEventListener('click', () => { row.remove(); addCustomBtn.disabled = false; });
+      customBox.appendChild(row);
+      if(customBox.children.length >= MAX_CUSTOM) addCustomBtn.disabled = true;
+    }
+    (Array.isArray(prof.custom_services) ? prof.custom_services : []).slice(0, MAX_CUSTOM).forEach(addCustom);
+    addCustomBtn.addEventListener('click', () => addCustom(''));
+
     // opis
     const desc = el('textarea', {maxlength:'1000', rows:'5'}); desc.value = prof.description || '';
     const counter = el('span', {class:'hint'}, '');
@@ -127,7 +198,7 @@
     const form = el('form', {novalidate:''}, [
       card('Telefoni', [phoneBox, addPhoneBtn, el('p', {class:'hint', style:'margin:8px 0 0;font-size:13px;color:var(--muted);'}, 'Do 3 broja.')]),
       card('Radno vreme', hoursRows.concat([el('p', {style:'margin:0;font-size:13px;color:var(--muted);'}, 'Slobodan tekst do 60 znakova po danu. Prazno polje = nije navedeno.')])),
-      card('Usluge', [svcWrap]),
+      card('Usluge', [svcWrap, el('h4', {style:'margin:16px 0 8px;font-size:15px;'}, 'Druge usluge'), customBox, addCustomBtn, el('p', {class:'hint', style:'margin:8px 0 0;font-size:13px;color:var(--muted);'}, 'Do 10 usluga, do 60 znakova. Bez web adresa, e-adresa i telefona. Prikazuju se na profilu uz ostale usluge.')]),
       card('Kratak opis', [desc, counter]),
       card('Sajt i društvene mreže', [field('Sajt ordinacije', web, 'Samo adrese koje počinju sa http:// ili https://')].concat(socRows)),
       el('div', {}, [saveBtn, msg])
@@ -147,6 +218,15 @@
       }
       // usluge
       const services = svcBoxes.filter(c => c.checked).map(c => c.value);
+      // druge usluge (običan tekst)
+      const customServices = [];
+      for(const i of Array.from(customBox.querySelectorAll('input'))){
+        const v = i.value.replace(/\s+/g, ' ').trim();
+        if(!v) continue;
+        if(v.length > 60){ showMsg(msg, 'Druga usluga „' + v.slice(0, 20) + '…“ ima više od 60 znakova.', false); return; }
+        if(!cleanText(v)){ showMsg(msg, 'Druga usluga „' + v + '“ ne sme sadržati web adresu, e-adresu ni broj telefona.', false); return; }
+        customServices.push(v);
+      }
       // opis
       const description = desc.value.trim();
       if(description.length > 1000){ showMsg(msg, 'Opis je predugačak (najviše 1000 znakova).', false); return; }
@@ -166,22 +246,138 @@
         services,
         description: description || null,
         website: website || null,
-        socials: Object.keys(socials).length ? socials : null
+        socials: Object.keys(socials).length ? socials : null,
+        custom_services: customServices
       };
-      // (bez upsert-a: on conflict bi menjao i clinic_id, na koji klijent nema UPDATE pravo)
-      let error;
-      if(state.profile){
-        ({ error } = await sb.from('profile_overrides').update(payload).eq('clinic_id', clinicId));
-      } else {
-        ({ error } = await sb.from('profile_overrides').insert(Object.assign({clinic_id: clinicId}, payload)));
-        if(error && /duplicate key/i.test(error.message || '')) ({ error } = await sb.from('profile_overrides').update(payload).eq('clinic_id', clinicId));
-      }
-      if(!error) state.profile = Object.assign({}, state.profile || {clinic_id: clinicId}, payload);
+      const error = await writeProfile(payload);
       saveBtn.disabled = false;
       if(error){ showMsg(msg, errorText(error), false); return; }
       showMsg(msg, 'Sačuvano. Izmene su objavljene na profilu.', true);
     });
     return form;
+  }
+
+  /* ------------------------------------------------------------ cenovnik */
+  function buildPricing(){
+    const prof = state.profile || {};
+    let items = (Array.isArray(prof.price_list) ? prof.price_list : []).filter(it => it && PRICE_CATS.indexOf(it.kategorija) >= 0)
+      .map(it => ({kategorija: it.kategorija, naziv: String(it.naziv || ''), cenaText: (it.cena === null || it.cena === undefined) ? '' : String(it.cena), od: it.od === true}));
+    const listBox = el('div', {});
+    const counter = el('p', {class:'hint', style:'margin:8px 0;font-size:13.5px;color:var(--muted);'});
+    const addMsg = el('p', {role:'alert', style:'margin:6px 0 0;font-size:13.5px;color:var(--closed);min-height:18px;'});
+    const msg = el('p', {role:'status', style:'margin:12px 0 0;font-size:14px;'});
+    const updLine = el('p', {style:'margin:6px 0 0;font-size:13.5px;color:var(--muted);'});
+    function showUpdated(){ updLine.textContent = prof.price_list_updated_at ? 'Cenovnik poslednji put izmenjen: ' + fmtDate(prof.price_list_updated_at) + '.' : ''; }
+    showUpdated();
+
+    const catSel = () => el('select', {'aria-label':'Kategorija'}, PRICE_CATS.map(k => el('option', {value:k}, k)));
+    const addBtnRef = {btn:null};
+    function renderList(){
+      listBox.textContent = '';
+      PRICE_CATS.forEach(kat => {
+        const rows = items.map((it, idx) => ({it, idx})).filter(r => r.it.kategorija === kat);
+        if(!rows.length) return;
+        listBox.appendChild(el('h4', {style:'margin:14px 0 6px;font-size:15px;'}, kat + ' (' + rows.length + ')'));
+        rows.forEach(({it, idx}) => {
+          const naziv = el('input', {type:'text', maxlength:'80', 'aria-label':'Naziv usluge', style:'flex:1 1 200px;min-width:0;'}); naziv.value = it.naziv;
+          const cena = el('input', {type:'text', inputmode:'numeric', 'aria-label':'Cena (RSD)', placeholder:'na upit', style:'width:110px;'}); cena.value = it.cenaText;
+          const od = el('input', {type:'checkbox', 'aria-label':'Cena od'}); od.checked = it.od;
+          naziv.addEventListener('input', () => { it.naziv = naziv.value; });
+          cena.addEventListener('input', () => { it.cenaText = cena.value; });
+          od.addEventListener('change', () => { it.od = od.checked; });
+          const rm = el('button', {type:'button', class:'btn btn-outline-navy btn-sm', 'aria-label':'Obriši red'}, '×');
+          rm.addEventListener('click', () => { items.splice(idx, 1); renderList(); });
+          listBox.appendChild(el('div', {style:'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;'}, [naziv, cena, el('label', {style:'display:flex;gap:4px;align-items:center;font-size:13.5px;'}, [od, 'od']), rm]));
+        });
+      });
+      counter.textContent = items.length + ' / ' + MAX_PRICE_ITEMS + ' stavki';
+      if(addBtnRef.btn) addBtnRef.btn.disabled = items.length >= MAX_PRICE_ITEMS;
+    }
+
+    // dodavanje jednog reda
+    const nKat = catSel(), nNaziv = el('input', {type:'text', maxlength:'80', placeholder:'Naziv usluge', 'aria-label':'Naziv nove usluge', style:'flex:1 1 200px;min-width:0;'});
+    const nCena = el('input', {type:'text', inputmode:'numeric', placeholder:'Cena (prazno = na upit)', 'aria-label':'Cena nove usluge (RSD)', style:'width:150px;'});
+    const nOd = el('input', {type:'checkbox', 'aria-label':'Cena od'});
+    const addBtn = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Dodaj red');
+    addBtnRef.btn = addBtn;
+    addBtn.addEventListener('click', () => {
+      addMsg.textContent = '';
+      if(items.length >= MAX_PRICE_ITEMS){ addMsg.textContent = 'Najviše ' + MAX_PRICE_ITEMS + ' stavki.'; return; }
+      const r = checkItem(nKat.value, nNaziv.value, nCena.value, nOd.checked);
+      if(!r.ok){ addMsg.textContent = r.reason; return; }
+      items.push({kategorija: r.item.kategorija, naziv: r.item.naziv, cenaText: r.item.cena === null ? '' : String(r.item.cena), od: r.item.od});
+      nNaziv.value = ''; nCena.value = ''; nOd.checked = false; renderList(); nNaziv.focus();
+    });
+    const addRow = el('div', {style:'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;'}, [nKat, nNaziv, nCena, el('label', {style:'display:flex;gap:4px;align-items:center;font-size:13.5px;'}, [nOd, 'od']), addBtn]);
+
+    // nalepi iz Excela / Worda
+    const pasteArea = el('textarea', {rows:'6', placeholder:'Jedan red po stavci, npr.\nEndodontska terapija - 2 kanala — 8.000\nFiksni aparat – obe vilice\t140.000', 'aria-label':'Nalepljen tekst cenovnika'});
+    const pasteKat = catSel();
+    const previewBox = el('div', {style:'margin-top:10px;'});
+    const parseBtn = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Prepoznaj redove');
+    let recognized = [];
+    parseBtn.addEventListener('click', () => {
+      previewBox.textContent = ''; recognized = [];
+      const bad = [];
+      pasteArea.value.split(/\n/).forEach((line, n) => {
+        const pl = parsePasteLine(line);
+        if(!pl) return;
+        const r = checkItem(pasteKat.value, pl.naziv, pl.cenaText, pl.od);
+        if(r.ok) recognized.push(r.item); else bad.push({line: line.trim(), reason: r.reason});
+      });
+      if(!recognized.length && !bad.length){ previewBox.appendChild(el('p', {style:'font-size:14px;'}, 'Nema redova za prepoznavanje.')); return; }
+      if(recognized.length){
+        previewBox.appendChild(el('p', {style:'margin:0 0 6px;font-weight:600;font-size:14px;'}, 'Prepoznato (' + recognized.length + ') u kategoriji „' + pasteKat.value + '“:'));
+        previewBox.appendChild(el('table', {class:'price-table'}, [el('tbody', {}, recognized.map(it => el('tr', {}, [el('td', {class:'pn'}, it.naziv), el('td', {class:'pp'}, it.cena === null ? 'Na upit' : (it.od ? 'od ' : '') + it.cena.toLocaleString('sr-RS') + ' RSD')])))]));
+        const room = MAX_PRICE_ITEMS - items.length;
+        const addAll = el('button', {type:'button', class:'btn btn-primary btn-sm', style:'margin-top:10px;'}, 'Dodaj prepoznate redove');
+        if(recognized.length > room){ previewBox.appendChild(el('p', {style:'color:var(--closed);font-size:13.5px;margin:8px 0 0;'}, 'U cenovniku ima mesta još za ' + room + ' stavki; dodaće se prvih ' + Math.max(room, 0) + '.')); }
+        addAll.disabled = room <= 0;
+        addAll.addEventListener('click', () => {
+          recognized.slice(0, Math.max(room, 0)).forEach(it => items.push({kategorija: it.kategorija, naziv: it.naziv, cenaText: it.cena === null ? '' : String(it.cena), od: it.od}));
+          pasteArea.value = ''; previewBox.textContent = ''; renderList();
+        });
+        previewBox.appendChild(addAll);
+      }
+      if(bad.length){
+        previewBox.appendChild(el('p', {style:'margin:12px 0 6px;font-weight:600;font-size:14px;color:var(--closed);'}, 'Neprepoznato (' + bad.length + '), neće biti dodato:'));
+        previewBox.appendChild(el('ul', {style:'margin:0;padding-left:18px;font-size:13.5px;'}, bad.map(b => el('li', {}, [el('span', {}, b.line.slice(0, 120)), el('span', {style:'color:var(--muted);'}, ' — ' + b.reason)]))));
+      }
+    });
+
+    // čuvanje
+    const saveBtn = el('button', {type:'button', class:'btn btn-primary'}, 'Sačuvaj cenovnik');
+    saveBtn.addEventListener('click', async () => {
+      const out = [];
+      for(let i = 0; i < items.length; i++){
+        const it = items[i];
+        const r = checkItem(it.kategorija, it.naziv, it.cenaText, it.od);
+        if(!r.ok){ showMsg(msg, 'Stavka „' + (String(it.naziv).trim().slice(0, 40) || '(bez naziva)') + '“: ' + r.reason, false); return; }
+        out.push(r.item);
+      }
+      saveBtn.disabled = true;
+      const error = await writeProfile({price_list: out});
+      if(!error){
+        const { data } = await sb.from('profile_overrides').select('price_list_updated_at').eq('clinic_id', clinicId).maybeSingle();
+        if(data && data.price_list_updated_at) state.profile.price_list_updated_at = data.price_list_updated_at;
+        prof.price_list_updated_at = state.profile.price_list_updated_at;
+        items = out.map(it => ({kategorija: it.kategorija, naziv: it.naziv, cenaText: it.cena === null ? '' : String(it.cena), od: it.od}));
+        renderList(); showUpdated();
+      }
+      saveBtn.disabled = false;
+      if(error){ showMsg(msg, errorText(error), false); return; }
+      showMsg(msg, 'Sačuvano. Cenovnik je objavljen na profilu.', true);
+    });
+    renderList();
+
+    return card('Cenovnik (Profil+)', [
+      el('p', {style:'margin:0 0 8px;font-size:14px;color:var(--muted);'}, 'Cena je ceo broj u dinarima (prazno polje = „na upit“); kvačica „od“ znači „od te cene“. Najviše 100 stavki. Čuva se odmah, bez odobravanja.'),
+      listBox, counter, addRow, addMsg,
+      el('h4', {style:'margin:18px 0 6px;font-size:15px;'}, 'Nalepi iz Excela ili Worda'),
+      el('p', {style:'margin:0 0 6px;font-size:13.5px;color:var(--muted);'}, 'Jedan red po stavci; naziv i cenu razdvojite tabom, „ – “, „ - “ ili zarezom. Cene „3.000“, „3000“ i „3 000 din“ se prepoznaju kao 3000.'),
+      pasteArea, el('div', {style:'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;'}, [el('label', {style:'font-size:13.5px;'}, 'Kategorija za nalepljene redove:'), pasteKat, parseBtn]), previewBox,
+      el('div', {style:'margin-top:16px;'}, [saveBtn, msg, updLine])
+    ]);
   }
 
   /* ----------------------------------------- izmene koje čekaju odobrenje */
@@ -347,6 +543,7 @@
     ]));
     app.appendChild(el('h2', {style:'font-size:20px;margin:0 0 12px;'}, 'Izmene koje se objavljuju odmah'));
     app.appendChild(buildDirect());
+    app.appendChild(buildPricing());
     app.appendChild(el('h2', {style:'font-size:20px;margin:28px 0 12px;'}, 'Izmene koje čekaju naše odobrenje'));
     app.appendChild(buildTextChange('name', 'Naziv', curName, 150, 2));
     app.appendChild(buildTextChange('address', 'Adresa', curAddr, 200, 3));
