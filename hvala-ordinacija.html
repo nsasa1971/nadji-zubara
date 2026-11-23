@@ -53,11 +53,17 @@
     <div class="success-box show">
       <div class="icon-circle"><span data-icon="check"></span></div>
       <h2>Hvala, primili smo zahtev.</h2>
-      <p>Javićemo vam se u roku od nekoliko dana. Proveravamo pozivom na broj telefona ordinacije.</p>
+      <p id="thanksMain">Podatke ćemo proveriti pozivom na broj telefona koji ste upisali i zatim dodati ordinaciju u imenik.</p>
+      <p id="thanksPlus" hidden>Kada ordinaciju dodamo, otvorite njenu stranicu, izaberite „Ovo je moja ordinacija“ i potvrdite profil. Tada dobijate 6 meseci Profila+ besplatno.</p>
       <a href="index.html" class="btn btn-outline-navy">Nazad na početnu</a>
     </div>
   </div>
 </div>
+<script>
+(function(){var p=new URLSearchParams(location.search).get('paket');
+if(!p){try{p=sessionStorage.getItem('nz_paket');}catch(e){}}
+if(p==='osnovni')return;document.getElementById('thanksPlus').hidden=false;})();
+</script>
 </main>
 
 <footer class="site-footer">
