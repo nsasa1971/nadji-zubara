@@ -42,7 +42,10 @@
           'Profil je vraćen na osnovni prikaz. Javite nam se za nastavak. ',
           el('a', {href:'kontakt.html'}, 'Kontakt')]));
       }
-      kids.push(el('p', {style:'margin:12px 0 0;'}, [el('a', {class:'btn btn-primary btn-sm', href:'izmena-profila.html?id=' + encodeURIComponent(c.clinic_id)}, 'Izmeni profil')]));
+      kids.push(el('p', {style:'margin:12px 0 0;display:flex;gap:8px;flex-wrap:wrap;'}, [
+        el('a', {class:'btn btn-primary btn-sm', href:'izmena-profila.html?id=' + encodeURIComponent(c.clinic_id)}, 'Izmeni profil'),
+        el('a', {class:'btn btn-outline-navy btn-sm', href:'izmena-profila.html?id=' + encodeURIComponent(c.clinic_id) + '#cenovnik'}, 'Cenovnik i usluge')
+      ]));
     }
     if(c.status === 'rejected'){
       kids.push(el('p', {style:'margin:12px 0 0;font-size:14px;'}, 'Zahtev je odbijen' + (c.decided_at ? ' ' + fmtDate(c.decided_at) : '') + '. Novi zahtev možete poslati posle 30 dana.'));

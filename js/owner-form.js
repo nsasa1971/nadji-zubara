@@ -87,6 +87,7 @@
     return {naziv: trimName(t), cenaText: '', od: false};
   }
 
+  let hashDone = false;
   let state = {profile:null, changes:[], images:[], urls:{}};
 
   async function loadAll(){
@@ -370,7 +371,7 @@
     });
     renderList();
 
-    return card('Cenovnik (Profil+)', [
+    const priceCard = card('Cenovnik (Profil+)', [
       el('p', {style:'margin:0 0 8px;font-size:14px;color:var(--muted);'}, 'Cena je ceo broj u dinarima (prazno polje = „na upit“); kvačica „od“ znači „od te cene“. Najviše 100 stavki. Čuva se odmah, bez odobravanja.'),
       listBox, counter, addRow, addMsg,
       el('h4', {style:'margin:18px 0 6px;font-size:15px;'}, 'Nalepi iz Excela ili Worda'),
@@ -378,6 +379,8 @@
       pasteArea, el('div', {style:'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;'}, [el('label', {style:'font-size:13.5px;'}, 'Kategorija za nalepljene redove:'), pasteKat, parseBtn]), previewBox,
       el('div', {style:'margin-top:16px;'}, [saveBtn, msg, updLine])
     ]);
+    priceCard.id = 'cenovnik';
+    return priceCard;
   }
 
   /* ----------------------------------------- izmene koje čekaju odobrenje */
@@ -550,6 +553,7 @@
     app.appendChild(buildTeam());
     app.appendChild(buildImages());
     const h = buildHistory(); if(h) app.appendChild(h);
+    if(!hashDone && location.hash === '#cenovnik'){ hashDone = true; const pc = document.getElementById('cenovnik'); if(pc) pc.scrollIntoView(); }
   }
 
   async function init(){
