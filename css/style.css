@@ -1325,3 +1325,22 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
   .of-paste-ctl select{width:100%;}
   .of-actions{flex-direction:column;align-items:stretch;}
 }
+
+/* prozor "Ovo je moja ordinacija" (js/claim-modal.js) */
+.cm-overlay{position:fixed;inset:0;z-index:1000;background:rgba(8,25,45,.62);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto;}
+.cm-box{position:relative;width:100%;max-width:460px;background:#fff;border-radius:20px;padding:28px 26px 24px;box-shadow:0 24px 60px rgba(8,25,45,.35);max-height:calc(100vh - 32px);overflow:auto;}
+.cm-close{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:0;background:var(--bg);color:var(--navy);font-size:24px;line-height:1;cursor:pointer;}
+.cm-title{margin:0 40px 14px 0;font-size:21px;color:var(--navy);}
+.cm-clinic{background:var(--primary-light);border-radius:12px;padding:12px 14px;margin:0 0 18px;font-size:15px;}
+.cm-addr{color:var(--muted);font-size:13.5px;margin-top:2px;}
+.cm-note{margin:0;color:var(--muted);}
+.cm-result{margin:0 0 18px;line-height:1.55;}
+.cm-err{color:var(--closed);}
+.cm-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.cm-box .btn{min-height:46px;justify-content:center;}
+.cm-box input[type=email],.cm-box input[type=text]{width:100%;box-sizing:border-box;min-height:48px;padding:0 14px;border:1.5px solid #D5DFDF;border-radius:12px;background:#F7FAFA;font:500 16px 'Montserrat',system-ui,sans-serif;}
+.cm-box input:focus{outline:none;border-color:var(--primary-dark);box-shadow:0 0 0 3px rgba(14,165,163,.2);background:#fff;}
+.cm-box input[type=checkbox]{width:20px;height:20px;flex:none;accent-color:var(--primary-dark);margin-top:2px;}
+.cm-box .form-field{display:flex;flex-direction:column;gap:6px;}
+.cm-box .form-field label{font-size:13.5px;font-weight:700;color:var(--navy);}
+@media(max-width:520px){.cm-overlay{align-items:flex-end;padding:0;}.cm-box{border-radius:20px 20px 0 0;max-width:none;padding:24px 18px 22px;}.cm-actions .btn,.cm-box form .btn{flex:1 1 100%;}}
