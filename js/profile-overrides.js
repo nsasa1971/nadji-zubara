@@ -53,7 +53,7 @@ window.profilesReady = (function(){
   return Promise.all([both, newOnes]).then(([[profiles, images], gotNew]) => {
     if(!profiles) return !!gotNew;
     const byId = {};
-    getImportedClinics().forEach(c => { byId[c.id] = c; });
+    getImportedClinics().concat(typeof NEW_PUBLISHED !== 'undefined' ? NEW_PUBLISHED : []).forEach(c => { byId[c.id] = c; });
     Object.keys(profiles).forEach(id => { if(byId[id]) applyProfileToClinic(byId[id], profiles[id], images[id]); });
     return true;
   }).catch(() => false);
