@@ -324,6 +324,9 @@ function applyClaimState(c, state){
   }
   if(state === 'expired'){
     if(ownerHint) ownerHint.style.display = '';
+    // osnovni prikaz: kratak neutralan tekst, bez poziva na potvrdu i bez napomene o isteku
+    const ed = document.getElementById('clinicDescription');
+    if(ed && (!c.description || (typeof PLACEHOLDER_DESCRIPTION_RE !== 'undefined' && PLACEHOLDER_DESCRIPTION_RE.test(c.description)))) ed.textContent = 'Opis ove ordinacije još nije dostupan.';
     return;
   }
   // active
