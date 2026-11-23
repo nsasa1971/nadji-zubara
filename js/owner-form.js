@@ -32,7 +32,7 @@
   function showMsg(node, text, ok){ node.textContent = text; node.style.color = ok ? 'var(--open)' : 'var(--closed)'; }
   function card(title, kids){ return el('div', {class:'info-card'}, [el('h3', {}, title)].concat(kids)); }
   function field(label, input, hint){
-    return el('div', {class:'form-field', style:'margin-bottom:12px;'}, [el('label', {}, label), input].concat(hint ? [el('span', {class:'hint'}, hint)] : []));
+    return el('div', {class:'form-field'}, [el('label', {}, label), input].concat(hint ? [el('span', {class:'hint'}, hint)] : []));
   }
 
   // ---- validacija (ista pravila kao CHECK u bazi) ----
@@ -124,7 +124,7 @@
   /* ---------------------------------------------------- direktne izmene */
   function buildDirect(){
     const prof = state.profile || {};
-    const msg = el('p', {role:'status', style:'margin:12px 0 0;font-size:14px;'});
+    const msg = el('p', {role:'status', class:'of-msg'});
 
     // telefoni
     const phoneBox = el('div', {});
@@ -134,7 +134,7 @@
       const input = el('input', {type:'tel', maxlength:'20', placeholder:'+381 11 123 4567'});
       input.value = v || '';
       const rm = el('button', {type:'button', class:'btn btn-outline-navy btn-sm', 'aria-label':'Ukloni telefon'}, '×');
-      const row = el('div', {style:'display:flex;gap:8px;margin-bottom:8px;'}, [input, rm]);
+      const row = el('div', {class:'of-row'}, [input, rm]);
       rm.addEventListener('click', () => { row.remove(); addPhoneBtn.disabled = false; });
       phoneBox.appendChild(row);
       if(phoneBox.children.length >= 3) addPhoneBtn.disabled = true;
@@ -154,16 +154,17 @@
     // usluge
     const chosen = new Set(prof.services || []);
     const svcBoxes = [];
-    const svcWrap = el('div', {}, SERVICE_CATALOG.map(cat => {
+    const svcWrap = el('div', {class:'of-svc-list'}, SERVICE_CATALOG.map(cat => {
       const catCb = el('input', {type:'checkbox'}); catCb.value = cat.key; catCb.checked = chosen.has(cat.key);
       svcBoxes.push(catCb);
       const subs = cat.subservices.map(s => {
         const cb = el('input', {type:'checkbox'}); cb.value = s.key; cb.checked = chosen.has(s.key); svcBoxes.push(cb);
-        return el('label', {style:'display:flex;gap:8px;align-items:flex-start;margin:4px 0 4px 26px;font-size:14px;'}, [cb, el('span', {}, s.name)]);
+        return el('label', {class:'of-check'}, [cb, el('span', {}, s.name)]);
       });
-      return el('div', {style:'margin-bottom:10px;'}, [
-        el('label', {style:'display:flex;gap:8px;align-items:center;font-weight:600;'}, [catCb, el('span', {}, cat.name)])
-      ].concat(subs));
+      return el('div', {class:'of-svc'}, [
+        el('label', {class:'of-check of-check-cat'}, [catCb, el('span', {}, cat.name)]),
+        el('div', {class:'of-svc-subs'}, subs)
+      ]);
     }));
 
     // druge usluge (do 10, do 60 znakova; prikazuju se uz ostale usluge, ne ulaze u filtere)
@@ -173,7 +174,7 @@
       const input = el('input', {type:'text', maxlength:'60', placeholder:'npr. Izbeljivanje zuba', 'aria-label':'Druga usluga'});
       input.value = v || '';
       const rm = el('button', {type:'button', class:'btn btn-outline-navy btn-sm', 'aria-label':'Ukloni uslugu'}, '×');
-      const row = el('div', {style:'display:flex;gap:8px;margin-bottom:8px;'}, [input, rm]);
+      const row = el('div', {class:'of-row'}, [input, rm]);
       rm.addEventListener('click', () => { row.remove(); addCustomBtn.disabled = false; });
       customBox.appendChild(row);
       if(customBox.children.length >= MAX_CUSTOM) addCustomBtn.disabled = true;
@@ -183,7 +184,7 @@
 
     // opis
     const desc = el('textarea', {maxlength:'1000', rows:'5'}); desc.value = prof.description || '';
-    const counter = el('span', {class:'hint'}, '');
+    const counter = el('span', {class:'of-counter'}, '');
     function upd(){ counter.textContent = desc.value.length + ' / 1000'; }
     desc.addEventListener('input', upd); upd();
 
@@ -196,13 +197,13 @@
     });
 
     const saveBtn = el('button', {type:'submit', class:'btn btn-primary'}, 'Sačuvaj');
-    const form = el('form', {novalidate:''}, [
-      card('Telefoni', [phoneBox, addPhoneBtn, el('p', {class:'hint', style:'margin:8px 0 0;font-size:13px;color:var(--muted);'}, 'Do 3 broja.')]),
-      card('Radno vreme', hoursRows.concat([el('p', {style:'margin:0;font-size:13px;color:var(--muted);'}, 'Slobodan tekst do 60 znakova po danu. Prazno polje = nije navedeno.')])),
-      card('Usluge', [svcWrap, el('h4', {style:'margin:16px 0 8px;font-size:15px;'}, 'Druge usluge'), customBox, addCustomBtn, el('p', {class:'hint', style:'margin:8px 0 0;font-size:13px;color:var(--muted);'}, 'Do 10 usluga, do 60 znakova. Bez web adresa, e-adresa i telefona. Prikazuju se na profilu uz ostale usluge.')]),
+    const form = el('form', {novalidate:'', class:'of-form'}, [
+      card('Telefoni', [phoneBox, addPhoneBtn, el('p', {class:'of-note'}, 'Do 3 broja.')]),
+      card('Radno vreme', [el('div', {class:'of-grid2'}, hoursRows), el('p', {class:'of-note'}, 'Slobodan tekst do 60 znakova po danu. Prazno polje = nije navedeno.')]),
+      card('Usluge', [svcWrap, el('h4', {class:'of-h4'}, 'Druge usluge'), customBox, addCustomBtn, el('p', {class:'of-note'}, 'Do 10 usluga, do 60 znakova. Bez web adresa, e-adresa i telefona. Prikazuju se na profilu uz ostale usluge.')]),
       card('Kratak opis', [desc, counter]),
-      card('Sajt i društvene mreže', [field('Sajt ordinacije', web, 'Samo adrese koje počinju sa http:// ili https://')].concat(socRows)),
-      el('div', {}, [saveBtn, msg])
+      card('Sajt i društvene mreže', [field('Sajt ordinacije', web, 'Samo adrese koje počinju sa http:// ili https://'), el('div', {class:'of-grid2'}, socRows)]),
+      el('div', {class:'of-savebar'}, [saveBtn, msg])
     ]);
 
     form.addEventListener('submit', async e => {
@@ -264,10 +265,10 @@
     let items = (Array.isArray(prof.price_list) ? prof.price_list : []).filter(it => it && PRICE_CATS.indexOf(it.kategorija) >= 0)
       .map(it => ({kategorija: it.kategorija, naziv: String(it.naziv || ''), cenaText: (it.cena === null || it.cena === undefined) ? '' : String(it.cena), od: it.od === true}));
     const listBox = el('div', {});
-    const counter = el('p', {class:'hint', style:'margin:8px 0;font-size:13.5px;color:var(--muted);'});
-    const addMsg = el('p', {role:'alert', style:'margin:6px 0 0;font-size:13.5px;color:var(--closed);min-height:18px;'});
-    const msg = el('p', {role:'status', style:'margin:12px 0 0;font-size:14px;'});
-    const updLine = el('p', {style:'margin:6px 0 0;font-size:13.5px;color:var(--muted);'});
+    const counter = el('p', {class:'of-counter'});
+    const addMsg = el('p', {role:'alert', class:'of-alert'});
+    const msg = el('p', {role:'status', class:'of-msg'});
+    const updLine = el('p', {class:'of-note of-upd'});
     function showUpdated(){ updLine.textContent = prof.price_list_updated_at ? 'Cenovnik poslednji put izmenjen: ' + fmtDate(prof.price_list_updated_at) + '.' : ''; }
     showUpdated();
 
@@ -278,17 +279,17 @@
       PRICE_CATS.forEach(kat => {
         const rows = items.map((it, idx) => ({it, idx})).filter(r => r.it.kategorija === kat);
         if(!rows.length) return;
-        listBox.appendChild(el('h4', {style:'margin:14px 0 6px;font-size:15px;'}, kat + ' (' + rows.length + ')'));
+        listBox.appendChild(el('h4', {class:'of-h4 of-cat'}, kat + ' (' + rows.length + ')'));
         rows.forEach(({it, idx}) => {
-          const naziv = el('input', {type:'text', maxlength:'80', 'aria-label':'Naziv usluge', style:'flex:1 1 200px;min-width:0;'}); naziv.value = it.naziv;
-          const cena = el('input', {type:'text', inputmode:'numeric', 'aria-label':'Cena (RSD)', placeholder:'na upit', style:'width:110px;'}); cena.value = it.cenaText;
+          const naziv = el('input', {type:'text', maxlength:'80', 'aria-label':'Naziv usluge', class:'nz'}); naziv.value = it.naziv;
+          const cena = el('input', {type:'text', inputmode:'numeric', 'aria-label':'Cena (RSD)', placeholder:'cena (RSD)'}); cena.value = it.cenaText;
           const od = el('input', {type:'checkbox', 'aria-label':'Cena od'}); od.checked = it.od;
           naziv.addEventListener('input', () => { it.naziv = naziv.value; });
           cena.addEventListener('input', () => { it.cenaText = cena.value; });
           od.addEventListener('change', () => { it.od = od.checked; });
           const rm = el('button', {type:'button', class:'btn btn-outline-navy btn-sm', 'aria-label':'Obriši red'}, '×');
           rm.addEventListener('click', () => { items.splice(idx, 1); renderList(); });
-          listBox.appendChild(el('div', {style:'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px;'}, [naziv, cena, el('label', {style:'display:flex;gap:4px;align-items:center;font-size:13.5px;'}, [od, 'od']), rm]));
+          listBox.appendChild(el('div', {class:'of-price-row'}, [naziv, cena, el('label', {class:'of-check of-od'}, [od, el('span', {}, 'od')]), rm]));
         });
       });
       counter.textContent = items.length + ' / ' + MAX_PRICE_ITEMS + ' stavki';
@@ -296,8 +297,8 @@
     }
 
     // dodavanje jednog reda
-    const nKat = catSel(), nNaziv = el('input', {type:'text', maxlength:'80', placeholder:'Naziv usluge', 'aria-label':'Naziv nove usluge', style:'flex:1 1 200px;min-width:0;'});
-    const nCena = el('input', {type:'text', inputmode:'numeric', placeholder:'Cena (prazno = na upit)', 'aria-label':'Cena nove usluge (RSD)', style:'width:150px;'});
+    const nKat = catSel(), nNaziv = el('input', {type:'text', maxlength:'80', placeholder:'Naziv usluge', 'aria-label':'Naziv nove usluge'});
+    const nCena = el('input', {type:'text', inputmode:'numeric', placeholder:'Cena u RSD (prazno = na upit)', 'aria-label':'Cena nove usluge (RSD)'});
     const nOd = el('input', {type:'checkbox', 'aria-label':'Cena od'});
     const addBtn = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Dodaj red');
     addBtnRef.btn = addBtn;
@@ -309,12 +310,12 @@
       items.push({kategorija: r.item.kategorija, naziv: r.item.naziv, cenaText: r.item.cena === null ? '' : String(r.item.cena), od: r.item.od});
       nNaziv.value = ''; nCena.value = ''; nOd.checked = false; renderList(); nNaziv.focus();
     });
-    const addRow = el('div', {style:'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;'}, [nKat, nNaziv, nCena, el('label', {style:'display:flex;gap:4px;align-items:center;font-size:13.5px;'}, [nOd, 'od']), addBtn]);
+    const addRow = el('div', {class:'of-price-add'}, [el('h4', {class:'of-h4'}, 'Dodaj stavku'), el('div', {class:'of-price-add1'}, [nKat, nNaziv]), el('div', {class:'of-price-add2'}, [nCena, el('label', {class:'of-check of-od'}, [nOd, el('span', {}, 'od')]), addBtn])]);
 
     // nalepi iz Excela / Worda
     const pasteArea = el('textarea', {rows:'6', placeholder:'Jedan red po stavci, npr.\nEndodontska terapija - 2 kanala — 8.000\nFiksni aparat – obe vilice\t140.000', 'aria-label':'Nalepljen tekst cenovnika'});
     const pasteKat = catSel();
-    const previewBox = el('div', {style:'margin-top:10px;'});
+    const previewBox = el('div', {class:'of-preview'});
     const parseBtn = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Prepoznaj redove');
     let recognized = [];
     parseBtn.addEventListener('click', () => {
@@ -331,7 +332,7 @@
         previewBox.appendChild(el('p', {style:'margin:0 0 6px;font-weight:600;font-size:14px;'}, 'Prepoznato (' + recognized.length + ') u kategoriji „' + pasteKat.value + '“:'));
         previewBox.appendChild(el('table', {class:'price-table'}, [el('tbody', {}, recognized.map(it => el('tr', {}, [el('td', {class:'pn'}, it.naziv), el('td', {class:'pp'}, it.cena === null ? 'Na upit' : (it.od ? 'od ' : '') + it.cena.toLocaleString('sr-RS') + ' RSD')])))]));
         const room = MAX_PRICE_ITEMS - items.length;
-        const addAll = el('button', {type:'button', class:'btn btn-primary btn-sm', style:'margin-top:10px;'}, 'Dodaj prepoznate redove');
+        const addAll = el('button', {type:'button', class:'btn btn-primary btn-sm'}, 'Dodaj prepoznate redove');
         if(recognized.length > room){ previewBox.appendChild(el('p', {style:'color:var(--closed);font-size:13.5px;margin:8px 0 0;'}, 'U cenovniku ima mesta još za ' + room + ' stavki; dodaće se prvih ' + Math.max(room, 0) + '.')); }
         addAll.disabled = room <= 0;
         addAll.addEventListener('click', () => {
@@ -372,12 +373,12 @@
     renderList();
 
     const priceCard = card('Cenovnik (Profil+)', [
-      el('p', {style:'margin:0 0 8px;font-size:14px;color:var(--muted);'}, 'Cena je ceo broj u dinarima (prazno polje = „na upit“); kvačica „od“ znači „od te cene“. Najviše 100 stavki. Čuva se odmah, bez odobravanja.'),
+      el('p', {class:'of-note'}, 'Cena je ceo broj u dinarima (prazno polje = „na upit“); kvačica „od“ znači „od te cene“. Najviše 100 stavki. Čuva se odmah, bez odobravanja.'),
       listBox, counter, addRow, addMsg,
-      el('h4', {style:'margin:18px 0 6px;font-size:15px;'}, 'Nalepi iz Excela ili Worda'),
-      el('p', {style:'margin:0 0 6px;font-size:13.5px;color:var(--muted);'}, 'Jedan red po stavci; naziv i cenu razdvojite tabom, „ – “, „ - “ ili zarezom. Cene „3.000“, „3000“ i „3 000 din“ se prepoznaju kao 3000.'),
-      pasteArea, el('div', {style:'display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px;'}, [el('label', {style:'font-size:13.5px;'}, 'Kategorija za nalepljene redove:'), pasteKat, parseBtn]), previewBox,
-      el('div', {style:'margin-top:16px;'}, [saveBtn, msg, updLine])
+      el('h4', {class:'of-h4 of-sec'}, 'Nalepi iz Excela ili Worda'),
+      el('p', {class:'of-note'}, 'Jedan red po stavci; naziv i cenu razdvojite tabom, „ – “, „ - “ ili zarezom. Cene „3.000“, „3000“ i „3 000 din“ se prepoznaju kao 3000.'),
+      pasteArea, el('div', {class:'of-paste-ctl'}, [el('label', {}, 'Kategorija za nalepljene redove:'), pasteKat, parseBtn]), previewBox,
+      el('div', {class:'of-savebar of-savebar-inline'}, [saveBtn, msg, updLine])
     ]);
     priceCard.id = 'cenovnik';
     return priceCard;
@@ -398,7 +399,7 @@
 
   function pendingNote(fieldName){
     const p = pendingOf(fieldName);
-    return p ? el('p', {style:'margin:8px 0 0;font-size:13.5px;color:var(--muted);'}, 'Na čekanju od ' + fmtDate(p.created_at) + ': ' + summarize(p)) : null;
+    return p ? el('p', {class:'of-note of-pending'}, 'Na čekanju od ' + fmtDate(p.created_at) + ': ' + summarize(p)) : null;
   }
   function summarize(c){
     if(c.field === 'team') return (c.new_value || []).map(m => m.name + (m.role ? ' (' + m.role + ')' : '')).join(', ');
@@ -411,7 +412,7 @@
     const p = pendingOf(fieldName);
     input.value = p ? String(p.new_value) : current;
     const btn = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Pošalji na odobrenje');
-    const msg = el('p', {role:'status', style:'margin:8px 0 0;font-size:14px;'});
+    const msg = el('p', {role:'status', class:'of-msg'});
     btn.addEventListener('click', () => {
       const v = input.value.trim();
       if(v.length < min || v.length > max){ showMsg(msg, label + ': ' + min + '–' + max + ' znakova.', false); return; }
@@ -432,7 +433,7 @@
       const n = el('input', {type:'text', maxlength:'100', placeholder:'Ime i prezime'}); n.value = (m && m.name) || '';
       const r = el('input', {type:'text', maxlength:'100', placeholder:'Uloga (npr. ortodont)'}); r.value = (m && m.role) || '';
       const rm = el('button', {type:'button', class:'btn btn-outline-navy btn-sm', 'aria-label':'Ukloni člana'}, '×');
-      const row = el('div', {class:'team-row', style:'display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:8px;'}, [n, r, rm]);
+      const row = el('div', {class:'team-row of-team-row'}, [n, r, rm]);
       rm.addEventListener('click', () => { row.remove(); addBtn.disabled = false; });
       box.appendChild(row);
       if(box.children.length >= 30) addBtn.disabled = true;
@@ -440,7 +441,7 @@
     base.forEach(addRow);
     addBtn.addEventListener('click', () => addRow(null));
     const btn = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Pošalji tim na odobrenje');
-    const msg = el('p', {role:'status', style:'margin:8px 0 0;font-size:14px;'});
+    const msg = el('p', {role:'status', class:'of-msg'});
     btn.addEventListener('click', () => {
       const team = [];
       for(const row of box.querySelectorAll('.team-row')){
@@ -452,7 +453,7 @@
       }
       submitChange('team', team, msg, btn, refresh)();
     });
-    const kids = [box, addBtn, el('p', {style:'margin:8px 0 0;font-size:13px;color:var(--muted);'}, 'Tim se objavljuje tek posle odobrenja. Do 30 članova.'), el('div', {style:'margin-top:10px;'}, [btn]), msg];
+    const kids = [box, addBtn, el('p', {class:'of-note'}, 'Tim se objavljuje tek posle odobrenja. Do 30 članova.'), el('div', {class:'of-actions'}, [btn]), msg];
     const note = pendingNote('team'); if(note) kids.splice(1, 0, note);
     return card('Tim (na odobrenje)', kids);
   }
@@ -481,7 +482,7 @@
     }));
     const file = el('input', {type:'file', accept:'image/jpeg,image/png,image/webp', multiple:''});
     const btn = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Otpremi slike');
-    const msg = el('p', {role:'status', style:'margin:8px 0 0;font-size:14px;'});
+    const msg = el('p', {role:'status', class:'of-msg'});
     if(state.flash){ showMsg(msg, state.flash.text, state.flash.ok); state.flash = null; }
     btn.addEventListener('click', async () => {
       const files = Array.from(file.files || []);
@@ -511,8 +512,8 @@
       if(ok.length){ state.flash = flash; refresh(); }
     });
     return card('Slike (na odobrenje)', [
-      el('p', {style:'margin:0 0 10px;font-size:14px;color:var(--muted);'}, 'JPEG, PNG ili WebP, do 5 MB. Najviše 8 slika (' + active.length + '/8). Slike se objavljuju tek posle odobrenja.'),
-      grid, el('div', {style:'margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;'}, [file, btn]), msg
+      el('p', {class:'of-note'}, 'JPEG, PNG ili WebP, do 5 MB. Najviše 8 slika (' + active.length + '/8). Slike se objavljuju tek posle odobrenja.'),
+      grid, el('div', {class:'of-actions of-upload'}, [file, btn]), msg
     ]);
   }
 
@@ -539,15 +540,15 @@
     app.textContent = '';
     const curName = (state.profile && state.profile.name) || clinic.name;
     const curAddr = (state.profile && state.profile.address) || clinic.address || '';
-    app.appendChild(el('div', {style:'margin-bottom:18px;'}, [
+    app.appendChild(el('div', {class:'of-head'}, [
       el('strong', {}, clinic.name),
       el('div', {style:'color:var(--muted);font-size:14px;'}, clinic.address || ''),
       el('div', {style:'margin-top:6px;'}, [el('a', {href:'moj-nalog.html'}, '← Moj nalog'), ' · ', el('a', {href:'ordinacija.html?id=' + encodeURIComponent(clinicId)}, 'Stranica ordinacije')])
     ]));
-    app.appendChild(el('h2', {style:'font-size:20px;margin:0 0 12px;'}, 'Izmene koje se objavljuju odmah'));
+    app.appendChild(el('h2', {class:'of-h2'}, 'Izmene koje se objavljuju odmah'));
     app.appendChild(buildDirect());
     app.appendChild(buildPricing());
-    app.appendChild(el('h2', {style:'font-size:20px;margin:28px 0 12px;'}, 'Izmene koje čekaju naše odobrenje'));
+    app.appendChild(el('h2', {class:'of-h2'}, 'Izmene koje čekaju naše odobrenje'));
     app.appendChild(buildTextChange('name', 'Naziv', curName, 150, 2));
     app.appendChild(buildTextChange('address', 'Adresa', curAddr, 200, 3));
     app.appendChild(buildTeam());
