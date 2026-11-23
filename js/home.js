@@ -131,10 +131,7 @@
   }
 
   function initServices(){
-    SERVICE_CATALOG.forEach(cat => {
-      const ic = document.querySelector(`[data-service-icon="${cat.key}"]`);
-      if(ic && typeof ICONS !== 'undefined' && ICONS[cat.icon]) ic.innerHTML = ICONS[cat.icon];
-    });
+    // ikone grupa usluga su slike ugrađene u HTML (img/usluge/); ovde samo ikonica "Sve usluge"
     const all = document.querySelector('[data-svc-all-icon]');
     if(all && typeof ICONS !== 'undefined' && ICONS.arrowRight) all.innerHTML = ICONS.arrowRight;
   }
