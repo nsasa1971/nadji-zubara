@@ -143,6 +143,14 @@ svg{display:block;}
   .main-nav{justify-self:center;}
   .header-actions{justify-self:end;}
 }
+/* "Za ordinacije": dugme u boji akcenta; tamni tekst daje kontrast preko 5:1 (beli na akcentu ne prolazi AA) */
+.nav-cta{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 18px;border-radius:999px;border:2px solid var(--accent);
+  background:var(--accent);color:#0B2545;font-weight:700;font-size:14.5px;line-height:1;white-space:nowrap;transition:background-color .18s,transform .18s,box-shadow .18s;}
+.nav-cta:hover{background:#ff8571;border-color:#ff8571;transform:translateY(-1px);}
+.nav-cta:focus-visible{outline:3px solid #fff;outline-offset:2px;}
+.nav-cta.is-active,.nav-cta[aria-current="page"]{background:#fff;border-color:#fff;color:#0B2545;box-shadow:0 0 0 2px var(--accent);}
+.nav-cta-m{display:none;}
+@media(prefers-reduced-motion:reduce){.nav-cta{transition:none;}.nav-cta:hover{transform:none;}}
 .icon-btn{
   width:40px;height:40px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;
@@ -158,6 +166,7 @@ svg{display:block;}
 @media(max-width:960px){
   .main-nav{display:none;}
   .header-actions .btn-ghost{display:none;}
+  .header-actions .nav-cta{display:none;}
   .burger{display:flex;}
   .mobile-nav.open{display:block;}
   .mobile-nav{
@@ -168,6 +177,8 @@ svg{display:block;}
   .mobile-nav a svg{width:18px;height:18px;flex-shrink:0;}
   .mobile-nav .btn{margin-top:16px;width:100%;}
   .mobile-nav #mobileAuthArea{margin-top:16px;}
+  .mobile-nav a.nav-cta-m{display:flex;width:100%;min-height:50px;margin-top:16px;padding:0 18px;border:2px solid var(--accent);border-radius:999px;color:#0B2545;font-size:16px;font-weight:700;justify-content:center;}
+  .mobile-nav a.nav-cta-m.is-active{border-color:#fff;}
 }
 @media(max-width:480px){
   .user-menu-trigger .user-menu-name,.user-menu-trigger .chev{display:none;}
@@ -1156,3 +1167,15 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .to-top:hover{background:#0a6e69;}
 .to-top:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 5px #0b857f;}
 @media(prefers-reduced-motion:reduce){.to-top{transition:none;}}
+
+/* cenovnik: dva puta za ordinaciju (preuzmi postojeći profil / dodaj novu) */
+.pricing-paths{background:var(--primary-light);padding:28px 0;text-align:center;}
+.pricing-paths h2{margin:0 0 16px;font-size:22px;color:var(--navy);}
+.pricing-paths-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;}
+.pricing-paths-actions .btn{min-height:50px;}
+.pricing-paths-actions .btn-primary{color:#0B2545;}
+@media(max-width:640px){.pricing-paths-actions{flex-direction:column;}.pricing-paths-actions .btn{width:100%;}}
+/* početna: treći link u bloku "Radite u ordinaciji?" */
+.home-owners-add{margin:16px 0 0 !important;}
+.home-owners-add a{color:#fff;font-weight:700;text-decoration:underline;text-underline-offset:4px;display:inline-block;padding:8px 0;}
+.home-owners-add a:hover{color:#ffd9d2;}
