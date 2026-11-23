@@ -1344,3 +1344,54 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .cm-box .form-field{display:flex;flex-direction:column;gap:6px;}
 .cm-box .form-field label{font-size:13.5px;font-weight:700;color:var(--navy);}
 @media(max-width:520px){.cm-overlay{align-items:flex-end;padding:0;}.cm-box{border-radius:20px 20px 0 0;max-width:none;padding:24px 18px 22px;}.cm-actions .btn,.cm-box form .btn{flex:1 1 100%;}}
+
+/* ================= admin kao aplikacija (admin.html): donja traka, značke, veliki brojevi ================= */
+.admin-page .page-hero,.admin-page .site-footer,.admin-page .to-top{display:none !important;}
+.admin-page .section{padding:20px 0 96px !important;}
+@media(display-mode:standalone){.admin-page .site-header{display:none;}}
+.adm-app{display:flex;flex-direction:column;gap:14px;}
+.adm-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;order:1;}
+.adm-who{font-size:14px;color:var(--muted);overflow-wrap:anywhere;}
+.adm-app > #adminContent{order:3;}
+.adm-app > .info-card{order:2;}
+.adm-login{max-width:460px;margin:20px auto 0;width:100%;box-sizing:border-box;}
+.adm-hint{margin:6px 0 0;font-size:13.5px;color:var(--muted);}
+.adm-wide{width:100%;min-height:48px;justify-content:center;}
+.adm-login input[type=email],.adm-login input[type=password],.adm-login input[type=text]{width:100%;box-sizing:border-box;min-height:48px;padding:0 14px;border:1.5px solid #D5DFDF;border-radius:12px;background:#F7FAFA;font:500 16px 'Montserrat',system-ui,sans-serif;}
+.adm-login input:focus{outline:none;border-color:var(--primary-dark);box-shadow:0 0 0 3px rgba(14,165,163,.2);background:#fff;}
+.adm-login .form-field{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;}
+.adm-login .form-field label{font-size:13.5px;font-weight:700;color:var(--navy);}
+/* donja traka */
+.adm-nav{position:fixed;left:0;right:0;bottom:0;z-index:300;display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(8,25,45,.06);}
+.adm-navbtn{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:60px;padding:8px 2px;border:0;background:none;color:var(--muted);font:700 11.5px 'Montserrat',sans-serif;cursor:pointer;}
+.adm-navbtn.active{color:var(--primary-dark);}
+.adm-navbtn.active::before{content:'';position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--primary-dark);}
+.adm-ico svg{width:24px;height:24px;display:block;}
+.adm-badge{position:absolute;top:5px;left:calc(50% + 6px);min-width:19px;height:19px;padding:0 5px;box-sizing:border-box;border-radius:10px;background:var(--accent);color:var(--navy);font-size:11px;font-weight:800;line-height:19px;text-align:center;}
+.adm-badge[hidden]{display:none;}
+/* veliki brojevi */
+.adm-big{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.adm-big-card{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:22px 20px;border:1px solid var(--border);border-radius:18px;background:#fff;text-align:left;cursor:pointer;box-shadow:0 2px 10px rgba(15,35,55,.04);font-family:inherit;}
+.adm-big-card b{font-size:56px;line-height:1;color:var(--navy);font-weight:800;}
+.adm-big-label{font-size:15px;font-weight:700;color:var(--navy);}
+.adm-big-hint{font-size:13px;color:var(--muted);}
+.adm-big-card:focus-visible{outline:3px solid var(--primary-dark);outline-offset:2px;}
+.adm-call{width:100%;min-height:50px;justify-content:center;margin:12px 0 4px;font-size:16px;}
+.admin-page .btn{min-height:46px;}
+@media(max-width:700px){
+  .adm-big{grid-template-columns:1fr;}
+  .adm-big-card{flex-direction:row;align-items:center;gap:16px;}
+  .adm-big-card b{font-size:46px;min-width:70px;}
+  .adm-big-card .adm-big-label{flex:1;}
+  .adm-big-card .adm-big-hint{display:none;}
+  .admin-page .info-card{padding:18px 16px;}
+  .admin-page .container{padding:0 14px;}
+}
+@media(min-width:900px){
+  .adm-nav{position:static;order:2;display:flex;gap:8px;background:none;border:0;box-shadow:none;padding:0;}
+  .adm-navbtn{flex-direction:row;gap:8px;min-height:44px;padding:0 18px;border:1.5px solid var(--border);border-radius:999px;background:#fff;font-size:14px;}
+  .adm-navbtn.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+  .adm-navbtn.active::before{display:none;}
+  .adm-badge{position:static;margin-left:2px;}
+  .admin-page .section{padding-bottom:40px !important;}
+}
