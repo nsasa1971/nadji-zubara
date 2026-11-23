@@ -169,6 +169,22 @@
       </div>
       <p class="skip-note">Polja označena zvezdicom su obavezna.</p>
     </form>
+
+    <section class="success-box add-result" id="addResult" hidden aria-live="polite" tabindex="-1">
+      <div class="icon-circle"><span data-icon="check"></span></div>
+      <h2>Hvala, primili smo zahtev.</h2>
+      <p>Podatke ćemo proveriti pozivom na broj telefona koji ste upisali i zatim dodati ordinaciju u imenik.</p>
+      <p id="resPlus" hidden>Kada ordinaciju dodamo, otvorite njenu stranicu, izaberite „Ovo je moja ordinacija“ i potvrdite profil. Tada dobijate 6 meseci Profila+ besplatno.</p>
+      <h3 class="res-h">Pregled vaše stranice</h3>
+      <p>Ovako će vaša stranica izgledati posle provere. Još nije objavljena i ne pojavljuje se u pretrazi.</p>
+      <a class="btn btn-primary" id="resOpen" href="#">Otvorite pregled</a>
+      <div class="res-copy">
+        <label for="resLink">Link za pregled</label>
+        <div class="res-copy-row"><input id="resLink" type="text" readonly><button type="button" class="btn btn-outline-navy" id="resCopy">Kopiraj link</button></div>
+        <p class="res-warn"><strong>Sačuvajte ovaj link.</strong> Ne šaljemo ga mejlom, a ovde ga vidite samo sada. Ko ga ima, može da vidi pregled.</p>
+      </div>
+      <a href="index.html" class="btn btn-outline-navy" style="margin-top:14px;">Nazad na početnu</a>
+    </section>
   </div>
 </div>
 </main>
@@ -228,6 +244,9 @@
     </div>
   </div>
 </footer>
+<script src="js/safe.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/new-clinics.js"></script>
 <script src="js/dodaj-ordinaciju.js" defer></script>
 <script src="js/icons.js"></script>
 <script src="js/main.js"></script>

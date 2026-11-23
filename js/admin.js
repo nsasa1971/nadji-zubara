@@ -21,7 +21,9 @@
     profile_not_found:'Profil ne postoji.',
     image_not_found:'Slika nije pronađena među odobrenima.',
     invalid_period:'Nedozvoljen period (mesec ili godina).',
-    outreach_note:'Beleška je predugačka (najviše 1000 znakova).'
+    outreach_note:'Beleška je predugačka (najviše 1000 znakova).',
+    invalid_input:'Neki podatak nije prihvaćen (naziv, adresa i opis ne smeju sadržati linkove, e-adrese ni brojeve telefona; proverite i dužine i koordinate).',
+    not_found:'Ordinacija ne postoji (osvežite listu).'
   };
   function errText(error){
     const m = (error && error.message) || '';
@@ -35,7 +37,8 @@
 
   let tab = 'overview';
   let claimFilter = 'pending';
-  let counts = {claims:0, changes:0, expiring:0, expired:0, due:0, loaded:false};
+  let counts = {claims:0, changes:0, expiring:0, expired:0, due:0, newc:0, loaded:false};
+  let newFilter = 'pending';
   let flash = null;     // {text, ok}
   const content = el('div', {id:'adminContent'});
 
@@ -427,6 +430,136 @@
     ].concat(last ? [last] : []).concat([el('div', {class:'camp-actions'}, [copy('prvi'), copy('podsetnik'), msg])]));
   }
 
+
+  /* ---------------------------------------------------------- Nove ordinacije */
+  const NC_STATUS = {pending:['Na čekanju','chip-pending'], published:['Objavljena','chip-open'], rejected:['Odbijena','chip-closed']};
+  const NC_PAKET = {osnovni:'Osnovni', 'profil-plus':'Profil+'};
+  async function viewNewClinics(){
+    const out = [el('h2', {style:'margin:0 0 6px;font-size:20px;'}, 'Nove ordinacije')];
+    const { data, error } = await sb.rpc('admin_list_new_clinics');
+    if(error){ out.push(el('div', {class:'info-card'}, errText(error))); return out; }
+    const all = Array.isArray(data) ? data : [];
+    const cnt = {pending:0, published:0, rejected:0}; all.forEach(n => { if(cnt[n.status] != null) cnt[n.status]++; });
+    counts.newc = cnt.pending; updateBadges();
+    out.push(el('div', {class:'camp-chips', role:'group', 'aria-label':'Status'}, [['pending','Na čekanju (' + cnt.pending + ')'], ['published','Objavljene (' + cnt.published + ')'], ['rejected','Odbijene (' + cnt.rejected + ')'], ['', 'Sve (' + all.length + ')']].map(([k, l]) => {
+      const b = el('button', {type:'button', class:'camp-chip' + (newFilter === k ? ' active' : ''), 'aria-pressed': newFilter === k ? 'true' : 'false'}, l);
+      b.addEventListener('click', () => { newFilter = k; render(); });
+      return b;
+    })));
+    const list = all.filter(n => !newFilter || n.status === newFilter);
+    out.push(el('p', {class:'adm-hint'}, 'Ništa se ne objavljuje bez vašeg klika na „Objavi“.'));
+    if(!list.length) out.push(el('div', {class:'info-card'}, 'Nema ordinacija za izabrani filter.'));
+    list.forEach(n => out.push(newClinicCard(n)));
+    return out;
+  }
+
+  function newClinicCard(n){
+    const tel = telHref(n.telefon);
+    const link = location.origin + '/ordinacija.html?pregled=' + encodeURIComponent(n.preview_token);
+    const st = NC_STATUS[n.status] || [n.status, 'chip-pending'];
+    const kv = (k, v) => v ? el('div', {class:'nc-kv'}, [el('span', {}, k), el('b', {}, String(v))]) : null;
+    const svc = (Array.isArray(n.services) ? n.services : []).map(k => (typeof serviceName === 'function' ? serviceName(k) : k)).join(', ');
+    const custom = (Array.isArray(n.custom_services) ? n.custom_services : []).join(', ');
+    const details = [
+      kv('Kontakt osoba', n.contact_person), kv('E-adresa (ne prikazuje se javno)', n.contact_email),
+      kv('Radno vreme', n.hours_text), kv('Opis', n.description), kv('Usluge', svc), kv('Druge usluge', custom),
+      kv('Sajt', n.website), kv('Mreže', n.socials_text), kv('Koordinate', (n.lat != null && n.lng != null) ? n.lat + ', ' + n.lng : ''), kv('Napomena admina', n.admin_note)
+    ].filter(Boolean);
+    const head = el('div', {class:'camp-head'}, [
+      el('div', {}, [el('strong', {}, n.naziv), el('div', {class:'camp-addr'}, n.adresa + ', ' + n.grad), el('div', {class:'camp-last'}, 'Prijavljeno: ' + fmtDate(n.created_at))]),
+      el('div', {class:'camp-chips-row'}, [chip(st[0], st[1]), chip(NC_PAKET[n.paket] || n.paket, 'chip-open')])
+    ]);
+    const msg = el('span', {class:'camp-saved', role:'status'});
+    const flashMsg = (t, ok) => { msg.style.color = ok ? 'var(--open)' : 'var(--closed)'; msg.textContent = t; };
+    const preview = el('a', {class:'btn btn-outline-navy btn-sm', href:link, target:'_blank', rel:'noopener'}, 'Pregled');
+    const copy = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Kopiraj link za pregled');
+    copy.addEventListener('click', async () => {
+      const ok = await copyText(link);
+      const old = copy.textContent; copy.textContent = ok ? 'Kopirano ✓' : 'Kopiranje nije uspelo';
+      setTimeout(() => { copy.textContent = old; }, 2200);
+    });
+    const actions = [preview, copy];
+    const editBox = el('div', {class:'nc-edit', hidden:''});
+    const editBtn = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Izmeni');
+    editBtn.addEventListener('click', () => { if(editBox.hidden){ buildNewEdit(editBox, n, flashMsg); } editBox.hidden = !editBox.hidden; });
+    actions.push(editBtn);
+    if(n.status !== 'published'){
+      actions.push(actionBtn('Objavi', 'btn-primary', async () => {
+        const r = await confirmDialog({title:'Objaviti ordinaciju?', text: n.naziv + ' (' + n.grad + ') će postati javno vidljiva u pretrazi i na početnoj. Kontakt podaci podnosioca se ne objavljuju.', confirmLabel:'Objavi', noteMode:'none'});
+        if(r.ok) await run(() => sb.rpc('admin_set_new_clinic_status', {p_id:n.id, p_status:'published', p_note:null}), 'Ordinacija je objavljena.');
+      }));
+    }
+    if(n.status === 'pending'){
+      actions.push(actionBtn('Odbij', 'btn-outline-navy', async () => {
+        const r = await confirmDialog({title:'Odbiti prijavu?', text:'Prijava za ' + n.naziv + ' će biti odbijena i neće se objaviti.', confirmLabel:'Odbij', noteMode:'required', notePlaceholder:'Razlog (vidi samo admin)'});
+        if(r.ok) await run(() => sb.rpc('admin_set_new_clinic_status', {p_id:n.id, p_status:'rejected', p_note:r.note}), 'Prijava je odbijena.');
+      }));
+    }
+    if(n.status === 'published'){
+      actions.push(actionBtn('Skini sa sajta', 'btn-outline-navy', async () => {
+        const r = await confirmDialog({title:'Skinuti sa sajta?', text:n.naziv + ' više neće biti javno vidljiva (vraća se na čekanje).', confirmLabel:'Skini', noteMode:'optional'});
+        if(r.ok) await run(() => sb.rpc('admin_set_new_clinic_status', {p_id:n.id, p_status:'pending', p_note:r.note}), 'Ordinacija je vraćena na čekanje.');
+      }));
+    }
+    if(n.status === 'rejected'){
+      actions.push(actionBtn('Vrati na čekanje', 'btn-outline-navy', async () => {
+        await run(() => sb.rpc('admin_set_new_clinic_status', {p_id:n.id, p_status:'pending', p_note:null}), 'Prijava je vraćena na čekanje.');
+      }));
+    }
+    return el('div', {class:'info-card camp-card nc-card'}, [head,
+      tel ? el('a', {class:'btn btn-primary adm-call', href:tel}, '☎ Pozovi ' + n.telefon) : el('p', {class:'adm-hint'}, 'Nema ispravnog broja telefona.'),
+      el('div', {class:'nc-details'}, details),
+      el('div', {class:'camp-actions'}, actions.concat([msg])), editBox]);
+  }
+
+  function buildNewEdit(box, n, flashMsg){
+    box.textContent = '';
+    const fld = (label, node) => el('label', {class:'camp-fld'}, [el('span', {}, label), node]);
+    const inp = (v, max, type) => { const i = el('input', {type: type || 'text', maxlength:String(max)}); i.value = v == null ? '' : v; return i; };
+    const f = {
+      naziv: inp(n.naziv, 120), grad: inp(n.grad, 80), adresa: inp(n.adresa, 160), telefon: inp(n.telefon, 40),
+      hours_text: inp(n.hours_text, 200), website: inp(n.website, 300), socials_text: inp(n.socials_text, 200),
+      lat: inp(n.lat, 20), lng: inp(n.lng, 20),
+      custom: inp((n.custom_services || []).join(', '), 600)
+    };
+    f.lat.setAttribute('inputmode', 'decimal'); f.lng.setAttribute('inputmode', 'decimal');
+    const desc = el('textarea', {rows:'4', maxlength:'600'}); desc.value = n.description || '';
+    const note = el('textarea', {rows:'2', maxlength:'500'}); note.value = n.admin_note || '';
+    const plusOnly = n.paket === 'profil-plus';
+    const groups = (typeof SERVICE_CATALOG !== 'undefined' ? SERVICE_CATALOG : []);
+    const checks = groups.map(g => {
+      const c = el('input', {type:'checkbox', value:g.key}); c.checked = (n.services || []).indexOf(g.key) >= 0;
+      return [c, el('label', {class:'of-check'}, [c, el('span', {}, g.name)])];
+    });
+    const save = el('button', {type:'button', class:'btn btn-primary btn-sm'}, 'Sačuvaj izmene');
+    save.addEventListener('click', async () => {
+      const num = x => { const t = x.value.trim().replace(',', '.'); return t === '' ? null : Number(t); };
+      const lat = num(f.lat), lng = num(f.lng);
+      if((lat !== null && !Number.isFinite(lat)) || (lng !== null && !Number.isFinite(lng)) || ((lat === null) !== (lng === null))){ flashMsg('Koordinate: upišite obe (npr. 45.2671 i 19.8335) ili nijednu.', false); return; }
+      const cs = f.custom.value.split(/[,;]+/).map(x => x.trim()).filter(Boolean);
+      const p = {naziv:f.naziv.value, grad:f.grad.value, adresa:f.adresa.value, telefon:f.telefon.value, lat, lng, admin_note: note.value};
+      if(plusOnly){
+        Object.assign(p, {hours_text:f.hours_text.value, description:desc.value, website:f.website.value, socials_text:f.socials_text.value,
+          services: checks.filter(c => c[0].checked).map(c => c[0].value), custom_services: cs});
+      }
+      save.disabled = true; flashMsg('Čuvanje…', true);
+      const { error } = await sb.rpc('admin_update_new_clinic', {p_id:n.id, p});
+      save.disabled = false;
+      if(error){ flashMsg(errText(error), false); return; }
+      flash = {text:'Izmene su sačuvane.', ok:true}; render();
+    });
+    box.appendChild(el('div', {class:'nc-grid'}, [fld('Naziv', f.naziv), fld('Grad', f.grad), fld('Adresa', f.adresa), fld('Telefon', f.telefon), fld('Geografska širina (lat)', f.lat), fld('Geografska dužina (lng)', f.lng)]));
+    if(plusOnly){
+      box.appendChild(fld('Radno vreme (tekst)', f.hours_text));
+      box.appendChild(fld('Opis', desc));
+      box.appendChild(el('div', {class:'of-grid2'}, checks.map(c => c[1])));
+      box.appendChild(fld('Druge usluge (odvojene zarezom)', f.custom));
+      box.appendChild(el('div', {class:'nc-grid'}, [fld('Sajt', f.website), fld('Društvene mreže (tekst)', f.socials_text)]));
+    }
+    box.appendChild(fld('Napomena admina (ne vidi se javno)', note));
+    box.appendChild(el('div', {class:'camp-actions'}, [save]));
+  }
+
   /* --------------------------------------------------------- podsetnik za mejl */
   function reminderText(naziv, isteka){
     const d = new Date(isteka);
@@ -453,10 +586,10 @@
   }
 
   /* ------------------------------------------------- brojači, naslov i osvežavanje */
-  const NAV = [['overview','Pregled','target'],['claims','Zahtevi','phone'],['changes','Izmene','info'],['profiles','Profili','building'],['campaign','Kampanja','flag']];
-  function pendingTotal(){ return counts.claims + counts.changes; }
+  const NAV = [['overview','Pregled','target'],['claims','Zahtevi','phone'],['changes','Izmene','info'],['profiles','Profili','building'],['campaign','Kampanja','flag'],['newc','Nove','pin']];
+  function pendingTotal(){ return counts.claims + counts.changes + (counts.newc || 0); }
   function updateTitle(){ document.title = pendingTotal() > 0 ? '(' + pendingTotal() + ') Admin' : 'Admin'; }
-  function badgeFor(k){ return k === 'claims' ? counts.claims : k === 'changes' ? counts.changes : k === 'profiles' ? counts.expiring : k === 'campaign' ? (counts.due || 0) : 0; }
+  function badgeFor(k){ return k === 'claims' ? counts.claims : k === 'changes' ? counts.changes : k === 'profiles' ? counts.expiring : k === 'campaign' ? (counts.due || 0) : k === 'newc' ? (counts.newc || 0) : 0; }
   function updateBadges(){
     document.querySelectorAll('.adm-nav [data-tab]').forEach(b => {
       const n = badgeFor(b.getAttribute('data-tab'));
@@ -469,7 +602,8 @@
   }
   async function loadCounts(){
     if(!sb) return;
-    const [c, ch, pr, ou] = await Promise.all([sb.rpc('admin_list_claims', {p_status:'pending'}), sb.rpc('admin_list_changes'), sb.rpc('admin_list_profiles'), sb.rpc('admin_list_outreach')]);
+    const [c, ch, pr, ou, nc] = await Promise.all([sb.rpc('admin_list_claims', {p_status:'pending'}), sb.rpc('admin_list_changes'), sb.rpc('admin_list_profiles'), sb.rpc('admin_list_outreach'), sb.rpc('admin_list_new_clinics')]);
+    if(!nc.error && Array.isArray(nc.data)) counts.newc = nc.data.filter(n => n.status === 'pending').length;
     if(c.error && ch.error && pr.error) return;
     if(!ou.error && ou.data){ const today = new Date().toISOString().slice(0, 10); counts.due = ou.data.filter(o => o.next_contact_at && o.next_contact_at <= today && o.status !== 'odbila').length; }
     const now = Date.now();
@@ -593,7 +727,7 @@
     }));
     app.appendChild(nav);
     updateBadges();
-    const view = tab === 'overview' ? viewOverview : tab === 'claims' ? viewClaims : tab === 'changes' ? viewChanges : tab === 'campaign' ? viewCampaign : viewProfiles;
+    const view = tab === 'overview' ? viewOverview : tab === 'claims' ? viewClaims : tab === 'changes' ? viewChanges : tab === 'campaign' ? viewCampaign : tab === 'newc' ? viewNewClinics : viewProfiles;
     const nodes = await view();
     if(seq !== renderSeq) return;
     content.textContent = '';
