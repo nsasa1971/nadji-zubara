@@ -20,7 +20,8 @@
     no_pending_images:'Nijedna slika iz izmene više ne čeka (vlasnik ih je uklonio).',
     profile_not_found:'Profil ne postoji.',
     image_not_found:'Slika nije pronađena među odobrenima.',
-    invalid_period:'Nedozvoljen period (mesec ili godina).'
+    invalid_period:'Nedozvoljen period (mesec ili godina).',
+    outreach_note:'Beleška je predugačka (najviše 1000 znakova).'
   };
   function errText(error){
     const m = (error && error.message) || '';
@@ -34,7 +35,7 @@
 
   let tab = 'overview';
   let claimFilter = 'pending';
-  let counts = {claims:0, changes:0, expiring:0, expired:0, loaded:false};
+  let counts = {claims:0, changes:0, expiring:0, expired:0, due:0, loaded:false};
   let flash = null;     // {text, ok}
   const content = el('div', {id:'adminContent'});
 
@@ -297,6 +298,135 @@
     return out;
   }
 
+  /* ----------------------------------------------------------------- Kampanja */
+  const OUT_STATUS = {nije_kontaktirana:'Nije kontaktirana', kontaktirana:'Kontaktirana', zainteresovana:'Zainteresovana', nema_odgovora:'Nema odgovora', odbila:'Odbila'};
+  const OUT_ORDER = ['nije_kontaktirana','kontaktirana','zainteresovana','nema_odgovora','odbila'];
+  const OUT_CHIP = {nije_kontaktirana:'chip-closed', kontaktirana:'chip-pending', zainteresovana:'chip-open', nema_odgovora:'chip-pending', odbila:'chip-closed'};
+  const PAGE = 40;
+  let campCity = '', campStatus = '', campLimit = PAGE, campQuery = '';
+
+  // šabloni poruka ({naziv}, {grad}, {link_stranice})
+  const MSG = {
+    prvi: 'Poštovani,\n\n' +
+      'javljamo se iz Nađi Zubara (nadjizubara.rs), imenika stomatoloških ordinacija u Srbiji. Vaša ordinacija, {naziv} ({grad}), već je upisana u imenik: {link_stranice}\n\n' +
+      'Ako su podaci tačni, ne morate ništa da radite. Ako želite da ih sami ispravite i dopunite (radno vreme, usluge, opis, cenovnik, fotografije) i dobijete oznaku „Potvrđen profil“, to možete na stranici ordinacije klikom na „Ovo je moja ordinacija“. ' +
+      'Prvih 6 meseci je besplatno, a zatim 500 RSD mesečno ili 5.000 RSD godišnje; osnovni prikaz ordinacije je uvek besplatan.\n\n' +
+      'Slobodno nam se javite ako imate pitanja.\n\nSrdačan pozdrav,\nNađi Zubara\ninfo@nadjizubara.rs',
+    podsetnik: 'Poštovani,\n\n' +
+      'samo kratak podsetnik u vezi sa vašom ordinacijom, {naziv} ({grad}), na Nađi Zubara: {link_stranice}\n\n' +
+      'Ako vam odgovara, profil možete da potvrdite i dopunite za nekoliko minuta (dugme „Ovo je moja ordinacija“ na toj stranici). Prvih 6 meseci je besplatno. ' +
+      'Ako vas ne zanima, nema potrebe da odgovarate: ordinacija ostaje u imeniku u osnovnom prikazu (naziv, adresa i telefon), a ako želite da bude uklonjena, javite nam.\n\n' +
+      'Hvala vam i srdačan pozdrav,\nNađi Zubara\ninfo@nadjizubara.rs'
+  };
+  function fillMsg(tpl, c){
+    return tpl.replace(/\{naziv\}/g, c.name).replace(/\{grad\}/g, c.city || '').replace(/\{link_stranice\}/g, 'https://nadjizubara.rs/ordinacija.html?id=' + encodeURIComponent(c.id));
+  }
+  // izvedeni status iz zahteva: Poslala zahtev / Potvrđena / Plaća
+  function claimBadge(o){
+    if(!o || !o.claim_status) return null;
+    if(o.claim_status === 'pending') return ['Poslala zahtev', 'chip-pending'];
+    if(o.claim_status === 'verified'){
+      const now = Date.now();
+      const paid = o.paid_until && new Date(o.paid_until).getTime() > now && (!o.valid_until || new Date(o.paid_until).getTime() > new Date(o.valid_until).getTime());
+      if(paid) return ['Plaća (do ' + fmtDay(o.paid_until) + ')', 'chip-open'];
+      const exp = o.paid_until && o.valid_until ? Math.max(new Date(o.paid_until), new Date(o.valid_until)) : (o.valid_until ? new Date(o.valid_until).getTime() : null);
+      return exp && exp <= now ? ['Potvrđena (istekla)', 'chip-closed'] : ['Potvrđena' + (exp ? ' (do ' + fmtDay(exp) + ')' : ''), 'chip-open'];
+    }
+    return null;   // odbijen ili opozvan zahtev ne prikazuje se kao status
+  }
+
+  async function viewCampaign(){
+    const out = [];
+    const { data, error } = await sb.rpc('admin_list_outreach');
+    if(error){ out.push(el('div', {class:'info-card'}, errText(error))); return out; }
+    const byId = {}; (data || []).forEach(o => { byId[o.clinic_id] = o; });
+    const all = (typeof getAllPublicListings === 'function' ? getAllPublicListings() : []).filter(c => c.city && c.city !== 'Nepoznato');
+    const cities = Array.from(new Set(all.map(c => c.city))).sort((a, b) => a.localeCompare(b, 'sr'));
+    const rowFor = c => Object.assign({status:'nije_kontaktirana', note:null, next_contact_at:null, last_contact_at:null}, byId[c.id] || {});
+
+    // brojači po statusu (za izabrani grad)
+    const inCity = all.filter(c => !campCity || c.city === campCity);
+    const cnt = {}; OUT_ORDER.forEach(k => { cnt[k] = 0; });
+    inCity.forEach(c => { cnt[rowFor(c).status]++; });
+
+    const citySel = el('select', {id:'campCity', 'aria-label':'Grad'}, [el('option', {value:''}, 'Svi gradovi (' + all.length + ')')].concat(cities.map(g => { const o = el('option', {value:g}, g); if(g === campCity) o.selected = true; return o; })));
+    citySel.addEventListener('change', () => { campCity = citySel.value; campLimit = PAGE; render(); });
+    const q = el('input', {type:'search', id:'campQ', placeholder:'Naziv ordinacije…', 'aria-label':'Pretraga po nazivu', value:campQuery, maxlength:'60'});
+    q.addEventListener('keydown', e => { if(e.key === 'Enter'){ campQuery = q.value.trim(); campLimit = PAGE; render(); } });
+    q.addEventListener('change', () => { campQuery = q.value.trim(); campLimit = PAGE; render(); });
+    out.push(el('div', {class:'camp-filters'}, [citySel, q]));
+    out.push(el('div', {class:'camp-chips', role:'group', 'aria-label':'Status'}, [['', 'Svi (' + inCity.length + ')']].concat(OUT_ORDER.map(k => [k, OUT_STATUS[k] + ' (' + cnt[k] + ')'])).map(([k, l]) => {
+      const b = el('button', {type:'button', class:'camp-chip' + (campStatus === k ? ' active' : ''), 'aria-pressed': campStatus === k ? 'true' : 'false'}, l);
+      b.addEventListener('click', () => { campStatus = k; campLimit = PAGE; render(); });
+      return b;
+    })));
+
+    let list = inCity.filter(c => !campStatus || rowFor(c).status === campStatus);
+    if(campQuery){ const nq = normalizeText(campQuery); list = list.filter(c => normalizeText(c.name).indexOf(nq) >= 0); }
+    // sortiranje: sledeći kontakt (najraniji prvi, bez datuma na kraju), pa po nazivu
+    list.sort((a, b) => {
+      const da = rowFor(a).next_contact_at || '9999', db = rowFor(b).next_contact_at || '9999';
+      return da < db ? -1 : da > db ? 1 : a.name.localeCompare(b.name, 'sr');
+    });
+    out.push(el('p', {class:'adm-hint'}, 'Prikazano ' + Math.min(campLimit, list.length) + ' od ' + list.length + ' ordinacija, sortirano po datumu sledećeg kontakta.'));
+    if(!list.length) out.push(el('div', {class:'info-card'}, 'Nema ordinacija za izabrane filtere.'));
+
+    list.slice(0, campLimit).forEach(c => out.push(campCard(c, rowFor(c), byId[c.id])));
+    if(list.length > campLimit){
+      const more = el('button', {type:'button', class:'btn btn-outline-navy adm-wide'}, 'Prikaži još (' + (list.length - campLimit) + ')');
+      more.addEventListener('click', () => { campLimit += PAGE; const y = window.scrollY; render().then(() => window.scrollTo(0, y)); });
+      out.push(more);
+    }
+    return out;
+  }
+
+  function campCard(c, row, joined){
+    const st = {status: row.status, note: row.note || '', next: row.next_contact_at || ''};
+    const tel = telHref(c.phone);
+    const msg = el('span', {class:'camp-saved', role:'status'});
+    let timer = null;
+    async function save(){
+      if(st.note.length > 1000){ msg.style.color = 'var(--closed)'; msg.textContent = ERRORS.outreach_note; return; }
+      msg.style.color = 'var(--muted)'; msg.textContent = 'Čuvanje…';
+      const { error } = await sb.from('clinic_outreach').upsert({clinic_id: c.id, status: st.status, note: st.note.trim() || null, next_contact_at: st.next || null}, {onConflict:'clinic_id'});
+      if(error){ msg.style.color = 'var(--closed)'; msg.textContent = errText(error); return; }
+      msg.style.color = 'var(--open)'; msg.textContent = 'Sačuvano ✓';
+      clearTimeout(timer); timer = setTimeout(() => { msg.textContent = ''; }, 2500);
+      chipEl.textContent = OUT_STATUS[st.status]; chipEl.className = 'chip ' + OUT_CHIP[st.status];
+    }
+    const chipEl = el('span', {class:'chip ' + OUT_CHIP[st.status]}, OUT_STATUS[st.status]);
+    const sel = el('select', {'aria-label':'Status kontakta'}, OUT_ORDER.map(k => { const o = el('option', {value:k}, OUT_STATUS[k]); if(k === st.status) o.selected = true; return o; }));
+    sel.addEventListener('change', () => { st.status = sel.value; save(); });
+    const date = el('input', {type:'date', 'aria-label':'Datum sledećeg kontakta', value: st.next});
+    date.addEventListener('change', () => { st.next = date.value; save(); });
+    const note = el('textarea', {rows:'2', maxlength:'1000', placeholder:'Beleška (npr. „zvati posle 15h“)', 'aria-label':'Beleška'}); note.value = st.note;
+    note.addEventListener('change', () => { st.note = note.value; save(); });
+    const badge = claimBadge(joined);
+    const head = el('div', {class:'camp-head'}, [
+      el('div', {}, [el('strong', {}, c.name), el('div', {class:'camp-addr'}, c.address || c.city)]),
+      el('div', {class:'camp-chips-row'}, [chipEl].concat(badge ? [chip(badge[0], badge[1])] : []))
+    ]);
+    const copy = which => {
+      const b = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, which === 'prvi' ? 'Kopiraj: prvi kontakt' : 'Kopiraj: podsetnik');
+      b.addEventListener('click', async () => {
+        const ok = await copyText(fillMsg(MSG[which], c));
+        const old = b.textContent; b.textContent = ok ? 'Kopirano ✓' : 'Kopiranje nije uspelo';
+        setTimeout(() => { b.textContent = old; }, 2200);
+      });
+      return b;
+    };
+    const last = row.last_contact_at ? el('div', {class:'camp-last'}, 'Poslednji kontakt: ' + fmtDay(row.last_contact_at)) : null;
+    return el('div', {class:'info-card camp-card'}, [
+      head,
+      tel ? el('a', {class:'btn btn-primary adm-call', href:tel}, '☎ Pozovi ' + c.phone) : el('p', {class:'adm-hint'}, 'Nema ispravnog broja telefona.'),
+      el('div', {class:'camp-grid'}, [
+        el('label', {class:'camp-fld'}, [el('span', {}, 'Status'), sel]),
+        el('label', {class:'camp-fld'}, [el('span', {}, 'Sledeći kontakt'), date])
+      ]),
+      el('label', {class:'camp-fld'}, [el('span', {}, 'Beleška'), note])
+    ].concat(last ? [last] : []).concat([el('div', {class:'camp-actions'}, [copy('prvi'), copy('podsetnik'), msg])]));
+  }
+
   /* --------------------------------------------------------- podsetnik za mejl */
   function reminderText(naziv, isteka){
     const d = new Date(isteka);
@@ -323,10 +453,10 @@
   }
 
   /* ------------------------------------------------- brojači, naslov i osvežavanje */
-  const NAV = [['overview','Pregled','target'],['claims','Zahtevi','phone'],['changes','Izmene','info'],['profiles','Profili','building']];
+  const NAV = [['overview','Pregled','target'],['claims','Zahtevi','phone'],['changes','Izmene','info'],['profiles','Profili','building'],['campaign','Kampanja','flag']];
   function pendingTotal(){ return counts.claims + counts.changes; }
   function updateTitle(){ document.title = pendingTotal() > 0 ? '(' + pendingTotal() + ') Admin' : 'Admin'; }
-  function badgeFor(k){ return k === 'claims' ? counts.claims : k === 'changes' ? counts.changes : k === 'profiles' ? counts.expiring : 0; }
+  function badgeFor(k){ return k === 'claims' ? counts.claims : k === 'changes' ? counts.changes : k === 'profiles' ? counts.expiring : k === 'campaign' ? (counts.due || 0) : 0; }
   function updateBadges(){
     document.querySelectorAll('.adm-nav [data-tab]').forEach(b => {
       const n = badgeFor(b.getAttribute('data-tab'));
@@ -339,8 +469,9 @@
   }
   async function loadCounts(){
     if(!sb) return;
-    const [c, ch, pr] = await Promise.all([sb.rpc('admin_list_claims', {p_status:'pending'}), sb.rpc('admin_list_changes'), sb.rpc('admin_list_profiles')]);
+    const [c, ch, pr, ou] = await Promise.all([sb.rpc('admin_list_claims', {p_status:'pending'}), sb.rpc('admin_list_changes'), sb.rpc('admin_list_profiles'), sb.rpc('admin_list_outreach')]);
     if(c.error && ch.error && pr.error) return;
+    if(!ou.error && ou.data){ const today = new Date().toISOString().slice(0, 10); counts.due = ou.data.filter(o => o.next_contact_at && o.next_contact_at <= today && o.status !== 'odbila').length; }
     const now = Date.now();
     if(!c.error && c.data) counts.claims = c.data.length;
     if(!ch.error && ch.data) counts.changes = ch.data.length;
@@ -462,7 +593,7 @@
     }));
     app.appendChild(nav);
     updateBadges();
-    const view = tab === 'overview' ? viewOverview : tab === 'claims' ? viewClaims : tab === 'changes' ? viewChanges : viewProfiles;
+    const view = tab === 'overview' ? viewOverview : tab === 'claims' ? viewClaims : tab === 'changes' ? viewChanges : tab === 'campaign' ? viewCampaign : viewProfiles;
     const nodes = await view();
     if(seq !== renderSeq) return;
     content.textContent = '';

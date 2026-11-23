@@ -1362,7 +1362,7 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .adm-login .form-field{display:flex;flex-direction:column;gap:6px;margin:0 0 12px;}
 .adm-login .form-field label{font-size:13.5px;font-weight:700;color:var(--navy);}
 /* donja traka */
-.adm-nav{position:fixed;left:0;right:0;bottom:0;z-index:300;display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(8,25,45,.06);}
+.adm-nav{position:fixed;left:0;right:0;bottom:0;z-index:300;display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(8,25,45,.06);}
 .adm-navbtn{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:60px;padding:8px 2px;border:0;background:none;color:var(--muted);font:700 11.5px 'Montserrat',sans-serif;cursor:pointer;}
 .adm-navbtn.active{color:var(--primary-dark);}
 .adm-navbtn.active::before{content:'';position:absolute;top:0;left:22%;right:22%;height:3px;border-radius:0 0 3px 3px;background:var(--primary-dark);}
@@ -1395,3 +1395,23 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
   .adm-badge{position:static;margin-left:2px;}
   .admin-page .section{padding-bottom:40px !important;}
 }
+
+/* admin: kampanja */
+.camp-filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.camp-filters select,.camp-filters input,.camp-card select,.camp-card input[type=date],.camp-card textarea{width:100%;box-sizing:border-box;min-height:46px;padding:0 12px;border:1.5px solid #D5DFDF;border-radius:12px;background:#F7FAFA;font:500 15px 'Montserrat',system-ui,sans-serif;color:var(--text);}
+.camp-card textarea{padding:10px 12px;min-height:70px;resize:vertical;font-weight:400;}
+.camp-filters select:focus,.camp-filters input:focus,.camp-card select:focus,.camp-card input:focus,.camp-card textarea:focus{outline:none;border-color:var(--primary-dark);box-shadow:0 0 0 3px rgba(14,165,163,.2);background:#fff;}
+.camp-chips{display:flex;gap:8px;flex-wrap:wrap;}
+.camp-chip{border:1.5px solid var(--border);background:#fff;border-radius:999px;padding:9px 14px;font:700 13px 'Montserrat',sans-serif;color:var(--navy);cursor:pointer;min-height:40px;}
+.camp-chip.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+.camp-card{display:flex;flex-direction:column;gap:10px;}
+.camp-head{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start;}
+.camp-addr{color:var(--muted);font-size:14px;}
+.camp-chips-row{display:flex;gap:6px;flex-wrap:wrap;}
+.camp-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.camp-fld{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:700;color:var(--navy);}
+.camp-last{font-size:13px;color:var(--muted);}
+.camp-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.camp-saved{font-size:13.5px;font-weight:700;}
+.camp-card .adm-call{margin:2px 0;}
+@media(max-width:700px){.camp-filters,.camp-grid{grid-template-columns:1fr;}.adm-navbtn{font-size:10.5px;}.camp-actions .btn{flex:1 1 100%;}}
