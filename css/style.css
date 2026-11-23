@@ -1231,3 +1231,9 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .price-note{margin:12px 0 0;font-size:13.5px;color:var(--muted);}
 .price-note a{color:var(--primary-dark);text-decoration:underline;text-underline-offset:3px;}
 .price-count{white-space:nowrap;}.price-cat summary{flex-wrap:nowrap;}
+
+/* hero na tabletu i desktopu: preko celog ekrana pri otvaranju (visina ekrana minus zaglavlje od 77 px), sadržaj vertikalno centriran */
+@media(min-width:641px){
+  .home-hero{min-height:calc(100vh - 77px);min-height:calc(100svh - 77px);display:flex;flex-direction:column;justify-content:center;}
+  .home-hero > .container{width:100%;}
+}
