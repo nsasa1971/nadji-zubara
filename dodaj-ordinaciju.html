@@ -63,27 +63,31 @@
       <fieldset class="pkg-set">
         <legend>Izaberite paket</legend>
         <div class="pkg-grid">
-          <label class="pkg-card" for="pk-plus">
-            <input type="radio" name="paket" id="pk-plus" value="profil-plus" checked>
+          <div class="pkg-card">
+            <input type="radio" name="paket" id="pk-plus" value="profil-plus" checked aria-labelledby="pk-plus-t" aria-describedby="pk-plus-d">
+            <label for="pk-plus" class="sr-only">Paket</label>
+            <span class="pkg-radio" aria-hidden="true"></span>
             <span class="pkg-badge">Preporučeno</span>
-            <span class="pkg-name">Profil+</span>
-            <span class="pkg-price">6 meseci besplatno, zatim 500 RSD mesečno ili 5.000 RSD godišnje</span>
+            <span class="pkg-name" id="pk-plus-t">Profil+</span>
+            <span class="pkg-price" id="pk-plus-d">6 meseci besplatno, zatim 500 RSD mesečno ili 5.000 RSD godišnje</span>
             <ul class="pkg-list">
               <li>Ordinacija sama ispravlja podatke</li>
               <li>Dodajete radno vreme, usluge, opis i fotografije</li>
               <li>Oznaka „Potvrđen profil“ (provereno pozivom)</li>
             </ul>
-          </label>
-          <label class="pkg-card" for="pk-osn">
-            <input type="radio" name="paket" id="pk-osn" value="osnovni">
-            <span class="pkg-name">Osnovni</span>
-            <span class="pkg-price">Besplatno, uvek</span>
+          </div>
+          <div class="pkg-card">
+            <input type="radio" name="paket" id="pk-osn" value="osnovni" aria-labelledby="pk-osn-t" aria-describedby="pk-osn-d">
+            <label for="pk-osn" class="sr-only">Paket</label>
+            <span class="pkg-radio" aria-hidden="true"></span>
+            <span class="pkg-name" id="pk-osn-t">Osnovni</span>
+            <span class="pkg-price" id="pk-osn-d">Besplatno, uvek</span>
             <ul class="pkg-list">
               <li>Naziv, adresa i telefon</li>
               <li>Prikaz u pretrazi i na stranici grada</li>
               <li>Bez izmene podataka od strane ordinacije</li>
             </ul>
-          </label>
+          </div>
         </div>
       </fieldset>
 
