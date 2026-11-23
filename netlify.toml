@@ -7,6 +7,43 @@
   status = 301
   force = true
 
+# Stari (demo) nalog sa localStorage-om je uklonjen; stare adrese vode na početnu.
+[[redirects]]
+  from = "/nalog"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/nalog.html"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/prijava"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/prijava.html"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/dashboard.html"
+  to = "/"
+  status = 301
+  force = true
+
 # Podaci za geokodiranje (keš sa odgovorima Nominatima) su u repou, ali se ne objavljuju na sajtu.
 # js/imported-coords.js ostaje javan (koristi ga pretraga). force = true jer fajlovi u data/ postoje.
 [[redirects]]

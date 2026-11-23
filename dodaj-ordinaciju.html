@@ -26,7 +26,6 @@
     </nav>
     <div class="header-actions">
       <a href="cenovnik.html" class="nav-cta">Za ordinacije</a>
-      <div id="authArea"></div>
       <button class="icon-btn burger" id="burgerBtn" aria-label="Meni"><span data-icon="menu"></span></button>
     </div>
   </div>
@@ -34,7 +33,6 @@
     <a href="index.html">Početna</a>
     <a href="pretraga.html">Pronađi ordinaciju</a>
     <a href="kontakt.html">Kontakt</a>
-    <div id="mobileAuthArea"></div>
     <a href="cenovnik.html" class="nav-cta nav-cta-m">Za ordinacije</a>
   </div>
 </header>
@@ -55,6 +53,7 @@
 
     <form class="form-card" name="dodaj-ordinaciju" method="POST" action="/hvala-ordinacija.html" data-netlify="true" netlify-honeypot="bot-field">
       <input type="hidden" name="form-name" value="dodaj-ordinaciju">
+      <input type="hidden" name="subject" id="f-subject" value="Nova ordinacija">
       <p hidden aria-hidden="true"><label>Ne popunjavajte ovo polje: <input type="text" name="bot-field" tabindex="-1" autocomplete="off"></label></p>
       <div class="form-grid">
         <div class="form-field full">
@@ -157,9 +156,12 @@
     </div>
   </div>
 </footer>
+<script>
+// Naslov mejla obaveštenja: "Nova ordinacija: <naziv>" (Netlify koristi polje "subject"). Bez JS-a ostaje "Nova ordinacija".
+(function(){var n=document.getElementById('f-naziv'),s=document.getElementById('f-subject');
+if(!n||!s)return;n.addEventListener('input',function(){var v=n.value.trim().replace(/\s+/g,' ').slice(0,80);s.value=v?'Nova ordinacija: '+v:'Nova ordinacija';});})();
+</script>
 <script src="js/icons.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/header-auth.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
