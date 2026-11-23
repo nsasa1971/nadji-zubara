@@ -10,7 +10,7 @@
     claim_limit_24h:'Poslali ste previše zahteva u poslednja 24 sata. Pokušajte ponovo kasnije.',
     claim_limit_pending:'Imate previše otvorenih zahteva. Sačekajte da se neki reši ili povucite postojeći.',
     claim_rejected_wait:'Zahtev za ovu ordinaciju je nedavno odbijen. Novi zahtev možete poslati posle 30 dana.',
-    claim_already_verified:'Vi ste već verifikovani vlasnik ove ordinacije.'
+    claim_already_verified:'Vi ste već potvrđeni vlasnik ove ordinacije.'
   };
   function errorText(error){
     const m = (error && error.message) || '';
@@ -38,12 +38,12 @@
       card('Ordinacija nije pronađena', [para('Otvorite stranicu ordinacije i kliknite „Ovo je moja ordinacija“.'), el('a', {class:'btn btn-primary', href:'pretraga.html'}, 'Pronađi ordinaciju')]);
       return;
     }
-    if(!sb){ card('Preuzimanje profila', [para('Ova funkcija trenutno nije dostupna.')]); return; }
+    if(!sb){ card('Potvrda profila', [para('Ova funkcija trenutno nije dostupna.')]); return; }
 
     const user = await getOwnerUser();
     if(!user){
       app.textContent = '';
-      const box = el('div', {class:'info-card'}, [el('h3', {}, 'Preuzmite profil ordinacije'), clinicBox(), el('div', {id:'loginBox'})]);
+      const box = el('div', {class:'info-card'}, [el('h3', {}, 'Potvrdite profil ordinacije'), clinicBox(), el('div', {id:'loginBox'})]);
       app.appendChild(box);
       renderLoginForm(box.querySelector('#loginBox'), 'preuzmi.html?id=' + encodeURIComponent(clinicId),
         'Unesite e-adresu na koju ćete dobiti link za prijavu. Lozinka nije potrebna.');
@@ -53,12 +53,12 @@
     const { data, error } = await sb.from('claims')
       .select('id, status, requested_at, decided_at, notes')
       .eq('clinic_id', clinicId).order('requested_at', {ascending:false}).limit(1);
-    if(error){ card('Preuzimanje profila', [para('Podaci trenutno nisu dostupni. Pokušajte ponovo kasnije.')]); return; }
+    if(error){ card('Potvrda profila', [para('Podaci trenutno nisu dostupni. Pokušajte ponovo kasnije.')]); return; }
     const last = data && data[0];
 
     if(last && last.status === 'pending') return renderPending(last);
     if(last && last.status === 'verified') {
-      return card('Profil je preuzet', [clinicBox(), para('Vaš zahtev je verifikovan.'), el('a', {class:'btn btn-primary', href:'moj-nalog.html'}, 'Idi na Moj nalog')]);
+      return card('Profil je potvrđen', [clinicBox(), para('Vaš zahtev je odobren.'), el('a', {class:'btn btn-primary', href:'moj-nalog.html'}, 'Idi na Moj nalog')]);
     }
     renderForm(user, last);
   }
@@ -74,7 +74,7 @@
         (function(){
           const b = el('button', {type:'button', class:'btn btn-outline-navy'}, 'Povuci zahtev');
           b.addEventListener('click', async () => {
-            if(!confirm('Povući zahtev za preuzimanje?')) return;
+            if(!confirm('Povući zahtev za potvrdu profila?')) return;
             b.disabled = true;
             const { error } = await sb.from('claims').delete().eq('id', row.id);
             if(error){ b.disabled = false; alert('Povlačenje nije uspelo.'); return; }
@@ -112,7 +112,7 @@
       btn, msg
     ]);
     children.push(form);
-    card('Zahtev za preuzimanje profila', children);
+    card('Zahtev za potvrdu profila', children);
 
     form.addEventListener('submit', async e => {
       e.preventDefault();
