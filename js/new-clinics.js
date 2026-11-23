@@ -97,8 +97,19 @@ const NEWC = (function(){
           .then(v => { if(Array.isArray(v)){ writeCache(v); return v; } return null; });
     return rows.then(list => {
       if(!list) return false;
+      // grad se poistovećuje sa gradom iz imenika bez obzira na velika slova i dijakritike ("novi sad" -> "Novi Sad"), kao u build-u
+      const canon = {};
+      if(typeof getImportedClinics === 'function' && typeof normalizeText === 'function'){
+        getImportedClinics().forEach(c => { if(c.city && !canon[normalizeText(c.city)]) canon[normalizeText(c.city)] = c.city; });
+      }
       const have = new Set(NEW_PUBLISHED.map(c => c.id));
-      list.forEach(r => { const c = toClinic(r, false); if(c && c.status === 'published' && !have.has(c.id)){ NEW_PUBLISHED.push(c); have.add(c.id); } });
+      list.forEach(r => {
+        const c = toClinic(r, false);
+        if(c && c.status === 'published' && !have.has(c.id)){
+          if(typeof normalizeText === 'function' && canon[normalizeText(c.city)]) c.city = canon[normalizeText(c.city)];
+          NEW_PUBLISHED.push(c); have.add(c.id);
+        }
+      });
       return true;
     }).catch(() => false);
   }
