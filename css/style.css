@@ -1470,3 +1470,6 @@ a.tag-link:hover,a.tag-link:focus-visible{background:var(--primary-light);border
 .nc-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;margin-bottom:10px}
 @media(max-width:560px){.nc-grid{grid-template-columns:1fr}}
 .success-box.add-result:not([hidden]){display:block}
+
+.adm-linkbtn{background:none;border:0;padding:6px 4px;color:var(--primary-dark);font:600 14px 'Montserrat',sans-serif;text-decoration:underline;cursor:pointer;min-height:44px}
+.adm-linkbtn:disabled{opacity:.6;cursor:default}

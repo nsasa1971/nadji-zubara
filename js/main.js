@@ -1,3 +1,17 @@
+/* Link za oporavak/postavljanje lozinke (Supabase) stiže na adresu sajta sa #access_token=...&type=recovery.
+   Ako ga nađemo na bilo kojoj stranici osim admin.html, odmah preusmeravamo na /admin.html sa istim hash-om.
+   Hash se nigde ne beleži ni ne šalje. */
+(function(){
+  try{
+    var h = location.hash;
+    if(h && /(^#|&)type=recovery(&|$)/.test(h)){
+      if(!/\/admin\.html$/.test(location.pathname)) location.replace('/admin.html' + h);
+      else window.NZ_RECOVERY = true;   // admin.js ga čita; Supabase biblioteka čisti hash čim se učita
+    }
+    if(h && /(^#|&)error_code=otp_expired(&|$)/.test(h)) window.NZ_LINK_EXPIRED = true;
+  }catch(e){}
+})();
+
 /* Zajednička logika: mobilni meni, footer godina, i sadržaj početne strane. */
 
 document.addEventListener('DOMContentLoaded', () => {
