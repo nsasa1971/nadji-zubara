@@ -448,7 +448,7 @@ def clinic_page(c, city_slug, slug, same_name=False, opstina=None, op_slug=None)
   <p>
     <a class="btn btn-primary" href="/ordinacija.html?id={esc(c['id'])}">Otvori u pretrazi</a>
   </p>
-  <p style="font-size:14px;"><a href="{esc(report_href(c))}">Prijavi netačan podatak</a></p>
+  <p style="font-size:14px;"><a href="{esc(report_href(c))}" rel="nofollow">Prijavi netačan podatak</a></p>
 </article>'''
     ld = {"@context": "https://schema.org", "@type": "Dentist", "name": c['name'],
           "url": url(path), "address": c['address']}
@@ -550,7 +550,7 @@ def city_pages(city, slug, items, opstine=None):
     """Stranice grada. opstine: [(opština, slug, broj)] - lista linkova na stranicama opština."""
     search = f'/pretraga.html?city={quote(city)}'
     intro = (f'Grad: {esc(city)}. Pregled stomatoloških ordinacija ({{n}}).\n'
-             f'<a href="{esc(search)}">Pretraži ordinacije u gradu {esc(city)}</a> po usluzi i uz filtere.')
+             f'<a href="{esc(search)}" rel="nofollow">Pretraži ordinacije u gradu {esc(city)}</a> po usluzi i uz filtere.')
     extra = ''
     if opstine:
         lis = '\n'.join(f'  <li><a href="/{slug}/{os_}/">{esc(o)}</a> ({cnt})</li>' for o, os_, cnt in opstine)
@@ -565,7 +565,7 @@ def opstina_pages(city, city_slug, opstina, op_slug, items):
     # ime opštine koje već sadrži ime grada ("Novi Beograd") se ne dopunjava gradom
     name = opstina if slugify(city) in slugify(opstina).split('-') else f'{opstina}, {city}'
     intro = (f'Opština: {esc(name)}. Pregled stomatoloških ordinacija ({{n}}).\n'
-             f'<a href="{esc(search)}">Pretraži ordinacije u gradu {esc(city)}</a> po usluzi i uz filtere.')
+             f'<a href="{esc(search)}" rel="nofollow">Pretraži ordinacije u gradu {esc(city)}</a> po usluzi i uz filtere.')
     return listing_pages(f'/{city_slug}/{op_slug}', city_slug, items, name,
                          [(city, f'/{city_slug}/')], intro, desc_name=f'opština {name}',
                          addr_fn=lambda c: display_address(c, city, opstina))
