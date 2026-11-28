@@ -889,7 +889,7 @@ def main():
     if (usl / 'index.html').exists() and MARKER in (usl / 'index.html').read_text(encoding='utf-8')[:200]:
         shutil.rmtree(usl)
         removed += 1
-    paths = ['/', '/pretraga.html', '/kontakt.html']
+    paths = ['/', '/pretraga.html', '/kontakt.html', '/cenovnik.html']
     cats, svc_content = load_service_catalog(), load_service_content()
     pth, html_ = usluge_index_page(cats, svc_content)
     write(ROOT, pth, html_)
