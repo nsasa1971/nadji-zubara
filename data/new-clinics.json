@@ -1,1 +1,22 @@
-[]
+[
+ {
+  "adresa": "Slobodana Dimitrijevića 21/4",
+  "clinic_id": "nova-vilindent-nis-51bc",
+  "custom_services": [],
+  "description": null,
+  "grad": "Niš",
+  "hours": null,
+  "hours_text": null,
+  "lat": null,
+  "lng": null,
+  "naziv": "Vilindent",
+  "paket": "osnovni",
+  "published_at": "2026-11-28T12:36:50.987681+00:00",
+  "services": [],
+  "socials": null,
+  "socials_text": null,
+  "status": "published",
+  "telefon": "064 13 93 354",
+  "website": null
+ }
+]
