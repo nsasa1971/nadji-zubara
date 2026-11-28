@@ -49,15 +49,17 @@ window.profilesReady = (function(){
   const both = Promise.all([
     PF.withTimeout(s => PF.fetchProfiles(s), PROFILE_WAIT_MS, null),
     PF.withTimeout(s => PF.fetchImages(s), PROFILE_WAIT_MS, {}),
-    PF.withTimeout(s => PF.fetchLogos(s), PROFILE_WAIT_MS, {})
+    PF.withTimeout(s => PF.fetchBrand(s), PROFILE_WAIT_MS, {logos:{}, covers:{}})
   ]);
-  return Promise.all([both, newOnes]).then(([[profiles, images, logos], gotNew]) => {
+  return Promise.all([both, newOnes]).then(([[profiles, images, brand], gotNew]) => {
     if(!profiles) return !!gotNew;
     const byId = {};
     getImportedClinics().concat(typeof NEW_PUBLISHED !== 'undefined' ? NEW_PUBLISHED : []).forEach(c => { byId[c.id] = c; });
     Object.keys(profiles).forEach(id => { if(byId[id]) applyProfileToClinic(byId[id], profiles[id], images[id]); });
     // odobren logo (samo aktivni profili; RLS) zamenjuje inicijale; potpisani URL se traži tek pri prikazu (hydrateCovers)
-    Object.keys(logos || {}).forEach(id => { if(byId[id]) byId[id].logoPath = logos[id]; });
+    const logos = (brand && brand.logos) || {}, covers = (brand && brand.covers) || {};
+    Object.keys(logos).forEach(id => { if(byId[id]) byId[id].logoPath = logos[id]; });
+    Object.keys(covers).forEach(id => { if(byId[id]) byId[id].coverPath = covers[id]; });   // odobrena naslovna ima prednost nad prvom fotografijom
     return true;
   }).catch(() => false);
 })();
@@ -69,7 +71,9 @@ window.hydrateCovers = function(root){
   const pairs = [], logos = [];
   Array.from(scope.querySelectorAll('img[data-cover-id]')).forEach(img => {
     const c = getClinicById(img.getAttribute('data-cover-id'));
-    if(c && c.approvedImages && c.approvedImages.length) pairs.push([img, c.approvedImages[0]]);
+    // naslovna slika (kind cover) ima prednost; bez nje prva odobrena fotografija; bez i nje ostaje opšta slika
+    if(c && c.coverPath) pairs.push([img, c.coverPath]);
+    else if(c && c.approvedImages && c.approvedImages.length) pairs.push([img, c.approvedImages[0]]);
   });
   // logo ordinacije: u okviru gde su inicijali (isti okvir, ista veličina); inicijali ostaju dok slika ne stigne i kao rezerva
   Array.from(scope.querySelectorAll('[data-logo-id]')).forEach(node => {

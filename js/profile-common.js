@@ -124,16 +124,18 @@ const PF = (function(){
     });
   }
 
-  // Odobreni logoi: {clinic_id: putanja}. RLS vraća samo aktivne profile. Bez kolone kind (pre migracije 70) = nema logoa.
-  function fetchLogos(signal){
-    return get('/rest/v1/clinic_images?select=clinic_id,storage_path&kind=eq.logo&status=eq.approved&limit=2000', signal).then(rows => {
-      const map = {};
+  // Odobreni logoi i naslovne slike: {logos:{clinic_id: putanja}, covers:{clinic_id: putanja}}. RLS vraća samo aktivne profile.
+  // Bez kolone kind (pre migracije 70) = nema ni jednih ni drugih.
+  function fetchBrand(signal){
+    return get('/rest/v1/clinic_images?select=clinic_id,storage_path,kind&kind=in.(logo,cover)&status=eq.approved&limit=3000', signal).then(rows => {
+      const out = {logos:{}, covers:{}};
       (Array.isArray(rows) ? rows : []).forEach(r => {
-        if(typeof r.clinic_id === 'string' && typeof r.storage_path === 'string' &&
-           /^[A-Za-z0-9._-]+\/logo-[A-Za-z0-9._-]+\.(jpe?g|png|webp)$/.test(r.storage_path)) map[r.clinic_id] = r.storage_path;
+        if(typeof r.clinic_id !== 'string' || typeof r.storage_path !== 'string') return;
+        if(r.kind === 'logo' && /^[A-Za-z0-9._-]+\/logo-[A-Za-z0-9._-]+\.(jpe?g|png|webp)$/.test(r.storage_path)) out.logos[r.clinic_id] = r.storage_path;
+        else if(r.kind === 'cover' && /^[A-Za-z0-9._-]+\/cover-[A-Za-z0-9._-]+\.(jpe?g|png|webp)$/.test(r.storage_path)) out.covers[r.clinic_id] = r.storage_path;
       });
-      return map;
-    }).catch(() => ({}));
+      return out;
+    }).catch(() => ({logos:{}, covers:{}}));
   }
 
   // Potpisani URL-ovi (privatan bucket); keš u memoriji dok ne isteknu.
@@ -191,5 +193,5 @@ const PF = (function(){
     } catch(e){ return Promise.resolve(false); }
   }
 
-  return {PRICE_CATEGORIES, configured, claimState, myVerifiedClaim, normalizePhone, cleanProfile, fetchProfiles, fetchImages, fetchLogos, signUrls, withTimeout, HOURS_KEYS, SOCIAL_KEYS};
+  return {PRICE_CATEGORIES, configured, claimState, myVerifiedClaim, normalizePhone, cleanProfile, fetchProfiles, fetchImages, fetchBrand, signUrls, withTimeout, HOURS_KEYS, SOCIAL_KEYS};
 })();

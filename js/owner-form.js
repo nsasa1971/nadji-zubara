@@ -11,7 +11,7 @@
   const MAX_IMAGES = 8, MAX_BYTES = 5 * 1024 * 1024;
   const DAYS = [['mon','Ponedeljak'],['tue','Utorak'],['wed','Sreda'],['thu','Četvrtak'],['fri','Petak'],['sat','Subota'],['sun','Nedelja']];
   const SOCIALS = [['facebook','Facebook'],['instagram','Instagram'],['linkedin','LinkedIn'],['tiktok','TikTok'],['youtube','YouTube']];
-  const FIELD_LABEL = {name:'Naziv', address:'Adresa', team:'Tim', images:'Slike', logo:'Logo'};
+  const FIELD_LABEL = {name:'Naziv', address:'Adresa', team:'Tim', images:'Slike', logo:'Logo', cover:'Naslovna slika'};
   const STATUS_LABEL = {pending:['Čeka odobrenje','chip-pending'], approved:['Odobreno','chip-open'], rejected:['Odbijeno','chip-closed']};
   const IMG_TYPES = {'image/jpeg':'.jpg','image/png':'.png','image/webp':'.webp'};
 
@@ -19,6 +19,7 @@
     image_limit:'Najviše 8 slika po ordinaciji (računaju se i one koje čekaju odobrenje).',
     change_limit_24h:'Poslali ste previše izmena u poslednja 24 sata. Pokušajte kasnije.',
     clinic_images_one_pending_logo:'Logo već čeka odobrenje. Uklonite ga ili sačekajte odluku.',
+    clinic_images_one_pending_cover:'Naslovna slika već čeka odobrenje. Uklonite je ili sačekajte odluku.',
     not_owner:'Nemate pravo na ovu ordinaciju.'
   };
   function errorText(error){
@@ -98,7 +99,7 @@
   }
 
   let hashDone = false;
-  let state = {profile:null, changes:[], images:[], logos:[], urls:{}, profileState:'active'};
+  let state = {profile:null, changes:[], images:[], logos:[], covers:[], urls:{}, profileState:'active'};
 
   async function loadAll(){
     let imgQuery = sb.from('clinic_images').select('id, storage_path, status, created_at, kind').eq('clinic_id', clinicId).order('created_at', {ascending:true});
@@ -115,12 +116,13 @@
     if(p.error || ch.error || im.error) throw new Error('load');
     state.profile = p.data; state.changes = ch.data || [];
     const all = im.data || [];
-    state.images = all.filter(i => i.kind !== 'logo');
+    state.images = all.filter(i => i.kind !== 'logo' && i.kind !== 'cover');
     state.logos = all.filter(i => i.kind === 'logo');
+    state.covers = all.filter(i => i.kind === 'cover');
     state.profileState = st;   // 'active' | 'expired' | 'none'
     state.urls = {};
     const paths = state.images.filter(i => i.status !== 'rejected').map(i => i.storage_path)
-      .concat(state.logos.filter(i => i.status === 'pending' || i.status === 'approved').map(i => i.storage_path));
+      .concat(state.logos.concat(state.covers).filter(i => i.status === 'pending' || i.status === 'approved').map(i => i.storage_path));
     if(paths.length){
       const { data } = await sb.storage.from(BUCKET).createSignedUrls(paths, 3600);
       (data || []).forEach(d => { if(d && d.signedUrl) state.urls[d.path] = d.signedUrl; });
@@ -426,6 +428,7 @@
     if(c.field === 'team') return (c.new_value || []).map(m => m.name + (m.role ? ' (' + m.role + ')' : '')).join(', ');
     if(c.field === 'images') return ((c.new_value && c.new_value.paths) || []).length + ' slika';
     if(c.field === 'logo') return 'novi logo';
+    if(c.field === 'cover') return 'nova naslovna slika';
     return String(c.new_value);
   }
 
@@ -540,13 +543,30 @@
   }
 
 
-  /* ------------------------------------------------------------- logo */
-  const LOGO_MAX_PX = 512, LOGO_TARGET_BYTES = 100 * 1024;
-  // PNG/JPG/WebP -> najviše 512x512 (bez rastezanja), WebP ~85% (ili JPEG ako pregledač ne zna WebP); pokušava manji kvalitet dok je > 100 KB
-  async function prepareLogo(file){
+  /* ------------------------------------------------- logo i naslovna slika */
+  // isti tok za oba (red u clinic_images sa kind, fajl u bucket, zahtev pending_changes sa field = kind; odobrava admin)
+  const BRAND = {
+    logo: {
+      kind:'logo', title:'Logo ordinacije', maxW:512, maxH:512, target:100 * 1024, minW:0, list:'logos',
+      note:'PNG, JPG ili WebP, do 5 MB. Slika se smanjuje na najviše 512×512 px. Logo se objavljuje tek posle odobrenja, a do tada se javno vidi prethodno stanje (inicijali ili raniji logo).',
+      pick:['Otpremi logo', 'Zameni logo'], remove:'Ukloni logo', confirmRemove:'Ukloniti logo? Sajt će ponovo prikazivati inicijale.',
+      sent:'Logo je poslat na odobrenje.', removed:'Logo je uklonjen.', expired:'Logo je deo paketa Profil+. Vaš Profil+ je istekao, pa se logo ne prikazuje javno.',
+      keep:'Javno je i dalje vidljiv raniji (odobreni) logo.', none:'Nema logoa', rpc:'owner_remove_logo'
+    },
+    cover: {
+      kind:'cover', title:'Naslovna slika', maxW:1600, maxH:900, target:350 * 1024, minW:800, list:'covers',
+      note:'PNG, JPG ili WebP, do 5 MB, najmanje 800 px širine (preporuka 1600×600 px). Važno ostavite u sredini slike: na kartici i u zaglavlju stranice slika se kadrira po sredini. Slika se smanjuje na najviše 1600 px širine. Objavljuje se tek posle odobrenja, a do tada se javno vidi prethodno stanje (opšta ili raniji naslovna slika).',
+      pick:['Otpremi naslovnu sliku', 'Zameni naslovnu sliku'], remove:'Ukloni naslovnu sliku', confirmRemove:'Ukloniti naslovnu sliku? Sajt će ponovo prikazivati opštu sliku.',
+      sent:'Naslovna slika je poslata na odobrenje.', removed:'Naslovna slika je uklonjena.', expired:'Naslovna slika je deo paketa Profil+. Vaš Profil+ je istekao, pa se naslovna slika ne prikazuje javno.',
+      keep:'Javno je i dalje vidljiva ranija (odobrena) naslovna slika.', none:'Nema naslovne slike', rpc:'owner_remove_cover'
+    }
+  };
+
+  // PNG/JPG/WebP -> najviše maxW×maxH (bez rastezanja), WebP ~85% (ili JPEG ako pregledač ne zna WebP); smanjuje kvalitet dok je veće od cilja
+  async function prepareImage(file, cfg){
     if(file.size > MAX_BYTES) throw new Error('Fajl je veći od 5 MB. Izaberite manju sliku.');
     const kind = imageKind(new Uint8Array(await file.slice(0, 16).arrayBuffer()));
-    if(!kind || !IMG_TYPES[kind]) throw new Error('Logo mora biti PNG, JPG ili WebP slika.');
+    if(!kind || !IMG_TYPES[kind]) throw new Error((cfg.kind === 'logo' ? 'Logo' : 'Naslovna slika') + ' mora biti PNG, JPG ili WebP slika.');
     let bmp;
     try{ bmp = await createImageBitmap(file); }
     catch(e){
@@ -555,7 +575,8 @@
     }
     const w0 = bmp.width || bmp.naturalWidth, h0 = bmp.height || bmp.naturalHeight;
     if(!w0 || !h0) throw new Error('Slika se ne može otvoriti. Izaberite drugu.');
-    const k = Math.min(1, LOGO_MAX_PX / Math.max(w0, h0));
+    if(cfg.minW && w0 < cfg.minW) throw new Error('Slika je premala: najmanje ' + cfg.minW + ' px širine (vaša je ' + w0 + ' px).');
+    const k = Math.min(1, cfg.maxW / w0, cfg.maxH / h0);
     const w = Math.max(1, Math.round(w0 * k)), h = Math.max(1, Math.round(h0 * k));
     const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
     const ctx = cv.getContext('2d');
@@ -566,12 +587,12 @@
       blob = await toBlob('image/webp', q);
       if(blob && blob.type !== 'image/webp') blob = null;     // pregledač ne zna WebP
       if(!blob) break;
-      if(blob.size <= LOGO_TARGET_BYTES) break;
+      if(blob.size <= cfg.target) break;
     }
-    if(!blob){   // JPEG nema providnost: beli podloga
+    if(!blob){   // JPEG nema providnost: bela podloga
       type = 'image/jpeg';
       ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h); ctx.drawImage(bmp, 0, 0, w, h);
-      for(const q of [0.85, 0.75, 0.62, 0.5]){ blob = await toBlob('image/jpeg', q); if(blob && blob.size <= LOGO_TARGET_BYTES) break; }
+      for(const q of [0.85, 0.75, 0.62, 0.5]){ blob = await toBlob('image/jpeg', q); if(blob && blob.size <= cfg.target) break; }
     }
     if(!blob || blob.size > MAX_BYTES) throw new Error('Slika se ne može obraditi. Izaberite drugu.');
     return {blob, type, w, h};
@@ -582,29 +603,32 @@
     return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error('Pregled nije dostupan.')); r.readAsDataURL(blob); });
   }
 
-  function logoFrame(url, cls){
-    const f = el('div', {class:'logo-frame' + (cls ? ' ' + cls : '')});
-    if(url){ const im = el('img', {alt:'Pregled logoa', width:cls === 'sm' ? '44' : '96', height:cls === 'sm' ? '44' : '96'}); im.src = url; f.appendChild(im); }
-    else f.textContent = 'Nema logoa';
+  // okvir: logo = kvadrat (contain), naslovna = široki okvir (cover, kadrira se po sredini) kao na kartici ili u zaglavlju
+  function brandFrame(cfg, url, cls){
+    const cover = cfg.kind === 'cover';
+    const f = el('div', {class: (cover ? 'cover-frame' : 'logo-frame') + (cls ? ' ' + cls : '')});
+    if(url){ const im = el('img', {alt:'Pregled', width: cover ? '300' : (cls === 'sm' ? '44' : '96'), height: cover ? '110' : (cls === 'sm' ? '44' : '96')}); im.src = url; f.appendChild(im); }
+    else f.textContent = cfg.none;
     return f;
   }
 
-  function buildLogo(){
+  function buildBrand(cfg){
     if(state.profileState === 'expired'){
-      return card('Logo ordinacije', [
-        el('p', {class:'of-note'}, 'Logo je deo paketa Profil+. Vaš Profil+ je istekao, pa se logo ne prikazuje javno.'),
+      return card(cfg.title, [
+        el('p', {class:'of-note'}, cfg.expired),
         el('a', {class:'btn btn-primary', href:'cenovnik.html'}, 'Pogledajte paket Profil+')
       ]);
     }
-    const approved = state.logos.find(l => l.status === 'approved');
-    const pending = state.logos.find(l => l.status === 'pending');
-    const lastRej = state.changes.find(c => c.field === 'logo' && c.status === 'rejected');
+    const rows = state[cfg.list];
+    const approved = rows.find(l => l.status === 'approved');
+    const pending = rows.find(l => l.status === 'pending');
+    const lastRej = state.changes.find(c => c.field === cfg.kind && c.status === 'rejected');
     const showRej = !pending && lastRej && (!approved || new Date(lastRej.created_at) > new Date(approved.created_at));
     const shown = pending || approved;
     const msg = el('p', {role:'status', class:'of-msg'});
-    if(state.flash && state.flash.logo){ showMsg(msg, state.flash.text, state.flash.ok); state.flash = null; }
-    const file = el('input', {type:'file', accept:'image/png,image/jpeg,image/webp', 'aria-label':'Izaberite logo', tabindex:'-1'});
-    const pick = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, shown ? 'Zameni logo' : 'Otpremi logo');
+    if(state.flash && state.flash.kind === cfg.kind){ showMsg(msg, state.flash.text, state.flash.ok); state.flash = null; }
+    const file = el('input', {type:'file', accept:'image/png,image/jpeg,image/webp', 'aria-label':'Izaberite sliku: ' + cfg.title, 'data-brand':cfg.kind, tabindex:'-1'});
+    const pick = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, shown ? cfg.pick[1] : cfg.pick[0]);
     pick.addEventListener('click', () => file.click());
     const previewBox = el('div', {class:'logo-row', hidden:''});
     const actions = el('div', {class:'logo-actions'}, [pick, file]);
@@ -614,7 +638,7 @@
       const f = file.files && file.files[0]; file.value = '';
       if(!f) return;
       showMsg(msg, 'Obrada slike…', true);
-      try{ prepared = await prepareLogo(f); }
+      try{ prepared = await prepareImage(f, cfg); }
       catch(e){ prepared = null; previewBox.hidden = true; showMsg(msg, e.message || 'Slika se ne može obraditi.', false); return; }
       let url;
       try{ url = await toDataUrl(prepared.blob); } catch(e){ showMsg(msg, 'Pregled nije dostupan. Pokušajte ponovo.', false); return; }
@@ -624,63 +648,63 @@
       cancel.addEventListener('click', () => { prepared = null; previewBox.hidden = true; showMsg(msg, '', true); });
       send.addEventListener('click', async () => {
         send.disabled = true; cancel.disabled = true; showMsg(msg, 'Slanje…', true);
-        const err = await submitLogo(prepared);
+        const err = await submitBrand(cfg, prepared);
         if(err){ send.disabled = false; cancel.disabled = false; showMsg(msg, err, false); return; }
-        state.flash = {text:'Logo je poslat na odobrenje.', ok:true, logo:true};
+        state.flash = {text:cfg.sent, ok:true, kind:cfg.kind};
         refresh();
       });
-      previewBox.appendChild(logoFrame(url));
-      previewBox.appendChild(el('div', {class:'logo-meta'}, [
+      const metaKids = [
         el('strong', {}, 'Pregled pre slanja'),
         el('span', {class:'hint'}, prepared.w + '×' + prepared.h + ' px, ' + Math.max(1, Math.round(prepared.blob.size / 1024)) + ' KB'),
-        el('span', {class:'hint'}, 'Ovako izgleda na kartici:'), logoFrame(url, 'sm'),
-        el('div', {class:'logo-actions'}, [send, cancel])
-      ]));
+        el('span', {class:'hint'}, 'Ovako izgleda na kartici:'), brandFrame(cfg, url, cfg.kind === 'logo' ? 'sm' : 'card')
+      ];
+      if(cfg.kind === 'cover') metaKids.push(el('span', {class:'hint'}, 'Ovako izgleda u zaglavlju stranice:'), brandFrame(cfg, url, 'head'));
+      metaKids.push(el('div', {class:'logo-actions'}, [send, cancel]));
+      if(cfg.kind === 'logo') previewBox.appendChild(brandFrame(cfg, url));
+      previewBox.appendChild(el('div', {class:'logo-meta'}, metaKids));
       previewBox.hidden = false;
       showMsg(msg, '', true);
     });
 
-    const kids = [
-      el('p', {class:'of-note'}, 'PNG, JPG ili WebP, do 5 MB. Slika se smanjuje na najviše 512×512 px. Logo se objavljuje tek posle odobrenja, a do tada se javno vidi prethodno stanje (inicijali ili raniji logo).')
-    ];
+    const kids = [el('p', {class:'of-note'}, cfg.note)];
     const [lbl, cls] = pending ? STATUS_LABEL.pending : (approved ? STATUS_LABEL.approved : (showRej ? STATUS_LABEL.rejected : [null, null]));
     kids.push(el('div', {class:'logo-row'}, [
-      logoFrame(shown ? state.urls[shown.storage_path] : null),
+      brandFrame(cfg, shown ? state.urls[shown.storage_path] : null, cfg.kind === 'cover' ? 'card' : ''),
       el('div', {class:'logo-meta'}, (lbl ? [el('span', {class:'chip ' + cls}, lbl)] : [])
-        .concat(pending && approved ? [el('span', {class:'hint'}, 'Javno je i dalje vidljiv raniji (odobreni) logo.')] : [])
+        .concat(pending && approved ? [el('span', {class:'hint'}, cfg.keep)] : [])
         .concat(showRej && lastRej.review_note ? [el('span', {class:'hint'}, 'Razlog: ' + lastRej.review_note)] : []))
     ]));
     if(shown){
-      const rm = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, 'Ukloni logo');
+      const rm = el('button', {type:'button', class:'btn btn-outline-navy btn-sm'}, cfg.remove);
       rm.addEventListener('click', async () => {
-        if(!window.confirm('Ukloniti logo? Sajt će ponovo prikazivati inicijale.')) return;
+        if(!window.confirm(cfg.confirmRemove)) return;
         rm.disabled = true;
-        const { data, error } = await sb.rpc('owner_remove_logo', {p_clinic_id: clinicId});
+        const { data, error } = await sb.rpc(cfg.rpc, {p_clinic_id: clinicId});
         if(error){ rm.disabled = false; showMsg(msg, errorText(error), false); return; }
         if(Array.isArray(data) && data.length) await sb.storage.from(BUCKET).remove(data);
-        state.flash = {text:'Logo je uklonjen.', ok:true, logo:true};
+        state.flash = {text:cfg.removed, ok:true, kind:cfg.kind};
         refresh();
       });
       actions.appendChild(rm);
     }
     kids.push(actions, previewBox, msg);
-    return card('Logo ordinacije', kids);
+    return card(cfg.title, kids);
   }
 
-  // 1) obriši raniji logo na čekanju, 2) red u clinic_images, 3) fajl u bucket, 4) zahtev za odobrenje; greška = vraća nazad
-  async function submitLogo(prep){
-    const pending = state.logos.find(l => l.status === 'pending');
+  // 1) obriši raniju sliku na čekanju, 2) red u clinic_images, 3) fajl u bucket, 4) zahtev za odobrenje; greška = vraća nazad
+  async function submitBrand(cfg, prep){
+    const pending = state[cfg.list].find(l => l.status === 'pending');
     if(pending){
       await sb.storage.from(BUCKET).remove([pending.storage_path]);
       const d = await sb.from('clinic_images').delete().eq('id', pending.id);
       if(d.error) return errorText(d.error);
     }
-    const path = clinicId + '/logo-' + crypto.randomUUID() + IMG_TYPES[prep.type];
-    const ins = await sb.from('clinic_images').insert({clinic_id: clinicId, storage_path: path, kind: 'logo'});
+    const path = clinicId + '/' + cfg.kind + '-' + crypto.randomUUID() + IMG_TYPES[prep.type];
+    const ins = await sb.from('clinic_images').insert({clinic_id: clinicId, storage_path: path, kind: cfg.kind});
     if(ins.error) return errorText(ins.error);
     const up = await sb.storage.from(BUCKET).upload(path, prep.blob, {contentType: prep.type, upsert:false});
-    if(up.error){ await sb.from('clinic_images').delete().eq('storage_path', path); return 'Otpremanje logoa nije uspelo. Pokušajte ponovo.'; }
-    const ch = await sb.from('pending_changes').insert({clinic_id: clinicId, field:'logo', new_value:{path}});
+    if(up.error){ await sb.from('clinic_images').delete().eq('storage_path', path); return 'Otpremanje slike nije uspelo. Pokušajte ponovo.'; }
+    const ch = await sb.from('pending_changes').insert({clinic_id: clinicId, field: cfg.kind, new_value:{path}});
     if(ch.error){
       await sb.storage.from(BUCKET).remove([path]);
       await sb.from('clinic_images').delete().eq('storage_path', path);
@@ -724,7 +748,8 @@
     app.appendChild(buildTextChange('name', 'Naziv', curName, 150, 2));
     app.appendChild(buildTextChange('address', 'Adresa', curAddr, 200, 3));
     app.appendChild(buildTeam());
-    app.appendChild(buildLogo());
+    app.appendChild(buildBrand(BRAND.logo));
+    app.appendChild(buildBrand(BRAND.cover));
     app.appendChild(buildImages());
     const h = buildHistory(); if(h) app.appendChild(h);
     if(!hashDone && location.hash === '#cenovnik'){ hashDone = true; const pc = document.getElementById('cenovnik'); if(pc) pc.scrollIntoView(); }
